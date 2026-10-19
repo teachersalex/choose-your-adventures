@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Choose Your Adventures · Teacher Alex</title>
+<style>
+:root{
+  color-scheme: light dark;
+  --bg:#f4f1ea; --card:#fffdf8; --ink:#1d1a16; --soft:#6b645a; --rule:#dcd5c8; --accent:#8a4b2a; --badge:#efe6d6; --shadow:rgba(40,30,15,.25);
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#15130f; --card:#1f1c17; --ink:#ece6da; --soft:#a79e90; --rule:#332e27; --accent:#e0a870; --badge:#2a251e; --shadow:rgba(0,0,0,.6); }
+}
+*{ box-sizing:border-box }
+body{ margin:0; background:var(--bg); color:var(--ink); font:17px/1.5 Georgia,"Times New Roman",serif }
+main{ max-width:1140px; margin:0 auto; padding:40px 20px 60px }
+h1{ font-weight:normal; font-size:2.4rem; margin:0 0 .2em; letter-spacing:.01em }
+.sub{ color:var(--soft); margin:0 0 1.5em }
+h2{ font-weight:normal; font-size:.95rem; color:var(--soft); text-transform:uppercase; letter-spacing:.14em; border-bottom:1px solid var(--rule); padding-bottom:.5em; margin:2.4em 0 1em }
+.grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:16px }
+a.card{ display:grid; grid-template-columns:118px 1fr; gap:16px; align-items:start; background:var(--card); border:1px solid var(--rule); border-radius:12px; padding:14px; color:inherit; text-decoration:none; transition:transform .12s,border-color .12s }
+a.card:hover,a.card:focus-visible{ transform:translateY(-2px); border-color:var(--accent); outline:none }
+.capa{ display:block; width:118px; aspect-ratio:2/3; object-fit:cover; border-radius:7px; background:var(--badge); box-shadow:0 2px 10px var(--shadow) }
+.txt{ min-width:0; display:flex; flex-direction:column; min-height:177px }
+.card h3{ margin:0 0 .1em; font-size:1.25rem; font-weight:normal; line-height:1.2 }
+.card .serie{ color:var(--soft); margin:0 0 .55em; font-style:italic; font-size:.95rem }
+.card .meta{ display:flex; flex-wrap:wrap; gap:5px 8px; font:12.5px/1.3 ui-sans-serif,system-ui,sans-serif; color:var(--soft); margin:0 0 .6em }
+.badge{ background:var(--badge); border-radius:999px; padding:3px 9px; color:var(--ink) }
+.card p.visual{ margin:0; font-size:.9rem; line-height:1.4; color:var(--soft); flex:1 }
+.card .abrir{ display:block; margin-top:.8em; color:var(--accent); font:12.5px ui-sans-serif,system-ui,sans-serif; letter-spacing:.08em; text-transform:uppercase }
+footer{ margin-top:3em; color:var(--soft); font-size:.9rem; border-top:1px solid var(--rule); padding-top:1em }
+footer p{ margin:.3em 0 }
+@media (max-width:460px){
+  a.card{ grid-template-columns:96px 1fr; gap:12px }
+  .capa{ width:96px }
+  .txt{ min-height:144px }
+  .card p.visual{ display:none }
+}
+</style>
+</head>
+<body>
+<main>
+<h1>Choose Your Adventures</h1>
+<p class="sub">Teacher Alex · 14 histórias de escolhas. Clique para abrir. O progresso e os finais encontrados ficam no navegador.</p>
+
+<div class="grid">
+
+<a class="card" href="aventuras/dont-read.html">
+  <img class="capa" src="capas/dont-read.jpg" alt="" loading="lazy">
+  <div class="txt">
+  <h3>Don't Read</h3>
+  <p class="serie">Ordem Paranormal</p>
+  <p class="meta"><span class="badge">A2</span><span>12 partes</span><span>3 finais · 1 bom</span></p>
+  <p class="visual">Uma biblioteca e palavras que não se deve ler.</p>
+  <span class="abrir">Abrir →</span>
+  </div>
+</a>
+
+<a class="card" href="aventuras/dont-stay.html">
+  <img class="capa" src="capas/dont-stay.jpg" alt="" loading="lazy">
+  <div class="txt">
+  <h3>Don't Stay</h3>
+  <p class="serie">Interstellar</p>
+  <p class="meta"><span class="badge">A2</span><span>12 partes</span><span>3 finais · 1 bom</span></p>
+  <p class="visual">Campo de estrelas ao fundo, que acelera enquanto você está no planeta.</p>
+  <span class="abrir">Abrir →</span>
+  </div>
+</a>
+
+<a class="card" href="aventuras/dont-sign.html">
+  <img class="capa" src="capas/dont-sign.jpg" alt="" loading="lazy">
+  <div class="txt">
+  <h3>Don't Sign</h3>
+  <p class="serie">Hale &amp; Price · thriller jurídico original</p>
+  <p class="meta"><span class="badge">A2+</span><span>14 partes</span><span>3 finais · 1 bom</span><span>+ 1 bônus</span></p>
+  <p class="visual">Bloco amarelo de advogado; cláusulas e cartas aparecem como folhas datilografadas.</p>
+  <span class="abrir">Abrir →</span>
+  </div>
+</a>
+
+<a class="card" href="aventuras/dont-invite.html">
+  <img class="capa" src="capas/dont-invite.jpg" alt="" loading="lazy">
+  <div class="txt">
+  <h3>Don't Invite Him In</h3>
+  <p class="serie">The Vampire Diaries</p>
+  <p class="meta"><span class="badge">A2</span><span>12 partes</span><span>3 finais · 1 bom</span></p>
+  <p class="visual">Mystic Falls à noite: névoa baixa e corvos que aumentam com o perigo.</p>
+  <span class="abrir">Abrir →</span>
+  </div>
+</a>
+
+<a class="card" href="aventuras/the-message.html">
+  <img class="capa" src="capas/the-message.jpg" alt="" loading="lazy">
+  <div class="txt">
+  <h3>The Message</h3>
+  <p class="serie">História original · véspera de um casamento</p>
+  <p class="meta"><span class="badge">sem nível marcado</span><span>7 partes</span><span>4 finais · 3 bons</span></p>
+  <p class="visual">Bolhas de chat ao fundo, que se multiplicam conforme o segredo cresce.</p>
+  <span class="abrir">Abrir →</span>
+  </div>
+</a>
+
+<a class="card" href="aventuras/dont-tell.html">
+  <img class="capa" src="capas/dont-tell.jpg" alt="" loading="lazy">
+  <div class="txt">
+  <h3>Don't Tell Him Your Name</h3>
+  <p class="serie">Hogwarts</p>
+  <p class="meta"><span class="badge">A2</span><span>16 partes</span><span>6 finais · 2 bons</span></p>
+  <p class="visual">Castelo, com imagem de abertura e fontes embutidas: funciona sem internet.</p>
+  <span class="abrir">Abrir →</span>
+  </div>
+</a>
+
+<a class="card" href="aventuras/dont-tell-anyone.html">
+  <img class="capa" src="capas/dont-tell-anyone.jpg" alt="" loading="lazy">
+  <div class="txt">
+  <h3>Don't Tell Anyone</h3>
+  <p class="serie">Divergente</p>
+  <p class="meta"><span class="badge">A2</span><span>15 partes</span><span>4 finais · 1 bom</span><span>+ 1 bônus</span></p>
+  <p class="visual">Telhado de Chicago à noite; brasas dos Audazes sobem atrás do texto.</p>
+  <span class="abrir">Abrir →</span>
+  </div>
+</a>
+
+<a class="card" href="aventuras/dont-lose.html">
+  <img class="capa" src="capas/dont-lose.jpg" alt="" loading="lazy">
+  <div class="txt">
+  <h3>Don't Lose Anyone</h3>
+  <p class="serie">História original · um dia como guia em Portugal</p>
+  <p class="meta"><span class="badge">A2</span><span>13 partes</span><span>6 finais · 4 bons</span></p>
+  <p class="visual">Azulejo, gaivotas e o Atlântico no pé da tela.</p>
+  <span class="abrir">Abrir →</span>
+  </div>
+</a>
+
+<a class="card" href="aventuras/dont-lie.html">
+  <img class="capa" src="capas/dont-lie.jpg" alt="" loading="lazy">
+  <div class="txt">
+  <h3>Don't Lie</h3>
+  <p class="serie">Suits</p>
+  <p class="meta"><span class="badge">A1 → A2</span><span>10 partes</span><span>4 finais · 1 bom</span></p>
+  <p class="visual">Manhattan vista de um escritório de vidro; as janelas acendem e apagam com a história.</p>
+  <span class="abrir">Abrir →</span>
+  </div>
+</a>
+
+<a class="card" href="aventuras/vanessa-always-wins.html">
+  <img class="capa" src="capas/vanessa-always-wins.jpg" alt="" loading="lazy">
+  <div class="txt">
+  <h3>Vanessa Always Wins</h3>
+  <p class="serie">História original · um chá de bebê em Albuquerque</p>
+  <p class="meta"><span class="badge">sem nível marcado</span><span>9 partes</span><span>5 finais · 2 bons</span></p>
+  <p class="visual">Abre como convite de festa; balões pastel ao fundo.</p>
+  <span class="abrir">Abrir →</span>
+  </div>
+</a>
+
+<a class="card" href="aventuras/salt-and-sugar.html">
+  <img class="capa" src="capas/salt-and-sugar.jpg" alt="" loading="lazy">
+  <div class="txt">
+  <h3>Salt and Sugar</h3>
+  <p class="serie">História original · Nina e a confeitaria</p>
+  <p class="meta"><span class="badge">A2</span><span>7 capítulos</span><span>4 finais · 3 bons</span></p>
+  <p class="visual">Branco e rosa, fonte ajustável e tipografia embutida: funciona sem internet.</p>
+  <span class="abrir">Abrir →</span>
+  </div>
+</a>
+
+
+<a class="card" href="aventuras/dont-write.html">
+  <img class="capa" src="capas/dont-write.jpg" alt="" loading="lazy">
+  <div class="txt">
+  <h3>Don't Write Your Name</h3>
+  <p class="serie">Princesas da Disney · o livro misturado</p>
+  <p class="meta"><span class="badge">A2</span><span>17 partes</span><span>6 finais · 3 bons</span></p>
+  <p class="visual">Meia-noite; o livro velho de princesas está aberto no chão e você não o abriu.</p>
+  <span class="abrir">Abrir →</span>
+  </div>
+</a>
+
+<a class="card" href="aventuras/dont-close.html">
+  <img class="capa" src="capas/dont-close.jpg" alt="" loading="lazy">
+  <div class="txt">
+  <h3>Don't Close the Book</h3>
+  <p class="serie">Princesas da Disney · elas acordaram na sua cama</p>
+  <p class="meta"><span class="badge">A2</span><span>17 partes</span><span>6 finais · 3 bons</span></p>
+  <p class="visual">Mesmo livro de princesas, ex-libris na abertura. Comédia de sábado de manhã.</p>
+  <span class="abrir">Abrir →</span>
+  </div>
+</a>
+
+<a class="card" href="aventuras/dont-go-out.html">
+  <img class="capa" src="capas/dont-go-out.jpg" alt="" loading="lazy">
+  <div class="txt">
+  <h3>Don't Go Out at Night</h3>
+  <p class="serie">Hogwarts · os três primeiros filmes</p>
+  <p class="meta"><span class="badge">A2</span><span>13 partes</span><span>6 finais · 4 bons</span></p>
+  <p class="visual">Sala comunal à noite, velas flutuantes e pergaminho lacrado.</p>
+  <span class="abrir">Abrir →</span>
+  </div>
+</a>
+
+</div>
+
+<footer>
+  <p>Teacher Alex · Choose Your Adventures. Histórias em inglês com escolhas, do A1 ao A2+. Leia cada parte e escolha 1 ou 2; os finais encontrados ficam guardados neste navegador.</p>
+</footer>
+</main>
+</body>
+</html>

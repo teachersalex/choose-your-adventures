@@ -1,0 +1,851 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Don't Go Out at Night</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+DW+Pica:ital@0;1&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column in a castle common room at night. The opening is a parchment notice
+   sealed with red wax; documents inside the story (rules, letters, cards) are the same parchment.
+   Floating candles drift behind the text, dimmer behind the column. Dark theme (default): soot and
+   firelight, scarlet and old gold. Light theme: grey castle stone in daylight, scarlet ink.
+   Moods: (none) = candles + a few sparks (intensity = how many); forest = no candles, fireflies;
+   letters = envelopes fall + gold accent; win = gold sparks burst + gold accent;
+   cold = the candles go out, frost falls, grey accent; blank = everything fades, grey accent. */
+:root{
+  color-scheme: dark;
+  --ground:#160f0d;
+  --ink:#f1e7d8;
+  --ink-soft:#b5a28f;
+  --line:#3a2a22;
+  --panel:#201713;
+  --panel-hover:#2a1e18;
+  --accent:#e0705a;
+  --accent-ink:#ec8a72;
+  --on-accent:#2a0b05;
+  --page:#efe2c8;
+  --page-ink:#33190f;
+  --page-soft:#7a5c44;
+  --seal:#a8321f;
+  --seal-hi:#d4553c;
+  --shadow:rgba(0,0,0,.65);
+  --candle:#f2e2bf;
+  --flame:#f5a945;
+  --spark:#e9b65c;
+  --firefly:#d3df82;
+  --frost:#a9bcc8;
+  --bk:.55;
+  --win:#e8c56a;
+  --focus:#ec8a72;
+  --display:"IM Fell DW Pica","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --body:"Literata",Georgia,"Times New Roman",serif;
+  --mono:"DM Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --fs-body:clamp(1.15rem, .95rem + 1vw, 1.7rem);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    color-scheme: light;
+    --ground:#e7e3dc;
+    --ink:#2a1a14;
+    --ink-soft:#64524a;
+    --line:#cfc6ba;
+    --panel:#f5f2ed;
+    --panel-hover:#ece5da;
+    --accent:#9b2a1b;
+    --accent-ink:#8a2215;
+    --on-accent:#ffffff;
+    --page:#fbf3df;
+    --page-ink:#33190f;
+    --page-soft:#7a5c44;
+    --seal:#a8321f;
+    --seal-hi:#d4553c;
+    --shadow:rgba(60,40,25,.32);
+    --candle:#d9c49a;
+    --flame:#d9822c;
+    --spark:#b8862d;
+    --firefly:#7f8f2a;
+    --frost:#6e8796;
+    --bk:.42;
+    --win:#8a6414;
+    --focus:#8a2215;
+  }
+}
+:root[data-theme="light"]{
+  color-scheme: light;
+  --ground:#e7e3dc;
+  --ink:#2a1a14;
+  --ink-soft:#64524a;
+  --line:#cfc6ba;
+  --panel:#f5f2ed;
+  --panel-hover:#ece5da;
+  --accent:#9b2a1b;
+  --accent-ink:#8a2215;
+  --on-accent:#ffffff;
+  --page:#fbf3df;
+  --page-ink:#33190f;
+  --page-soft:#7a5c44;
+  --seal:#a8321f;
+  --seal-hi:#d4553c;
+  --shadow:rgba(60,40,25,.32);
+  --candle:#d9c49a;
+  --flame:#d9822c;
+  --spark:#b8862d;
+  --firefly:#7f8f2a;
+  --frost:#6e8796;
+  --bk:.42;
+  --win:#8a6414;
+  --focus:#8a2215;
+}
+:root[data-theme="dark"]{ color-scheme: dark; }
+
+body[data-mood="win"], body[data-mood="letters"]{ --accent:var(--win); --accent-ink:var(--win); --focus:var(--win); }
+body[data-mood="cold"], body[data-mood="blank"]{ --accent:var(--ink-soft); --accent-ink:var(--ink-soft); }
+
+[hidden]{ display:none !important; }
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--body);
+  -webkit-font-smoothing:antialiased;
+}
+body::before{ content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top, 0px); z-index:10; background:var(--ground); }
+#sky{ position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+
+.bar{
+  position:sticky; top:env(safe-area-inset-top,0px); z-index:3;
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px;
+  padding-block:10px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  background:color-mix(in srgb, var(--ground) 86%, transparent);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line);
+}
+.brand{ display:flex; flex-wrap:wrap; align-items:baseline; gap:.2em .8em; font-family:var(--mono); font-size:.74rem; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.brand b{ font-weight:500; color:var(--accent-ink); }
+.controls{ display:flex; gap:8px; }
+.ctl{
+  font-family:var(--mono); font-size:.78rem; color:var(--ink);
+  background:transparent; border:1px solid var(--line); border-radius:3px;
+  padding:.45em .9em; cursor:pointer;
+}
+.ctl:hover:not(:disabled){ border-color:var(--accent); }
+.ctl:disabled{ opacity:.4; cursor:default; }
+
+main{
+  position:relative; z-index:1;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:clamp(2.2rem, 1.6rem + 3vw, 4rem) 4rem;
+}
+.col{ max-width:34em; margin-inline:auto; font-size:var(--fs-body); }
+
+/* the notice, sealed with wax */
+.hero{
+  position:relative;
+  margin:0 0 2em; text-align:center;
+  background:var(--page); color:var(--page-ink);
+  border-radius:2px;
+  padding:1.7em 1.2em 1.4em;
+  box-shadow:0 1px 1px var(--shadow), 0 24px 40px -28px var(--shadow);
+}
+.hero::before{
+  content:""; position:absolute; top:-15px; left:50%; width:32px; height:32px; margin-left:-16px;
+  border-radius:50%;
+  background:radial-gradient(circle at 36% 34%, var(--seal-hi), var(--seal) 62%);
+  box-shadow:0 2px 3px var(--shadow);
+}
+.hero-kicker{ margin:0; font-family:var(--mono); font-size:clamp(.7rem,.66rem + .3vw,.88rem); letter-spacing:.22em; text-transform:uppercase; color:var(--seal); }
+.hero h1{
+  font-family:var(--display); font-weight:400;
+  font-size:clamp(2.6rem, 1.6rem + 5vw, 5.2rem); line-height:1.02;
+  margin:.2em 0 .3em; color:var(--page-ink);
+  text-wrap:balance;
+}
+.plate{
+  display:flex; align-items:baseline; justify-content:center; gap:.5em; flex-wrap:wrap;
+  margin:0 auto .9em; font-family:var(--display); font-style:italic; font-size:1.02em; color:var(--page-soft);
+}
+.plate .rule{ display:inline-block; width:8em; max-width:40vw; border-bottom:1px solid var(--page-soft); transform:translateY(-.2em); }
+.hero .lede{ margin:0 auto; color:var(--page-ink); line-height:1.55; max-width:26em; }
+.hero .lede strong{ font-weight:600; color:var(--seal); }
+
+.trail{
+  display:flex; flex-wrap:wrap; align-items:center; gap:.35em .5em;
+  margin:0 0 1.6em; font-family:var(--mono); font-size:clamp(.74rem,.7rem + .3vw,.92rem); color:var(--ink-soft);
+}
+.trail .lbl{ letter-spacing:.14em; text-transform:uppercase; margin-right:.3em; }
+.trail .step{ font-variant-numeric:tabular-nums; border:1px solid var(--line); border-radius:3px; padding:.05em .55em; }
+.trail .step.now{ border-color:var(--accent); color:var(--accent-ink); font-weight:500; }
+.trail .arr{ opacity:.6; }
+
+.eyebrow{ margin:0; font-family:var(--mono); font-size:clamp(.74rem,.7rem + .3vw,.92rem); letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.sec h2{
+  font-family:var(--display); font-weight:400;
+  font-size:clamp(2.2rem, 1.6rem + 2.6vw, 3.6rem); line-height:1.05;
+  margin:.12em 0 .6em; color:var(--accent-ink); text-wrap:balance;
+}
+.sec h2:focus, .sec h2:focus-visible{ outline:none; }
+
+.prose{ display:flex; flex-direction:column; gap:.85em; }
+.prose p{ margin:0; line-height:1.62; }
+
+/* a paper inside the story: Percy's rules, a letter, a card */
+.log{
+  align-self:center; width:100%; max-width:24em;
+  margin:.5em 0;
+  background:var(--page); color:var(--page-ink);
+  border-radius:2px;
+  padding:1.1em 1.35em 1.2em;
+  box-shadow:0 1px 1px var(--shadow), 0 18px 30px -20px var(--shadow);
+  display:flex; flex-direction:column; gap:.34em;
+  text-align:left;
+  font-family:var(--display);
+  transform:rotate(-.5deg);
+}
+.log-head{
+  margin:0 0 .35em !important; font-family:var(--mono); font-size:.66em; letter-spacing:.3em; text-transform:uppercase;
+  color:var(--page-soft);
+}
+.log-line{ margin:0 !important; line-height:1.36 !important; font-size:1.04em; }
+.log-line .t{ font-family:var(--mono); font-size:.68em; letter-spacing:.06em; color:var(--seal); margin-right:.45em; white-space:nowrap; }
+
+.choices{ margin-top:2em; display:flex; flex-direction:column; gap:.7em; }
+.ask{ margin:0 0 .15em; font-family:var(--mono); font-size:clamp(.74rem,.7rem + .3vw,.92rem); letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.choice{
+  display:flex; align-items:center; gap:.85em; width:100%;
+  font:inherit; text-align:left; color:var(--ink);
+  background:var(--panel); border:1px solid var(--line); border-radius:4px;
+  padding:.72em 1.2em .72em .8em; cursor:pointer;
+  transition:border-color .2s, background-color .2s, transform .2s;
+}
+.choice:hover{ border-color:var(--accent); background:var(--panel-hover); transform:translateX(3px); }
+.choice:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+.key{
+  flex:none; display:grid; place-items:center;
+  width:1.85em; height:1.85em; border-radius:50%;
+  font-family:var(--mono); font-weight:500; font-size:.82em;
+  color:var(--on-accent); background:var(--accent);
+}
+.ctext{ line-height:1.35; min-width:0; }
+.choice.unlocked{ border:1.5px dashed var(--accent); }
+.utag{ display:block; margin:0 0 .3em; font-family:var(--mono); font-size:.6em; letter-spacing:.2em; text-transform:uppercase; color:var(--accent-ink); }
+.keyhint{ display:none; margin:.4em 0 0; font-family:var(--mono); font-size:.7em; color:var(--ink-soft); }
+@media (hover:hover) and (pointer:fine){ .keyhint{ display:block; } }
+
+.stamp{
+  margin:1.4em 0 0 !important; padding:.55em 0 .5em;
+  font-family:var(--display); font-style:italic; font-weight:400;
+  font-size:clamp(2rem, 1.5rem + 2.4vw, 3.1rem); line-height:1 !important; letter-spacing:.06em;
+  color:var(--accent-ink); text-align:center;
+  border-top:1px solid var(--accent); border-bottom:1px solid var(--accent);
+  box-shadow:0 -4px 0 -3px var(--accent), 0 4px 0 -3px var(--accent);
+}
+.stamp-sub{ display:block; margin-top:.75em; font-family:var(--mono); font-style:normal; font-weight:400; font-size:.3em; letter-spacing:.3em; }
+
+.ending{ margin-top:2em; display:flex; flex-direction:column; gap:1.1em; }
+.kind{ margin:0; font-family:var(--mono); font-size:clamp(.74rem,.7rem + .3vw,.92rem); letter-spacing:.18em; text-transform:uppercase; }
+.kind-bad{ color:var(--ink-soft); }
+.kind-good, .kind-bonus{ color:var(--accent-ink); font-weight:500; }
+.found{ border-top:1px solid var(--line); padding-top:1em; }
+.found-label{ margin:0; font-family:var(--mono); font-size:clamp(.74rem,.7rem + .3vw,.92rem); color:var(--ink-soft); }
+.found-label b{ color:var(--ink); font-weight:500; font-variant-numeric:tabular-nums; }
+.slots{ list-style:none; margin:.7em 0 0; padding:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.6em; font-size:.8em; }
+.slot{ min-width:0; border:1px dashed var(--line); border-radius:4px; padding:.6em .75em; color:var(--ink-soft); display:flex; flex-direction:column; gap:.3em; }
+.slot .sk{ font-family:var(--mono); font-size:.7em; letter-spacing:.12em; text-transform:uppercase; }
+.slot .st{ font-family:var(--display); font-weight:400; font-size:1.12em; line-height:1.12; overflow-wrap:anywhere; }
+.slot.got{ border-style:solid; color:var(--ink); background:var(--panel); }
+.slot.got.good{ border-color:var(--win); }
+.slot.now{ box-shadow:inset 0 0 0 1px var(--accent); }
+@media (max-width:700px){ .slots{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:360px){ .slots{ grid-template-columns:1fr; } }
+
+.end-actions{ display:flex; flex-wrap:wrap; gap:.6em; }
+.btn{ font:inherit; font-size:.9em; border-radius:4px; padding:.6em 1.2em; cursor:pointer; border:1.5px solid var(--accent); }
+.btn-main{ background:var(--accent); color:var(--on-accent); font-weight:600; }
+.btn-main:hover{ filter:brightness(1.08); }
+.btn-ghost{ background:transparent; color:var(--ink); border-color:var(--line); }
+.btn-ghost:hover{ border-color:var(--accent); }
+.btn:focus-visible, .ctl:focus-visible, .linkbtn:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+
+.foot{ margin-top:4em; padding-top:1em; border-top:1px solid var(--line); display:flex; flex-wrap:wrap; justify-content:space-between; gap:.6em 1.2em; font-family:var(--mono); font-size:.74rem; color:var(--ink-soft); }
+.foot p{ margin:0; min-width:0; }
+.linkbtn{ font:inherit; color:var(--ink-soft); background:none; border:0; padding:0; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+.linkbtn:hover{ color:var(--ink); }
+
+.sec.enter{ animation:rise .45s ease-out both; }
+@keyframes rise{ from{ opacity:.01; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){
+  .sec.enter{ animation:none; }
+  .choice, .choice:hover{ transition:none; transform:none; }
+}
+</style>
+</head>
+<body>
+
+
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<header class="bar">
+  <div class="brand"><b>Hogwarts</b><span>Don’t Go Out at Night</span></div>
+  <nav class="controls" aria-label="Story controls">
+    <button class="ctl js-back" id="btn-back" type="button" disabled>&#8592; Back</button>
+    <button class="ctl js-restart" type="button">Start again</button>
+  </nav>
+</header>
+
+<main>
+  <div class="col" id="col">
+    <section class="hero" id="hero">
+      <p class="hero-kicker">Years One to Three · A choose-your-story adventure</p>
+      <h1>Don’t Go Out at Night</h1>
+      <p class="plate"><span>Student:</span><span class="rule" aria-hidden="true"></span></p>
+      <p class="lede">Three years at Hogwarts with the Weasleys, Hagrid and a big black dog. Read each part. At the end, choose <strong>1</strong> or <strong>2</strong>. Your choice changes <strong>everything</strong>. There are six endings. Find them all.</p>
+    </section>
+
+    <p class="trail" id="trail" aria-live="polite"><span class="lbl">Your path</span><span class="step now">1</span></p>
+
+<article class="sec" id="s1" data-n="1">
+<p class="eyebrow">Part 1</p>
+<h2 tabindex="-1">The Rules</h2>
+<div class="prose">
+<p>You are eleven, and your mum and dad are Muggles: they can’t do magic. In a small, dark pub in London, a very big man with a black beard finds you. “Hogwarts? First year? I’m Hagrid.” He taps the bricks of a wall with his pink umbrella, and the wall opens. Behind it, there’s Diagon Alley, full of owls, broomsticks and witches.</p>
+<p>At Hogwarts, you are in Gryffindor with Ron Weasley, his best friend Harry Potter, and Ron’s old rat, Scabbers. Scabbers sleeps all day. On the first night, Ron’s big brother Percy gives every first-year a paper:</p>
+<div class="log" aria-label="Document"><p class="log-line log-plain">RULES FOR FIRST-YEARS</p><p class="log-line"><span class="t">Rule 1:</span> <span>Don’t go out at night.</span></p><p class="log-line"><span class="t">Rule 2:</span> <span>Don’t go into the Forbidden Forest.</span></p><p class="log-line"><span class="t">Rule 3:</span> <span>Don’t fly without a teacher.</span></p><p class="log-line"><span class="t">Rule 4:</span> <span>A friend needs help? Forget Rules 1, 2 and 3.</span></p></div>
+<p>Rule 4 is in different handwriting. It’s from Ron’s other brothers, the twins, Fred and George.</p>
+<p>One year later, in August, you are at the Burrow, the Weasleys’ tall, crooked house. There’s magic everywhere, and Mr. Weasley asks you a hundred questions about Muggle toasters.</p>
+<p>At midnight, Ron opens your door. “Harry doesn’t answer our letters. Something is wrong. We’re going to get him. In Dad’s car. It flies!”</p>
+<p>Behind him, Fred smiles. “Rule four.”</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="2"><span class="key" aria-hidden="true">1</span><span class="ctext">Get in the car.</span></button><button class="choice" type="button" data-to="3"><span class="key" aria-hidden="true">2</span><span class="ctext">Stay in bed. Rule one.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s2" data-n="2" hidden>
+<p class="eyebrow">Part 2</p>
+<h2 tabindex="-1">Privet Drive</h2>
+<div class="prose">
+<p>The car flies over London in the dark. Ron drives, and under you, there are a million lights. “Rule three,” Fred laughs. “Don’t fly without a teacher. Oops.”</p>
+<p>At Harry’s house, there are bars on his window, and Harry is behind them. He is very surprised. Fred ties a rope to the bars. The car pulls, and the bars fall into the garden. CRASH! Harry puts his suitcase in the car, then his owl, Hedwig, in her cage. Harry’s uncle runs into the room and holds Harry’s foot. You pull Harry’s arm, Ron drives away, and the uncle falls out of the window.</p>
+<p>At sunrise, Mrs. Weasley is at the door of the Burrow. She is very, very angry. “Empty beds! No note! And the car is gone!” Then Mr. Weasley comes home from work and asks only one question: “Did the car fly well?”</p>
+<p>On September 1st, at King’s Cross station, you, Ron and Harry run at the wall to Platform Nine and Three-Quarters. But this time, the wall doesn’t open. The train leaves without you. Ron’s eyes are very big. “The car!”</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="4"><span class="key" aria-hidden="true">1</span><span class="ctext">Fly to Hogwarts in the car.</span></button><button class="choice" type="button" data-to="5"><span class="key" aria-hidden="true">2</span><span class="ctext">Wait for Mr. and Mrs. Weasley.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s3" data-n="3" hidden>
+<p class="eyebrow">Part 3</p>
+<h2 tabindex="-1">Knockturn Alley</h2>
+<div class="prose">
+<p>In the morning, the boys come back with Harry in the flying car. Mrs. Weasley is very angry with them. But she smiles at you. “Good! One child in this house listens to me!”</p>
+<p>A week later, you all go to Diagon Alley with Floo powder. You throw the powder into the fire, step into the green flames and say the name of the place. But there’s ash in your mouth, and you cough. You fly out of the wrong fire, into a dark shop in Knockturn Alley. There’s a dead hand in a glass box. You are very afraid. Then a big hand takes yours. It’s Hagrid. “Knockturn Alley? No place for you! Come on.”</p>
+<p>At Hogwarts that year, everything goes wrong. A monster in the castle turns students to stone, one after another. They are all Muggle-born, like you. The Minister of Magic thinks it’s Hagrid, and he takes Hagrid to Azkaban, the wizard prison. Ron and Harry tell you Hagrid’s last words: “Follow the spiders.”</p>
+<p>That night, they put on their coats. “We’re going into the forest,” Harry says. “Hagrid needs help.”</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="6"><span class="key" aria-hidden="true">1</span><span class="ctext">Go with them.</span></button><button class="choice" type="button" data-to="7"><span class="key" aria-hidden="true">2</span><span class="ctext">Stay in bed. Rule two.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s4" data-n="4" hidden>
+<p class="eyebrow">Part 4</p>
+<h2 tabindex="-1">The Howler</h2>
+<div class="prose">
+<p>The car follows the train for hours. Then, at Hogwarts, it hits a big tree, the Whomping Willow, and the tree hits back. Hard. The car throws you out with your suitcases and drives away into the Forbidden Forest.</p>
+<p>At breakfast the next morning, a red letter comes for Ron. It’s a Howler from Mrs. Weasley, and it shouts at Ron in front of the whole school. At the end, it shouts at you too: “AND YOU! I TRUSTED YOU!” Everybody laughs. You are very embarrassed.</p>
+<p>One year later, there’s terrible news. Sirius Black, a murderer, is out of Azkaban, and people say he’s coming to Hogwarts. Now there are dementors around the school, the cold, black guards of Azkaban. Rule 1 is for everybody.</p>
+<p>One afternoon, in Hagrid’s garden, you see a big black dog. It’s very thin, and it eats from the bowl of Hagrid’s dog, Fang. Fang is afraid of everything, even cats. But he isn’t afraid of this dog.</p>
+<p>That evening, Fred and George have a plan. “Tonight we go out and find Sirius Black. We’re going to be famous!”</p>
+<p>In your bag, there are sausages from dinner.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="9"><span class="key" aria-hidden="true">1</span><span class="ctext">Go with the twins.</span></button><button class="choice" type="button" data-to="8"><span class="key" aria-hidden="true">2</span><span class="ctext">Take the sausages to the black dog.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s5" data-n="5" hidden>
+<p class="eyebrow">Part 5</p>
+<h2 tabindex="-1">Twelve Years</h2>
+<div class="prose">
+<p>Mr. and Mrs. Weasley come back through the wall. “Where are Ron and Harry? And where is my car?” That night, Mr. Weasley takes you to Hogwarts himself. Ron and Harry are in big trouble. You aren’t.</p>
+<p>One year later, there’s terrible news. Sirius Black, a murderer, is out of Azkaban, and people say he’s coming to Hogwarts. Now there are dementors around the school, the cold, black guards of Azkaban. Rule 1 is for everybody.</p>
+<p>Then Scabbers disappears. Ron thinks Hermione’s cat ate him, and he is very sad. “I know he was only a rat,” he says. “But my family got him twelve years ago.” You don’t say anything, but you think: twelve years? Rats don’t live that long.</p>
+<p>At midnight, Ron puts on his coat. “Scabbers likes Hagrid’s hut. I’m going to look for him.” Outside, there are dementors in the dark, and maybe Sirius Black.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="11"><span class="key" aria-hidden="true">1</span><span class="ctext">Go out with Ron.</span></button><button class="choice" type="button" data-to="10"><span class="key" aria-hidden="true">2</span><span class="ctext">Tell Percy. Ron is going out.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s6" data-n="6" hidden>
+<p class="eyebrow">Part 6</p>
+<h2 tabindex="-1">The Spiders</h2>
+<div class="prose">
+<p>You, Ron, Harry and Hagrid’s dog, Fang, follow the spiders deep into the forest. At the end, there’s Aragog: a giant spider, as big as a small house. He is Hagrid’s old friend. “Hagrid never hurt anybody,” he says. “He is innocent.” Then he turns his white eyes to you. “But my children are hungry.”</p>
+<p>Hundreds of spiders come out of the trees. You are very afraid. Then, lights! It’s Mr. Weasley’s flying car. Ron and Harry crashed it at school in September. Now it lives wild in the forest. It opens its doors and takes you all back to the castle.</p>
+<p>Weeks later, Harry saves the school, and Hagrid comes home.</p>
+<p>One year later, there’s terrible news. Sirius Black, a murderer, is out of Azkaban, and people say he’s coming to Hogwarts. Now there are dementors around the school, the cold, black guards of Azkaban. Rule 1 is for everybody.</p>
+<p>Hagrid is a teacher now. In his first class, he shows you Buckbeak, a hippogriff: half horse, half eagle. Malfoy insults Buckbeak, Buckbeak hurts Malfoy’s arm, and now the Ministry wants to kill Buckbeak.</p>
+<p>It’s Buckbeak’s last night. Hagrid is alone in his hut, and he is crying. And Fred and George have a plan: “Tonight we go out and find Sirius Black. We’re going to be famous!”</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="9"><span class="key" aria-hidden="true">1</span><span class="ctext">Go with the twins.</span></button><button class="choice" type="button" data-to="12"><span class="key" aria-hidden="true">2</span><span class="ctext">Go to Hagrid’s hut.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s7" data-n="7" hidden>
+<p class="eyebrow">Part 7</p>
+<h2 tabindex="-1">The Old Map</h2>
+<div class="prose">
+<p>Ron and Harry come back very late and very afraid, but now they know one thing: Hagrid is innocent. Weeks later, Harry saves the school, and Hagrid comes home from Azkaban. You are happy for him. But you feel bad too. That night, Hagrid needed help, and you stayed in bed.</p>
+<p>One year later, there’s terrible news. Sirius Black, a murderer, is out of Azkaban, and people say he’s coming to Hogwarts. Now there are dementors around the school, the cold, black guards of Azkaban. Rule 1 is for everybody.</p>
+<p>Third-years can visit Hogsmeade, the wizard village, but only with a signed paper from home. Your mum and dad sign yours. Harry’s uncle doesn’t sign his, so Harry stays at school alone every time. He is very sad.</p>
+<p>At midnight, Fred and George show you an old map. “It shows every secret way out of Hogwarts. Tonight we go to the sweet shop in Hogsmeade and get sweets for Harry. Come with us!”</p>
+<p>Percy is in the common room. He is Head Boy now, the boss of all the students, and he loves rules more than anything.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="13"><span class="key" aria-hidden="true">1</span><span class="ctext">Go with the twins.</span></button><button class="choice" type="button" data-to="10"><span class="key" aria-hidden="true">2</span><span class="ctext">Tell Percy. The twins are going out.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s8" data-n="8" data-end="good" hidden>
+<p class="eyebrow">Part 8</p>
+<h2 tabindex="-1">Sausages</h2>
+<div class="prose">
+<p>Every night, you go out with food for the black dog. Rule 1 is for everybody, and you know it. But the dog is very hungry. It eats everything, and then it walks with you to the castle door. With the dog next to you, you aren’t afraid of the dementors.</p>
+<p>In June, the dog doesn’t come anymore.</p>
+<p>On the train home, a small owl flies in through the window and drops a letter into your lap:</p>
+<div class="log" aria-label="Document"><p class="log-line log-plain">Thank you for the sausages.</p><p class="log-line log-plain">I was very hungry this year, and you never told anybody about me.</p><p class="log-line log-plain">Rule 1 is a good rule. Thank you for breaking it.</p><p class="log-line log-plain">S.</p></div>
+<p>Under the S, there’s a black paw print.</p>
+<p>Ron reads the letter, and his mouth falls open. Then he whispers, “The black dog... It’s Sirius Black. He’s innocent. And he’s Harry’s godfather.”</p>
+<p>You look out of the window at the green hills, and you smile.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 6</p><ol class="slots" data-n="6" style="--n-end:6"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s9" data-n="9" data-end="bad" hidden>
+<p class="eyebrow">Part 9</p>
+<h2 tabindex="-1">The Dementors</h2>
+<div class="prose">
+<p>You, Fred and George go out into the dark to find Sirius Black. You want to be famous. But near the forest, the air gets very cold. Black shapes come down from the sky: dementors. All your happy memories go away, one by one, and the three of you fall on the cold grass.</p>
+<p>You wake up in the hospital wing. Professor Lupin, your teacher, gives you a big piece of chocolate. “Eat this. It helps.” Then Madam Pomfrey, the school nurse, tells you a strange story. That night, a big black dog barked and barked at Hagrid’s door, and Hagrid found the three of you in the grass.</p>
+<p>Professor McGonagall writes to your mum and dad. Your mum reads the letter, and she cries. “Dementors? No more Hogwarts. You’re coming home.”</p>
+<p>In the summer, Ron sends you an owl with the true story. Sirius Black is innocent, and he was the black dog.</p>
+<p>You went out to catch him. He saved your life.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 6</p><ol class="slots" data-n="6" style="--n-end:6"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s10" data-n="10" data-end="bad" hidden>
+<p class="eyebrow">Part 10</p>
+<h2 tabindex="-1">Percy Two</h2>
+<div class="prose">
+<p>You tell Percy. Percy is very happy. “Good! Rules are rules!”</p>
+<p>The next morning, Gryffindor loses fifty points, and everybody knows why. Nobody sits with you at breakfast. Fred and George have a new name for you: Percy Two.</p>
+<p>At the end of the year, Percy gives you a present: a new copy of his paper.</p>
+<div class="log" aria-label="Document"><p class="log-line log-plain">RULES FOR FIRST-YEARS</p><p class="log-line"><span class="t">Rule 1:</span> <span>Don’t go out at night.</span></p><p class="log-line"><span class="t">Rule 2:</span> <span>Don’t go into the Forbidden Forest.</span></p><p class="log-line"><span class="t">Rule 3:</span> <span>Don’t fly without a teacher.</span></p></div>
+<p>There’s no Rule 4 on this one.</p>
+<p>On the last night, Ron and Harry talk very quietly in the common room. You hear a few words: a rat, a black dog, Sirius Black, innocent. When they see you, they stop.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 6</p><ol class="slots" data-n="6" style="--n-end:6"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s11" data-n="11" data-end="good" hidden>
+<p class="eyebrow">Part 11</p>
+<h2 tabindex="-1">The Burrow</h2>
+<div class="prose">
+<p>You and Ron walk to Hagrid’s hut in the dark. It’s very cold. There’s no Scabbers, but under the trees there’s a big black dog. It looks at you and Ron for a long time. Then it goes back into the forest. You walk Ron back to the tower, and you don’t tell anybody.</p>
+<p>Weeks later, Hagrid finds Scabbers in his hut. “You came with me that night,” Ron says. “In the dark, with the dementors. I won’t forget that.”</p>
+<p>In June, an owl brings a letter from the Burrow:</p>
+<div class="log" aria-label="Document"><p class="log-line log-plain">Come for the summer. All summer. Every summer.</p><p class="log-line log-plain">Bring your dad. Arthur has more questions about toasters.</p><p class="log-line log-plain">Love, Molly Weasley</p></div>
+<p>At the Burrow, Mrs. Weasley gives you a red sweater with a big gold letter on it: the first letter of your name. Your dad and Mr. Weasley talk about toasters all night.</p>
+<p>On the last evening, Ron tells you a secret. Scabbers was never a rat. He was a man, Peter Pettigrew. And the black dog under the trees was Sirius Black, Harry’s godfather. Sirius is innocent.</p>
+<p>The dog didn’t hurt you that night. Now you know why.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 6</p><ol class="slots" data-n="6" style="--n-end:6"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s12" data-n="12" data-end="good" hidden>
+<p class="eyebrow">Part 12</p>
+<h2 tabindex="-1">Norbert</h2>
+<div class="prose">
+<p>You go out in the dark and sit with Hagrid all night. He cries into his big hands, and you make tea again and again. “You’re a good friend,” he says. “A real one.”</p>
+<p>The next day, Buckbeak escapes. Nobody knows how. Hagrid is very happy. He dances with Fang. That night, from the tower window, you see a hippogriff fly across the moon with a man on its back.</p>
+<p>In July, an owl brings you a letter and a ticket:</p>
+<div class="log" aria-label="Document"><p class="log-line log-plain">I have a secret. In your first year, I had a baby dragon, Norbert.</p><p class="log-line log-plain">He lives in Romania now, and he’s very big.</p><p class="log-line log-plain">Come with me for two weeks. He wants to meet you.</p><p class="log-line log-plain">Don’t tell your mum and dad about the fire.</p><p class="log-line log-plain">Hagrid</p></div>
+<p>In Romania, Norbert is as big as a bus. He puts his huge head on Hagrid’s shoulder, and Hagrid cries again. Happy tears this time.</p>
+<p>That night, by the fire, Hagrid whispers, “Don’t tell anybody. That man on Buckbeak? Sirius Black. He’s innocent. Dumbledore told me.” Then he covers his mouth. “I shouldn’t say that.”</p>
+<p>You smile. Hagrid is very bad at secrets. That’s why you love him.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 6</p><ol class="slots" data-n="6" style="--n-end:6"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s13" data-n="13" data-end="good" hidden>
+<p class="eyebrow">Part 13</p>
+<h2 tabindex="-1">Partners</h2>
+<div class="prose">
+<p>The map shows a secret tunnel behind an old statue. You, Fred and George walk through it in the dark for an hour. At the end, there’s Honeydukes, the sweet shop, closed and full of chocolate. You fill a big bag with sweets for Harry, and Fred leaves the money on the counter.</p>
+<p>On the way back, you look at the map again. It shows every person at Hogwarts as a small name with little feet. In Gryffindor Tower, next to Ron’s bed, there’s a strange name: Peter Pettigrew. “Who’s that?” you ask. The twins don’t know.</p>
+<p>The next morning, Harry gets the sweets, and the twins give him the map. “He needs it more than we do,” Fred says.</p>
+<p>In June, Ron tells his brothers a secret, and they tell you. Ron’s rat was never a rat. He was a man, Peter Pettigrew. And Sirius Black is innocent. Fred and George are angry with themselves. “That name was on our map all year! Next to Ron’s bed!”</p>
+<p>On the last day, they give you a small card:</p>
+<div class="log" aria-label="Document"><p class="log-line log-plain">WEASLEYS’ WIZARD WHEEZES</p><p class="log-line log-plain">Coming soon</p><p class="log-line log-plain">Partners: Fred, George and you</p></div>
+<p>“You know secret tunnels,” George says, “and you break rules for your friends. That’s all a partner needs.”</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 6</p><ol class="slots" data-n="6" style="--n-end:6"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+    <footer class="foot">
+      <p>Teacher Alex · Readers · A2</p>
+      <p>An original story in the world of the first three Harry Potter films.</p>
+      <button class="linkbtn" id="reset-endings" type="button">Reset endings</button>
+    </footer>
+  </div>
+</main>
+
+<script>
+/* engine:v2 — choices with conditions ([if 6, not 7] in the .story.md), bonus endings, number keys 1-9 */
+(function(){
+  var ENDINGS = {"8": {"title": "Sausages", "kind": "good"}, "9": {"title": "The Dementors", "kind": "bad"}, "10": {"title": "Percy Two", "kind": "bad"}, "11": {"title": "The Burrow", "kind": "good"}, "12": {"title": "Norbert", "kind": "good"}, "13": {"title": "Partners", "kind": "good"}};
+  var TITLES = {"1": "The Rules", "2": "Privet Drive", "3": "Knockturn Alley", "4": "The Howler", "5": "Twelve Years", "6": "The Spiders", "7": "The Old Map", "8": "Sausages", "9": "The Dementors", "10": "Percy Two", "11": "The Burrow", "12": "Norbert", "13": "Partners"};
+  var END_ORDER = Object.keys(ENDINGS).map(Number).sort(function(a,b){ return a-b; });
+  var INTENSITY = {"1": 0.7, "2": 0.25, "3": 0.5, "4": 0.45, "5": 0.45, "6": 0.9, "7": 0.5, "8": 0.6, "9": 0, "10": 0, "11": 0.7, "12": 0.8, "13": 0.6};
+  var MOOD = {"6": "forest", "8": "letters", "9": "cold", "10": "blank", "11": "letters", "12": "win", "13": "win"};
+  var STORE = "hogwarts-dont-go-out-endings-v1";
+  var KIND = { good:"Good ending", bad:"Bad ending", bonus:"Bonus ending" };
+  var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var secs = {};
+  document.querySelectorAll(".sec").forEach(function(a){ secs[+a.dataset.n] = a; });
+  var hero = document.getElementById("hero");
+  var trail = document.getElementById("trail");
+  var btnBack = document.getElementById("btn-back");
+  var hist = [1];
+
+  function loadFound(){
+    try{
+      var v = JSON.parse(localStorage.getItem(STORE) || "[]");
+      return Array.isArray(v) ? v.filter(function(n){ return ENDINGS[n]; }) : [];
+    }catch(e){ return []; }
+  }
+  function saveFound(){ try{ localStorage.setItem(STORE, JSON.stringify(found)); }catch(e){} }
+  var found = loadFound();
+
+  function cur(){ return hist[hist.length-1]; }
+  function nums(s){ return (s || "").split(" ").filter(Boolean); }
+
+  function showChoices(sec){
+    var seen = {}, k = 0;
+    hist.forEach(function(n){ seen[n] = true; });
+    sec.querySelectorAll(".choice").forEach(function(b){
+      var ok = nums(b.getAttribute("data-if")).every(function(x){ return seen[x]; }) &&
+               !nums(b.getAttribute("data-ifnot")).some(function(x){ return seen[x]; });
+      b.hidden = !ok;
+      if(ok){ k++; var key = b.querySelector(".key"); if(key) key.textContent = k; }
+    });
+  }
+  function visibleChoices(){
+    return [].filter.call(secs[cur()].querySelectorAll(".choice"), function(b){ return !b.hidden; });
+  }
+
+  function renderTrail(){
+    trail.textContent = "";
+    var l = document.createElement("span"); l.className = "lbl"; l.textContent = "Your path"; trail.appendChild(l);
+    hist.forEach(function(n, i){
+      if(i){ var a = document.createElement("span"); a.className = "arr"; a.textContent = "→"; a.setAttribute("aria-hidden","true"); trail.appendChild(a); }
+      var s = document.createElement("span");
+      s.className = "step" + (i === hist.length-1 ? " now" : "");
+      s.textContent = n; s.title = TITLES[n] || "";
+      trail.appendChild(s);
+    });
+  }
+
+  function renderFound(now){
+    document.querySelectorAll(".found").forEach(function(box){
+      box.querySelector(".found-count").textContent = found.length;
+      var ol = box.querySelector(".slots"); ol.textContent = "";
+      END_ORDER.forEach(function(n){
+        var e = ENDINGS[n], got = found.indexOf(n) !== -1;
+        var li = document.createElement("li");
+        li.className = "slot " + e.kind + (got ? " got" : "") + (n === now ? " now" : "");
+        var k = document.createElement("span"); k.className = "sk";
+        k.textContent = got ? (KIND[e.kind] || "Ending") : (e.kind === "bonus" ? KIND.bonus : "Not found");
+        var t = document.createElement("span"); t.className = "st";
+        t.textContent = got ? e.title : "? ? ?";
+        li.appendChild(k); li.appendChild(t); ol.appendChild(li);
+      });
+    });
+  }
+
+  function render(animate){
+    var n = cur();
+    Object.keys(secs).forEach(function(k){ secs[k].hidden = (+k !== n); });
+    var a = secs[n];
+    showChoices(a);
+    if(animate && !reduced){ a.classList.remove("enter"); void a.offsetWidth; a.classList.add("enter"); }
+    hero.hidden = !(n === 1 && hist.length === 1);
+    btnBack.disabled = hist.length < 2;
+    document.body.setAttribute("data-mood", MOOD[n] || "");
+    renderTrail();
+    if(a.dataset.end){
+      if(found.indexOf(n) === -1){ found.push(n); saveFound(); }
+      renderFound(n);
+    }
+    bg.scene(n);
+  }
+
+  function focusTop(){
+    try{ window.scrollTo({ top:0, behavior: reduced ? "auto" : "smooth" }); }catch(e){ window.scrollTo(0,0); }
+    var h = secs[cur()].querySelector("h2");
+    if(h){ try{ h.focus({ preventScroll:true }); }catch(e){ h.focus(); } }
+  }
+  function go(to){ if(!secs[to]) return; hist.push(to); render(true); focusTop(); }
+  function back(){ if(hist.length > 1){ hist.pop(); render(true); focusTop(); } }
+  function restart(){ hist = [1]; render(true); focusTop(); }
+
+  document.addEventListener("click", function(e){
+    var c = e.target.closest(".choice");
+    if(c){ go(+c.dataset.to); return; }
+    if(e.target.closest(".js-restart")){ restart(); return; }
+    if(e.target.closest(".js-back")){ back(); return; }
+    if(e.target.closest("#reset-endings")){ found = []; saveFound(); renderFound(secs[cur()].dataset.end ? cur() : 0); }
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.metaKey || e.ctrlKey || e.altKey) return;
+    if(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if(/^[1-9]$/.test(e.key)){
+      var b = visibleChoices()[+e.key - 1];
+      if(b){ e.preventDefault(); b.click(); }
+    } else if(e.key === "ArrowLeft"){ if(hist.length > 1){ e.preventDefault(); back(); } }
+  });
+
+  /* ---------- sky: the castle at night.
+     candles: floating candles drift slowly up and bob (intensity = how many)
+     sparks:  small warm sparks rise from the candles
+     forest:  no candles; fireflies blink between the trees
+     letters: envelopes with red seals fall, gold accent
+     win:     gold sparks burst, gold accent
+     cold:    the candles go out at once and frost falls, grey accent
+     blank:   everything fades, grey accent ---------- */
+  var bg = (function(){
+    var cv = document.getElementById("sky");
+    var ctx = cv.getContext && cv.getContext("2d");
+    if(!ctx) return { scene:function(){} };
+    var W = 0, H = 0, dpr = 1, col = document.getElementById("col"), R = Math.random;
+    var candles = [], sparks = [], letters = [], frost = [];
+    var mood = "", intensity = .5, running = false, last = 0;
+    var C = { candle:"#f2e2bf", flame:"#f5a945", spark:"#e9b65c", win:"#e8c56a", fly:"#d3df82",
+              page:"#efe2c8", soft:"#7a5c44", seal:"#a8321f", frost:"#a9bcc8", k:.55 };
+
+    function readColors(){
+      var cs = getComputedStyle(document.documentElement);
+      var v = function(name, d){ return cs.getPropertyValue(name).trim() || d; };
+      C.candle = v("--candle", C.candle); C.flame = v("--flame", C.flame); C.spark = v("--spark", C.spark);
+      C.win = v("--win", C.win); C.fly = v("--firefly", C.fly); C.page = v("--page", C.page);
+      C.soft = v("--page-soft", C.soft); C.seal = v("--seal", C.seal); C.frost = v("--frost", C.frost);
+      C.k = parseFloat(v("--bk", C.k)) || C.k;
+    }
+    function area(){ return W * H; }
+    function want(){
+      var w = { candles:0, sparks:0, letters:0, frost:0 };
+      if(mood === "blank") return w;
+      if(mood === "cold"){ w.frost = Math.min(90, Math.round(area() / 12000) + 20); return w; }
+      if(mood === "forest"){ w.sparks = Math.min(44, Math.round(intensity * area() / 16000) + 6); return w; }
+      w.candles = intensity > 0 ? Math.min(40, Math.round(intensity * area() / 22000) + 3) : 0;
+      w.sparks = Math.min(90, Math.round(intensity * area() / (mood === "win" ? 9000 : 28000)));
+      if(mood === "letters") w.letters = Math.min(30, Math.round(area() / 32000) + 8);
+      return w;
+    }
+    function sparkColor(){
+      if(mood === "win" || mood === "letters") return R() < .8 ? "win" : "spark";
+      if(mood === "forest") return "fly";
+      return "spark";
+    }
+    function mkCandle(edge){
+      var s = (W < 640 ? .72 : 1) * (14 + R()*12);
+      return { x:R()*W, y:edge ? H + 40 + R()*H*.4 : R()*H, s:s, vy:-(2 + R()*4), bob:R()*6.283,
+               fl:R()*6.283, a:0, ta:.6 + R()*.4, leaving:false };
+    }
+    function mkSpark(edge){
+      return { x:R()*W, y:edge ? H + 10 + R()*H*.2 : R()*H, r:.7 + R()*1.6, vy:-(5 + R()*12), vx:(R()-.5)*4,
+               tw:R()*6.283, c:sparkColor(), a:0, ta:.45 + R()*.55, leaving:false };
+    }
+    function mkLetter(edge){
+      var w = (W < 640 ? .72 : 1) * (20 + R()*12);
+      return { x:R()*W, y:edge ? -40 - R()*H*.6 : R()*H, w:w, h:w*.66, rot:(R()-.5)*.8, vr:(R()-.5)*.6,
+               vy:26 + R()*30, sway:R()*6.283, a:0, ta:.75 + R()*.25, leaving:false };
+    }
+    function mkFrost(edge){
+      return { x:R()*W, y:edge ? -10 - R()*H*.4 : R()*H, r:.8 + R()*1.8, vy:10 + R()*16, sway:R()*6.283,
+               a:0, ta:.4 + R()*.5, leaving:false };
+    }
+    function syncList(list, n, make, edge, quick){
+      var act = list.filter(function(p){ return !p.leaving; });
+      for(var i = act.length; i < n; i++){ var p = make(edge && !reduced); if(reduced) p.a = p.ta; list.push(p); }
+      for(var j = act.length - 1, ex = act.length - n; j >= 0 && ex > 0; j--, ex--){ act[j].leaving = true; act[j].quick = quick; }
+    }
+    function sync(edge){
+      var w = want(), quick = mood === "blank" || mood === "cold";
+      sparks.forEach(function(p){ if(!p.leaving) p.c = sparkColor(); });
+      syncList(candles, w.candles, mkCandle, edge, quick);
+      syncList(sparks, w.sparks, mkSpark, edge, quick);
+      syncList(letters, w.letters, mkLetter, edge, quick);
+      syncList(frost, w.frost, mkFrost, edge, quick);
+    }
+    function resize(){
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth; H = window.innerHeight;
+      cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      sync(false);
+      if(reduced){ settle(); draw(); }
+    }
+    function settle(){
+      [candles, sparks, letters, frost].forEach(function(list){
+        for(var i = list.length - 1; i >= 0; i--){ if(list[i].leaving) list.splice(i, 1); else list[i].a = list[i].ta; }
+      });
+    }
+    function burst(){
+      for(var i = 0; i < 44; i++){
+        var p = mkSpark(false);
+        p.x = W*.5 + (R()-.5)*W*.5; p.y = H*.45 + (R()-.5)*H*.3;
+        p.vx = (R()-.5)*60; p.vy = -(10 + R()*40); p.a = p.ta; p.c = R() < .85 ? "win" : "spark";
+        sparks.push(p);
+      }
+    }
+    function inside(x, rc){ return x > rc.left - 12 && x < rc.right + 12; }
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      var rc = col.getBoundingClientRect();
+      var i, p, al;
+      for(i = 0; i < candles.length; i++){
+        p = candles[i];
+        al = p.a * C.k * 1.6 * (inside(p.x, rc) ? .3 : 1) * (.88 + .12*Math.sin(p.fl));
+        if(al < .004) continue;
+        var y = p.y + Math.sin(p.bob) * 5;
+        var bw = p.s * .3, bh = p.s * 1.4, fy = y - bh/2 - p.s*.26;
+        var gw = ctx.createRadialGradient(p.x, fy, 0, p.x, fy, p.s*1.7);
+        gw.addColorStop(0, C.flame); gw.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.globalAlpha = Math.min(1, al) * .38;
+        ctx.fillStyle = gw;
+        ctx.beginPath(); ctx.arc(p.x, fy, p.s*1.7, 0, 6.283); ctx.fill();
+        ctx.globalAlpha = Math.min(1, al);
+        ctx.fillStyle = C.candle;
+        ctx.fillRect(p.x - bw/2, y - bh/2, bw, bh);
+        ctx.fillStyle = C.flame;
+        ctx.beginPath(); ctx.ellipse(p.x, fy, p.s*.1, p.s*.22, 0, 0, 6.283); ctx.fill();
+      }
+      for(i = 0; i < letters.length; i++){
+        p = letters[i];
+        al = p.a * C.k * 1.3 * (inside(p.x, rc) ? .35 : 1);
+        if(al < .004) continue;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.globalAlpha = Math.min(1, al);
+        ctx.fillStyle = C.page;
+        ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+        ctx.strokeStyle = C.soft; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(-p.w/2, -p.h/2); ctx.lineTo(0, p.h*.08); ctx.lineTo(p.w/2, -p.h/2); ctx.stroke();
+        ctx.fillStyle = C.seal;
+        ctx.beginPath(); ctx.arc(0, p.h*.08, p.w*.09, 0, 6.283); ctx.fill();
+        ctx.restore();
+      }
+      for(i = 0; i < sparks.length; i++){
+        p = sparks[i];
+        var blink = mood === "forest" ? Math.max(0, Math.sin(p.tw)) : (.55 + .45*Math.sin(p.tw));
+        al = p.a * C.k * blink * (inside(p.x, rc) ? .3 : 1);
+        if(al < .004) continue;
+        ctx.globalAlpha = Math.min(1, al);
+        ctx.fillStyle = C[p.c];
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.283); ctx.fill();
+        if(p.r > 1.7){
+          ctx.globalAlpha = Math.min(1, al) * .5;
+          ctx.fillRect(p.x - p.r*2.4, p.y - .4, p.r*4.8, .8);
+          ctx.fillRect(p.x - .4, p.y - p.r*2.4, .8, p.r*4.8);
+        }
+      }
+      for(i = 0; i < frost.length; i++){
+        p = frost[i];
+        al = p.a * C.k * (inside(p.x, rc) ? .35 : 1);
+        if(al < .004) continue;
+        ctx.globalAlpha = Math.min(1, al);
+        ctx.fillStyle = C.frost;
+        ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r*1.3, p.r*.9, p.sway, 0, 6.283); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+    function fade(p, dt){
+      p.a += (0 - p.a) * Math.min(1, dt * (p.quick ? 5 : 1.2));
+      return p.a < .01;
+    }
+    function step(dt){
+      var i, p;
+      for(i = candles.length - 1; i >= 0; i--){
+        p = candles[i]; p.bob += dt*1.1; p.fl += dt*6;
+        p.y += p.vy*dt;
+        if(p.leaving){ if(fade(p, dt)){ candles.splice(i,1); } continue; }
+        p.a += (p.ta - p.a) * Math.min(1, dt*.9);
+        if(p.y < -60){ p.y = H + 60; p.x = R()*W; }
+      }
+      for(i = sparks.length - 1; i >= 0; i--){
+        p = sparks[i]; p.tw += dt * (mood === "forest" ? 1.4 : 2.2);
+        p.x += p.vx*dt; p.y += p.vy*dt * (mood === "forest" ? .25 : 1); p.vx *= (1 - Math.min(1, dt*.8));
+        if(mood === "forest") p.x += Math.sin(p.tw*.7)*6*dt;
+        if(p.leaving){ if(fade(p, dt)){ sparks.splice(i,1); } continue; }
+        p.a += (p.ta - p.a) * Math.min(1, dt*1.4);
+        if(p.y < -10){ p.y = H + 10; p.x = R()*W; p.vx = (R()-.5)*4; p.vy = -(5 + R()*12); }
+      }
+      for(i = letters.length - 1; i >= 0; i--){
+        p = letters[i]; p.sway += dt*.9; p.rot += p.vr*dt;
+        p.y += p.vy*dt; p.x += Math.cos(p.sway)*16*dt;
+        if(p.leaving){ if(fade(p, dt)){ letters.splice(i,1); } continue; }
+        p.a += (p.ta - p.a) * Math.min(1, dt*1.2);
+        if(p.y > H + 50){ p.y = -50; p.x = R()*W; }
+      }
+      for(i = frost.length - 1; i >= 0; i--){
+        p = frost[i]; p.sway += dt*1.1;
+        p.y += p.vy*dt; p.x += Math.sin(p.sway)*10*dt;
+        if(p.leaving){ if(fade(p, dt)){ frost.splice(i,1); } continue; }
+        p.a += (p.ta - p.a) * Math.min(1, dt*1.2);
+        if(p.y > H + 10){ p.y = -10; p.x = R()*W; }
+      }
+    }
+    function loop(ts){
+      if(!running) return;
+      var dt = last ? Math.min(.05, (ts - last) / 1000) : .016; last = ts;
+      step(dt); draw();
+      requestAnimationFrame(loop);
+    }
+    function start(){ if(reduced || running) return; running = true; last = 0; requestAnimationFrame(loop); }
+    function stop(){ running = false; }
+
+    function scene(n){
+      var m = MOOD[n] || "", prev = mood;
+      mood = m;
+      intensity = INTENSITY[n] != null ? INTENSITY[n] : .5;
+      readColors();
+      sync(true);
+      if(!reduced && m === "win" && prev !== m) burst();
+      if(reduced){ settle(); draw(); }
+    }
+
+    window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", function(){ document.hidden ? stop() : start(); });
+    if(window.matchMedia){
+      var mq = matchMedia("(prefers-color-scheme: dark)");
+      var onScheme = function(){ readColors(); if(reduced) draw(); };
+      mq.addEventListener ? mq.addEventListener("change", onScheme) : mq.addListener(onScheme);
+    }
+    new MutationObserver(function(){ readColors(); if(reduced) draw(); })
+      .observe(document.documentElement, { attributes:true, attributeFilter:["data-theme"] });
+
+    readColors(); resize(); start();
+    return { scene:scene };
+  })();
+
+  render(false);
+})();
+</script>
+
+</body>
+</html>

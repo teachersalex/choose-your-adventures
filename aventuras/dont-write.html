@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Don't Write Your Name</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=Spline+Sans+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column inside an old book of princess stories, open on a bedroom floor at
+   midnight. The opening is the book's bookplate ("This book belongs to: ____"), with the title on it.
+   The contents page inside the story is an ivory page. Pink fairy dust drifts up behind the text,
+   dimmer behind the column, with a few loose pages. Dark theme (default): plum night, rose, champagne.
+   Light theme: blush paper and plum ink.
+   Moods: lanterns = warm lanterns rise (the city of lights); glow = lanterns + the gold accent;
+   win = gold dust; magic = rose and gold dust burst; paper = everything turns to falling pages;
+   blank = everything fades and the page goes empty; ash = grey ash falls (Cinderella's attic). */
+:root{
+  color-scheme: dark;
+  --ground:#1b1216;
+  --ink:#f3e9df;
+  --ink-soft:#b7a2ab;
+  --line:#3a2730;
+  --frame:#8a5a6c;
+  --panel:#24181e;
+  --panel-hover:#2e1f27;
+  --accent:#f2a6be;
+  --accent-ink:#f5b6ca;
+  --on-accent:#2a0f1b;
+  --page:#efe3cf;
+  --page-ink:#3a2228;
+  --page-soft:#8a6f68;
+  --dust1:#f2a6be;
+  --dust2:#e6cfa1;
+  --lantern:#f0a24e;
+  --ash:#8e8088;
+  --bk:.55;
+  --win:#e6c98a;
+  --focus:#f5b6ca;
+  --display:"IM Fell English","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --body:"Literata",Georgia,"Times New Roman",serif;
+  --mono:"Spline Sans Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --fs-body:clamp(1.15rem, .95rem + 1vw, 1.7rem);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    color-scheme: light;
+    --ground:#f8e9ec;
+    --ink:#34161f;
+    --ink-soft:#7a5562;
+    --line:#ead0d7;
+    --frame:#c58da0;
+    --panel:#fdf4f5;
+    --panel-hover:#f6e1e6;
+    --accent:#b0305e;
+    --accent-ink:#9c2550;
+    --on-accent:#ffffff;
+    --page:#fffaf1;
+    --page-ink:#3a2228;
+    --page-soft:#8a6f68;
+    --dust1:#d9668c;
+    --dust2:#c49a52;
+    --lantern:#d9822c;
+    --ash:#9b8a92;
+    --bk:.42;
+    --win:#8e6418;
+    --focus:#9c2550;
+  }
+}
+:root[data-theme="light"]{
+  color-scheme: light;
+  --ground:#f8e9ec;
+  --ink:#34161f;
+  --ink-soft:#7a5562;
+  --line:#ead0d7;
+  --frame:#c58da0;
+  --panel:#fdf4f5;
+  --panel-hover:#f6e1e6;
+  --accent:#b0305e;
+  --accent-ink:#9c2550;
+  --on-accent:#ffffff;
+  --page:#fffaf1;
+  --page-ink:#3a2228;
+  --page-soft:#8a6f68;
+  --dust1:#d9668c;
+  --dust2:#c49a52;
+  --lantern:#d9822c;
+  --ash:#9b8a92;
+  --bk:.42;
+  --win:#8e6418;
+  --focus:#9c2550;
+}
+:root[data-theme="dark"]{ color-scheme: dark; }
+
+body[data-mood="win"], body[data-mood="glow"], body[data-mood="magic"]{ --accent:var(--win); --accent-ink:var(--win); --focus:var(--win); }
+body[data-mood="paper"], body[data-mood="blank"], body[data-mood="ash"]{ --accent:var(--ink-soft); --accent-ink:var(--ink-soft); }
+
+[hidden]{ display:none !important; }
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--body);
+  -webkit-font-smoothing:antialiased;
+}
+body::before{ content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top, 0px); z-index:10; background:var(--ground); }
+#sky{ position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+
+.bar{
+  position:sticky; top:env(safe-area-inset-top,0px); z-index:3;
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px;
+  padding-block:10px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  background:color-mix(in srgb, var(--ground) 86%, transparent);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line);
+}
+.brand{ display:flex; flex-wrap:wrap; align-items:baseline; gap:.2em .8em; font-family:var(--mono); font-size:.74rem; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.brand b{ font-weight:500; color:var(--accent-ink); }
+.controls{ display:flex; gap:8px; }
+.ctl{
+  font-family:var(--mono); font-size:.78rem; color:var(--ink);
+  background:transparent; border:1px solid var(--line); border-radius:4px;
+  padding:.45em .9em; cursor:pointer;
+}
+.ctl:hover:not(:disabled){ border-color:var(--accent); }
+.ctl:disabled{ opacity:.4; cursor:default; }
+
+main{
+  position:relative; z-index:1;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:clamp(1.5rem, 1rem + 3vw, 3.5rem) 4rem;
+}
+.col{ max-width:34em; margin-inline:auto; font-size:var(--fs-body); }
+
+/* the bookplate */
+.hero{
+  position:relative;
+  margin-bottom:2em; text-align:center;
+  border:1px solid var(--frame); outline:1px solid var(--frame); outline-offset:5px;
+  margin-inline:6px;
+  padding:1.2em 1em 1.3em;
+  background:color-mix(in srgb, var(--panel) 72%, transparent);
+}
+.hero::before, .hero::after{
+  content:""; position:absolute; top:50%; width:9px; height:9px; margin-top:-5px;
+  background:var(--frame); transform:rotate(45deg);
+}
+.hero::before{ left:-11px; }
+.hero::after{ right:-11px; }
+.hero-kicker{ margin:0; font-family:var(--mono); font-size:clamp(.72rem,.68rem + .3vw,.9rem); letter-spacing:.24em; text-transform:uppercase; color:var(--accent-ink); }
+.hero h1{
+  font-family:var(--display); font-style:italic; font-weight:400;
+  font-size:clamp(2.7rem, 1.7rem + 5vw, 5.4rem); line-height:1.02;
+  margin:.18em 0 .28em; color:var(--ink);
+  text-wrap:balance;
+}
+.plate{
+  display:flex; align-items:baseline; justify-content:center; gap:.5em; flex-wrap:wrap;
+  margin:0 auto .9em; font-family:var(--display); font-size:1.02em; color:var(--ink-soft);
+}
+.plate .rule{ display:inline-block; width:8em; max-width:40vw; border-bottom:1px solid var(--frame); transform:translateY(-.2em); }
+.hero .lede{ margin:0 auto; color:var(--ink-soft); line-height:1.55; max-width:26em; }
+.hero .lede strong{ color:var(--ink); font-weight:600; }
+
+.trail{
+  display:flex; flex-wrap:wrap; align-items:center; gap:.35em .5em;
+  margin:0 0 1.6em; font-family:var(--mono); font-size:clamp(.74rem,.7rem + .3vw,.92rem); color:var(--ink-soft);
+}
+.trail .lbl{ letter-spacing:.14em; text-transform:uppercase; margin-right:.3em; }
+.trail .step{ font-variant-numeric:tabular-nums; border:1px solid var(--line); border-radius:4px; padding:.05em .55em; }
+.trail .step.now{ border-color:var(--accent); color:var(--accent-ink); font-weight:500; }
+.trail .arr{ opacity:.6; }
+
+.eyebrow{ margin:0; font-family:var(--mono); font-size:clamp(.74rem,.7rem + .3vw,.92rem); letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.sec h2{
+  font-family:var(--display); font-weight:400;
+  font-size:clamp(2.2rem, 1.6rem + 2.6vw, 3.6rem); line-height:1.05;
+  margin:.12em 0 .6em; color:var(--accent-ink); text-wrap:balance;
+}
+.sec h2:focus, .sec h2:focus-visible{ outline:none; }
+
+.prose{ display:flex; flex-direction:column; gap:.85em; }
+.prose p{ margin:0; line-height:1.62; }
+
+/* a page inside the story: the contents page of the mixed book */
+.log{
+  align-self:center; width:100%; max-width:22em;
+  margin:.4em 0;
+  background:var(--page); color:var(--page-ink);
+  border-radius:2px;
+  padding:1.1em 1.3em 1.2em;
+  box-shadow:0 1px 1px rgba(0,0,0,.14), 0 16px 28px -18px rgba(0,0,0,.6);
+  display:flex; flex-direction:column; gap:.32em;
+  text-align:center;
+  font-family:var(--display);
+}
+.log-head{
+  margin:0 0 .35em !important; font-family:var(--mono); font-size:.66em; letter-spacing:.3em; text-transform:uppercase;
+  color:var(--page-soft); display:flex; align-items:center; gap:.8em;
+}
+.log-head::before, .log-head::after{ content:""; flex:1; border-top:1px solid color-mix(in srgb, var(--page-soft) 55%, transparent); }
+.log-line{ margin:0 !important; line-height:1.35 !important; font-size:1.02em; }
+.log-line .t{ font-family:var(--mono); font-size:.7em; color:var(--page-soft); margin-right:.5em; }
+
+.choices{ margin-top:2em; display:flex; flex-direction:column; gap:.7em; }
+.ask{ margin:0 0 .15em; font-family:var(--mono); font-size:clamp(.74rem,.7rem + .3vw,.92rem); letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.choice{
+  display:flex; align-items:center; gap:.85em; width:100%;
+  font:inherit; text-align:left; color:var(--ink);
+  background:var(--panel); border:1px solid var(--line); border-radius:6px;
+  padding:.72em 1.2em .72em .8em; cursor:pointer;
+  transition:border-color .2s, background-color .2s, transform .2s;
+}
+.choice:hover{ border-color:var(--accent); background:var(--panel-hover); transform:translateX(3px); }
+.choice:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+.key{
+  flex:none; display:grid; place-items:center;
+  width:1.85em; height:1.85em; border-radius:50%;
+  font-family:var(--mono); font-weight:500; font-size:.82em;
+  color:var(--on-accent); background:var(--accent);
+}
+.ctext{ line-height:1.35; min-width:0; }
+.choice.unlocked{ border:1.5px dashed var(--accent); }
+.utag{ display:block; margin:0 0 .3em; font-family:var(--mono); font-size:.6em; letter-spacing:.2em; text-transform:uppercase; color:var(--accent-ink); }
+.keyhint{ display:none; margin:.4em 0 0; font-family:var(--mono); font-size:.7em; color:var(--ink-soft); }
+@media (hover:hover) and (pointer:fine){ .keyhint{ display:block; } }
+
+.stamp{
+  margin:1.4em 0 0 !important; padding:.55em 0 .5em;
+  font-family:var(--display); font-style:italic; font-weight:400;
+  font-size:clamp(2rem, 1.5rem + 2.4vw, 3.1rem); line-height:1 !important; letter-spacing:.06em;
+  color:var(--accent-ink); text-align:center;
+  border-top:1px solid var(--accent); border-bottom:1px solid var(--accent);
+  box-shadow:0 -4px 0 -3px var(--accent), 0 4px 0 -3px var(--accent);
+}
+.stamp-sub{ display:block; margin-top:.75em; font-family:var(--mono); font-style:normal; font-weight:400; font-size:.3em; letter-spacing:.3em; }
+
+.ending{ margin-top:2em; display:flex; flex-direction:column; gap:1.1em; }
+.kind{ margin:0; font-family:var(--mono); font-size:clamp(.74rem,.7rem + .3vw,.92rem); letter-spacing:.18em; text-transform:uppercase; }
+.kind-bad{ color:var(--ink-soft); }
+.kind-good, .kind-bonus{ color:var(--accent-ink); font-weight:500; }
+.found{ border-top:1px solid var(--line); padding-top:1em; }
+.found-label{ margin:0; font-family:var(--mono); font-size:clamp(.74rem,.7rem + .3vw,.92rem); color:var(--ink-soft); }
+.found-label b{ color:var(--ink); font-weight:500; font-variant-numeric:tabular-nums; }
+.slots{ list-style:none; margin:.7em 0 0; padding:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.6em; font-size:.8em; }
+.slot{ min-width:0; border:1px dashed var(--line); border-radius:6px; padding:.6em .75em; color:var(--ink-soft); display:flex; flex-direction:column; gap:.3em; }
+.slot .sk{ font-family:var(--mono); font-size:.7em; letter-spacing:.12em; text-transform:uppercase; }
+.slot .st{ font-family:var(--display); font-weight:400; font-size:1.12em; line-height:1.12; overflow-wrap:anywhere; }
+.slot.got{ border-style:solid; color:var(--ink); background:var(--panel); }
+.slot.got.good{ border-color:var(--win); }
+.slot.now{ box-shadow:inset 0 0 0 1px var(--accent); }
+@media (max-width:700px){ .slots{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:360px){ .slots{ grid-template-columns:1fr; } }
+
+.end-actions{ display:flex; flex-wrap:wrap; gap:.6em; }
+.btn{ font:inherit; font-size:.9em; border-radius:6px; padding:.6em 1.2em; cursor:pointer; border:1.5px solid var(--accent); }
+.btn-main{ background:var(--accent); color:var(--on-accent); font-weight:600; }
+.btn-main:hover{ filter:brightness(1.08); }
+.btn-ghost{ background:transparent; color:var(--ink); border-color:var(--line); }
+.btn-ghost:hover{ border-color:var(--accent); }
+.btn:focus-visible, .ctl:focus-visible, .linkbtn:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+
+.foot{ margin-top:4em; padding-top:1em; border-top:1px solid var(--line); display:flex; flex-wrap:wrap; justify-content:space-between; gap:.6em 1.2em; font-family:var(--mono); font-size:.74rem; color:var(--ink-soft); }
+.foot p{ margin:0; min-width:0; }
+.linkbtn{ font:inherit; color:var(--ink-soft); background:none; border:0; padding:0; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+.linkbtn:hover{ color:var(--ink); }
+
+.sec.enter{ animation:rise .45s ease-out both; }
+@keyframes rise{ from{ opacity:.01; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){
+  .sec.enter{ animation:none; }
+  .choice, .choice:hover{ transition:none; transform:none; }
+}
+</style>
+</head>
+<body>
+
+
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<header class="bar">
+  <div class="brand"><b>Choose Your Story</b><span>Don’t Write Your Name</span></div>
+  <nav class="controls" aria-label="Story controls">
+    <button class="ctl js-back" id="btn-back" type="button" disabled>&#8592; Back</button>
+    <button class="ctl js-restart" type="button">Start again</button>
+  </nav>
+</header>
+
+<main>
+  <div class="col" id="col">
+    <section class="hero" id="hero">
+      <p class="hero-kicker">One book. Ten princesses. Six endings.</p>
+      <h1>Don’t Write Your Name</h1>
+      <p class="plate"><span>This book belongs to:</span><span class="rule" aria-hidden="true"></span></p>
+      <p class="lede">Read each part. At the end, choose <strong>1</strong> or <strong>2</strong>. Your choice changes <strong>everything</strong>. There are six endings. Find them all.</p>
+    </section>
+
+    <p class="trail" id="trail" aria-live="polite"><span class="lbl">Your path</span><span class="step now">1</span></p>
+
+<article class="sec" id="s1" data-n="1">
+<p class="eyebrow">Part 1</p>
+<h2 tabindex="-1">The Book</h2>
+<div class="prose">
+<p>Midnight. You can’t sleep. Your old book of princess stories is open on the floor. You didn’t open it.</p>
+<p>The stories are wrong:</p>
+<div class="log" aria-label="Contents"><p class="log-head">Contents</p><p class="log-line log-plain">Snow White and the Tower</p><p class="log-line log-plain">Rapunzel and the Seven Dwarfs</p><p class="log-line log-plain">Cinderella and the Spinning Wheel</p><p class="log-line log-plain">Aurora and the Glass Shoe</p><p class="log-line log-plain">Ariel and the Beast</p><p class="log-line log-plain">Belle and the Sea Witch</p><p class="log-line log-plain">Jasmine and the Ocean</p><p class="log-line log-plain">Moana and the Magic Carpet</p><p class="log-line log-plain">Mulan and the Bow</p><p class="log-line log-plain">Merida and the Army</p></div>
+<p>Under the list, someone wrote in red: DON’T WRITE YOUR NAME.</p>
+<p>A white light comes from the page, and you fall in.</p>
+<p>You are in a dark forest, in your pajamas. You are very afraid. In the sky, a big white page shines. It is a door. A tall woman in a gray cloak, with a wand, smiles at you.</p>
+<p>“Hello, my flower. I’m the Fairy Godmother. The stories are mixed, and only you remember them. That door is your way home, but at sunrise it closes. Help me.”</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="2"><span class="key" aria-hidden="true">1</span><span class="ctext">Take her hand.</span></button><button class="choice" type="button" data-to="3"><span class="key" aria-hidden="true">2</span><span class="ctext">Say no. Go into the forest alone.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s2" data-n="2" hidden>
+<p class="eyebrow">Part 2</p>
+<h2 tabindex="-1">The Gold Book</h2>
+<div class="prose">
+<p>She moves her wand. Now your pajamas are a long pink dress, and you have glass shoes. You are beautiful, and you are very happy.</p>
+<p>She takes you to a big castle. You hear music. At the door, there is a gold book with ten names: Snow White, Cinderella, Ariel... all the princesses. Under the names, there is one empty line.</p>
+<p>“Write your name here, my flower,” she says. “Then you are a princess forever. No work. No bills. No alarm clock.” She gives you a gold pen. “I love you, my flower.”</p>
+<p>The pen is warm in your hand. You remember the red words in your book.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="12"><span class="key" aria-hidden="true">1</span><span class="ctext">Write your name in the gold book.</span></button><button class="choice" type="button" data-to="4"><span class="key" aria-hidden="true">2</span><span class="ctext">Say: “First, I want to meet the princesses.”</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s3" data-n="3" hidden>
+<p class="eyebrow">Part 3</p>
+<h2 tabindex="-1">The Little House</h2>
+<div class="prose">
+<p>In the forest, you find a little house with seven little beds. A young woman with short brown hair is cleaning the floor. A small green chameleon sits on her shoulder, and there is a frying pan by the door.</p>
+<p>“Hi! I’m Snow White, I think,” she says. “The Seven Dwarfs say so. But I don’t like apples, and I love to paint. Every night, a tall woman in gray visits me. She says: ’Never go out. The world is dangerous.’ And she says: ’I love you very much.’ I say: ’I love you more.’ And she says: ’I love you most.’”</p>
+<p>You know this face. She is not Snow White. She is Rapunzel.</p>
+<p>Outside, hundreds of little lights go up into the sky. Far away, you hear music from a castle. “I see those lights,” says Rapunzel, “and I cry. I don’t know why.”</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="5"><span class="key" aria-hidden="true">1</span><span class="ctext">Take Rapunzel out to see the lights.</span></button><button class="choice" type="button" data-to="4"><span class="key" aria-hidden="true">2</span><span class="ctext">Go to the castle with the music.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s4" data-n="4" hidden>
+<p class="eyebrow">Part 4</p>
+<h2 tabindex="-1">The Ball</h2>
+<div class="prose">
+<p>The castle is full of music and light. The princesses are here, but they are confused, and they are all in the wrong dresses.</p>
+<p>Aurora has only one glass shoe. “Where is my other shoe?” she asks. “A prince is looking for me.”</p>
+<p>Ariel sits with a big Beast. There is a fork in her hair. “He is kind,” she says, “but I want the sea.”</p>
+<p>Mulan has a bow and arrows. “Tonight three men shoot arrows, and the winner marries me. I want to shoot too!” Merida is dressed as a soldier. “My name is Ping,” she says.</p>
+<p>Moana flies over everyone on a magic carpet. “Where is my ocean?”</p>
+<p>But where is Cinderella?</p>
+<p>The woman in gray goes up the big stairs. At the top, there is a tall mirror under a black cloth. She looks down at you and smiles.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="6"><span class="key" aria-hidden="true">1</span><span class="ctext">Find Cinderella.</span></button><button class="choice" type="button" data-to="7"><span class="key" aria-hidden="true">2</span><span class="ctext">Follow the woman in gray up the stairs.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s5" data-n="5" hidden>
+<p class="eyebrow">Part 5</p>
+<h2 tabindex="-1">The Beach</h2>
+<div class="prose">
+<p>You take Rapunzel out of the little house. She is afraid, but she holds your hand and walks with you.</p>
+<p>On the way, you see the sea. A young woman with a fish tail sits on a rock. It is Belle. She can’t talk, because she has no voice. With her finger, she writes in the sand: THE WOMAN IN GRAY TOOK MY VOICE.</p>
+<p>Near her, Jasmine sits in a small boat. “The ocean is beautiful,” she says, “but where is my tiger? Where is my father?”</p>
+<p>Near the beach, there is a tall tower. At the window, a woman with very long hair sings to the birds.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="9"><span class="key" aria-hidden="true">1</span><span class="ctext">Go on to the lights with Rapunzel.</span></button><button class="choice" type="button" data-to="8"><span class="key" aria-hidden="true">2</span><span class="ctext">Climb the tower. Talk to the woman.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s6" data-n="6" hidden>
+<p class="eyebrow">Part 6</p>
+<h2 tabindex="-1">The Spinning Wheel</h2>
+<div class="prose">
+<p>You find Cinderella in a small room. She sits in front of an old spinning wheel. Her eyes are strange. “It’s so pretty,” she says. “I want to touch it.” She puts out her finger.</p>
+<p>“No!” You pull her hand away. Cinderella looks at you, and now her eyes are normal.</p>
+<p>“Thank you,” she says. “You are kind, like my fairy godmother.”</p>
+<p>“Your fairy godmother? A tall woman in gray?”</p>
+<p>“No! My fairy godmother is short and round, with white hair and a blue cloak. And I can’t find her. I can’t find my pumpkin either.”</p>
+<p>Now you are afraid. Who is the woman in gray?</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="10"><span class="key" aria-hidden="true">1</span><span class="ctext">Go up the stairs to the woman in gray.</span></button><button class="choice" type="button" data-to="11"><span class="key" aria-hidden="true">2</span><span class="ctext">Look for Cinderella’s pumpkin.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s7" data-n="7" hidden>
+<p class="eyebrow">Part 7</p>
+<h2 tabindex="-1">The Black Cloth</h2>
+<div class="prose">
+<p>You follow the woman in gray up the stairs. She stands with her back to the big mirror. She never looks at it.</p>
+<p>“I know who mixed the stories,” she says quietly. “Merida. She always wants to change her story. Remember? She gave her mother a cake from a witch, and her mother became a bear. Tell everyone. Then they love you, and you are a hero.”</p>
+<p>You look down at Merida. She is laughing with Mulan. You are confused.</p>
+<p>Under the black cloth, something moves. A low voice says: “Look at me.”</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="14"><span class="key" aria-hidden="true">1</span><span class="ctext">Tell everyone: “Merida did it!”</span></button><button class="choice" type="button" data-to="10"><span class="key" aria-hidden="true">2</span><span class="ctext">Pull the black cloth off the mirror.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s8" data-n="8" hidden>
+<p class="eyebrow">Part 8</p>
+<h2 tabindex="-1">The Tower</h2>
+<div class="prose">
+<p>You stand under the tower. “Hello?” you call. The woman lets down her long hair, and you climb up.</p>
+<p>Her hair is very, very long and black. It is Snow White. On her table, there is a red apple.</p>
+<p>“A kind woman in gray gives me an apple every day,” she says. “’Eat it, dear,’ she says. But I never eat it. I don’t know why. Apples make me afraid.”</p>
+<p>Then she looks at you. “You are not from a story. Go home now, before sunrise. This is not your story. It is dangerous for you.”</p>
+<p>From the window, you see the white door in the sky. And you see Rapunzel on the beach. She is waiting for you.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="13"><span class="key" aria-hidden="true">1</span><span class="ctext">Go home through the white door.</span></button><button class="choice" type="button" data-to="9"><span class="key" aria-hidden="true">2</span><span class="ctext">Go back down. Take Rapunzel to the lights.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s9" data-n="9" hidden>
+<p class="eyebrow">Part 9</p>
+<h2 tabindex="-1">The Lanterns</h2>
+<div class="prose">
+<p>You and Rapunzel walk to a city by the water. Hundreds of lanterns go up into the sky. In front of the castle, a king and a queen hold a lantern together. Their eyes are sad.</p>
+<p>Rapunzel stops. “I know them,” she says. “I don’t know how, but I know them.”</p>
+<p>Then the woman in gray runs to you. “Flower! Come home! The world is dangerous!” She takes Rapunzel’s arm. Then she looks at you. “And you! Look at the sky. It’s pink. Sunrise is soon. Go home now, or you stay here forever.”</p>
+<p>Far away, the white door is getting smaller.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="13"><span class="key" aria-hidden="true">1</span><span class="ctext">Run to the white door. Go home now.</span></button><button class="choice" type="button" data-to="16"><span class="key" aria-hidden="true">2</span><span class="ctext">Take Rapunzel to the king and queen.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s10" data-n="10" hidden>
+<p class="eyebrow">Part 10</p>
+<h2 tabindex="-1">The Mirror</h2>
+<div class="prose">
+<p>At the top of the stairs, you pull the black cloth off the big mirror. A face appears in the glass. It is the Magic Mirror, and it always tells the truth. The music stops. Everyone looks up.</p>
+<p>“She is not the Fairy Godmother,” says the Mirror. “Her name is Gothel. She mixed the stories. Now she wants your name. With your name, she can leave this book, go into your world and live your life.”</p>
+<p>Gothel laughs. She opens a big gold book and holds out a gold pen. “Write your name now,” she says, “or I put this book in the fire, and every princess disappears.”</p>
+<p>The princesses look at you. They are very afraid.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="12"><span class="key" aria-hidden="true">1</span><span class="ctext">Write your name. Save the princesses.</span></button><button class="choice" type="button" data-to="15"><span class="key" aria-hidden="true">2</span><span class="ctext">Say: “No.” Take the wand from her hand.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s11" data-n="11" hidden>
+<p class="eyebrow">Part 11</p>
+<h2 tabindex="-1">The Pumpkin</h2>
+<div class="prose">
+<p>You and Cinderella run to the kitchen. There are pumpkins everywhere. One pumpkin is talking. “Help! Get me out of here!”</p>
+<p>Cinderella drops it on the floor, and it breaks open. Inside, there is a short, round woman with white hair and a blue cloak. She is very tired.</p>
+<p>“Oh, my dear!” says the Fairy Godmother. “That woman took my wand and put me in my own pumpkin! I wrote the red words in your book. Did you write your name?”</p>
+<p>“No.”</p>
+<p>“Oh, good. But without my wand, I am weak. Go home, dear, through the white door, before sunrise. It is too dangerous here.”</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="13"><span class="key" aria-hidden="true">1</span><span class="ctext">Go home. She is right.</span></button><button class="choice" type="button" data-to="17"><span class="key" aria-hidden="true">2</span><span class="ctext">Say: “No. We go up the stairs together.”</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s12" data-n="12" data-end="bad" hidden>
+<p class="eyebrow">Part 12</p>
+<h2 tabindex="-1">The Page</h2>
+<div class="prose">
+<p>You write your name. The pen is warm, then hot. Your hand is flat and white, like paper. Then your body is paper too.</p>
+<p>Now you are a picture in a book. You can see, but you can’t move. You can’t talk. You are very afraid.</p>
+<p>The sun comes up in your bedroom. A woman gets up from the floor. She has your face and your pajamas, but she is the woman in gray. She takes your phone and smiles.</p>
+<p>“Good morning, flower,” she says to the book. “I love you most.” Then she closes it.</p>
+<p>Today she goes to your work. She meets your friends. She sleeps in your bed. Nobody knows.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 6</p><ol class="slots" data-n="6" style="--n-end:6"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s13" data-n="13" data-end="bad" hidden>
+<p class="eyebrow">Part 13</p>
+<h2 tabindex="-1">White Pages</h2>
+<div class="prose">
+<p>You run through the white door and fall onto your bedroom floor. The sun comes up. The book is in your hands.</p>
+<p>You open it. Every page is white. No pictures. No words. No princesses.</p>
+<p>You take your phone and look for Cinderella. Nothing. Snow White. Nothing. Rapunzel. Nothing. Nobody in the world knows the stories now.</p>
+<p>Only you remember them. You are very sad, and you are alone. You went home, and the stories died.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 6</p><ol class="slots" data-n="6" style="--n-end:6"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s14" data-n="14" data-end="bad" hidden>
+<p class="eyebrow">Part 14</p>
+<h2 tabindex="-1">The Wrong Story</h2>
+<div class="prose">
+<p>“Merida did it!” you shout. Everyone looks at Merida. “No!” she says. “It wasn’t me!” But nobody believes her. The princesses start to fight.</p>
+<p>At the top of the stairs, the woman in gray smiles. The sky is pink. The white door gets smaller and smaller, and then it closes.</p>
+<p>Now the stories are mixed forever, and you are in them too.</p>
+<p>You wake up in a small, cold room under the roof. A woman shouts: “Cinderella! The floor! Now!” You take a bucket and clean the floor. You don’t remember your name. You don’t remember your home.</p>
+<p>Every night you look at the sky, and you cry. You don’t know why.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 6</p><ol class="slots" data-n="6" style="--n-end:6"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s15" data-n="15" data-end="good" hidden>
+<p class="eyebrow">Part 15</p>
+<h2 tabindex="-1">Happily Ever After</h2>
+<div class="prose">
+<p>“No,” you say, and you take the wand from Gothel’s hand.</p>
+<p>She shouts and runs at you, but Mulan and Merida run up the stairs. They hold her arms. Below, all the princesses shout: “Liar!”</p>
+<p>The wand is warm in your hand. The spell ends. Aurora takes off the glass shoe and laughs. “This is not mine!” Ariel looks at the Beast. “Sorry. I have a prince!” Everyone remembers.</p>
+<p>Every princess goes back to her own story. Gothel goes back to hers, where she falls from a tower. In the kitchen, a pumpkin opens, and a short woman in blue says: “Thank you!”</p>
+<p>The sky is pink. “Run!” says Mulan. You jump through the white door.</p>
+<p>You wake up on your bedroom floor. You open the book. The stories are right. On the last page, there is a new picture: ten princesses, and you.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 6</p><ol class="slots" data-n="6" style="--n-end:6"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s16" data-n="16" data-end="good" hidden>
+<p class="eyebrow">Part 16</p>
+<h2 tabindex="-1">The Lost Princess</h2>
+<div class="prose">
+<p>You take Rapunzel’s other hand. The woman in gray pulls, and Rapunzel cries.</p>
+<p>“Please, flower,” says the woman. “I love you very much.”</p>
+<p>“I love you more,” says Rapunzel. She says it every night.</p>
+<p>“I love you most,” says the woman.</p>
+<p>Rapunzel stops crying. “Only one person says that,” she says. “Mother Gothel. You stole me.” Now she remembers everything.</p>
+<p>Gothel runs, and her wand falls into the water. The spell ends. Every story goes back, and Gothel goes back to her tower, where she falls.</p>
+<p>The king and the queen run to Rapunzel. The queen looks at her face, and she knows. The king holds his daughter and cries. “My daughter. My daughter.”</p>
+<p>The sky is pink. Rapunzel gives you a lantern. “Go! Quick!” she says. “Thank you.” You run through the white door.</p>
+<p>You wake up on your bedroom floor with a small lantern in your hands. It is still warm.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 6</p><ol class="slots" data-n="6" style="--n-end:6"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s17" data-n="17" data-end="good" hidden>
+<p class="eyebrow">Part 17</p>
+<h2 tabindex="-1">The Real Godmother</h2>
+<div class="prose">
+<p>You go up the stairs with Cinderella and the Fairy Godmother. The woman in gray sees you. She is afraid.</p>
+<p>Cinderella pulls the cloth off the mirror. A face appears in the glass. It is the Magic Mirror, and it always tells the truth. “That woman is Gothel,” it says. “She took the wand, and she mixed the stories. She wants your name.”</p>
+<p>“My wand, please,” says the Fairy Godmother. All the princesses run up the stairs, and Gothel drops the wand. The Fairy Godmother moves it once. Every story goes back, and Gothel goes back to her tower, where she falls.</p>
+<p>Then the Fairy Godmother opens the book of stories to the last page. “Now I write your name,” she says, “in the right place.” Under your name, she writes: Friend of the Princesses.</p>
+<p>You wake up on your bedroom floor. On the last page of your book, your name shines in gold. And a little note: Come back any night at midnight.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 6</p><ol class="slots" data-n="6" style="--n-end:6"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+    <footer class="foot">
+      <p>Teacher Alex · Readers · A2</p>
+      <p>An original story with the Disney princesses. The mixed-up book is invented.</p>
+      <button class="linkbtn" id="reset-endings" type="button">Reset endings</button>
+    </footer>
+  </div>
+</main>
+
+<script>
+/* engine:v2 — choices with conditions ([if 6, not 7] in the .story.md), bonus endings, number keys 1-9 */
+(function(){
+  var ENDINGS = {"12": {"title": "The Page", "kind": "bad"}, "13": {"title": "White Pages", "kind": "bad"}, "14": {"title": "The Wrong Story", "kind": "bad"}, "15": {"title": "Happily Ever After", "kind": "good"}, "16": {"title": "The Lost Princess", "kind": "good"}, "17": {"title": "The Real Godmother", "kind": "good"}};
+  var TITLES = {"1": "The Book", "2": "The Gold Book", "3": "The Little House", "4": "The Ball", "5": "The Beach", "6": "The Spinning Wheel", "7": "The Black Cloth", "8": "The Tower", "9": "The Lanterns", "10": "The Mirror", "11": "The Pumpkin", "12": "The Page", "13": "White Pages", "14": "The Wrong Story", "15": "Happily Ever After", "16": "The Lost Princess", "17": "The Real Godmother"};
+  var END_ORDER = Object.keys(ENDINGS).map(Number).sort(function(a,b){ return a-b; });
+  var INTENSITY = {"1": 0.5, "2": 0.75, "3": 0.35, "4": 0.9, "5": 0.45, "6": 0.3, "7": 0.25, "8": 0.3, "9": 0.6, "10": 1.1, "11": 0.35, "12": 0, "13": 0, "14": 0.6, "15": 1.0, "16": 0.9, "17": 1.0};
+  var MOOD = {"9": "lanterns", "12": "paper", "13": "blank", "14": "ash", "15": "win", "16": "glow", "17": "magic"};
+  var STORE = "princesses-dont-write-endings-v1";
+  var KIND = { good:"Good ending", bad:"Bad ending", bonus:"Bonus ending" };
+  var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var secs = {};
+  document.querySelectorAll(".sec").forEach(function(a){ secs[+a.dataset.n] = a; });
+  var hero = document.getElementById("hero");
+  var trail = document.getElementById("trail");
+  var btnBack = document.getElementById("btn-back");
+  var hist = [1];
+
+  function loadFound(){
+    try{
+      var v = JSON.parse(localStorage.getItem(STORE) || "[]");
+      return Array.isArray(v) ? v.filter(function(n){ return ENDINGS[n]; }) : [];
+    }catch(e){ return []; }
+  }
+  function saveFound(){ try{ localStorage.setItem(STORE, JSON.stringify(found)); }catch(e){} }
+  var found = loadFound();
+
+  function cur(){ return hist[hist.length-1]; }
+  function nums(s){ return (s || "").split(" ").filter(Boolean); }
+
+  function showChoices(sec){
+    var seen = {}, k = 0;
+    hist.forEach(function(n){ seen[n] = true; });
+    sec.querySelectorAll(".choice").forEach(function(b){
+      var ok = nums(b.getAttribute("data-if")).every(function(x){ return seen[x]; }) &&
+               !nums(b.getAttribute("data-ifnot")).some(function(x){ return seen[x]; });
+      b.hidden = !ok;
+      if(ok){ k++; var key = b.querySelector(".key"); if(key) key.textContent = k; }
+    });
+  }
+  function visibleChoices(){
+    return [].filter.call(secs[cur()].querySelectorAll(".choice"), function(b){ return !b.hidden; });
+  }
+
+  function renderTrail(){
+    trail.textContent = "";
+    var l = document.createElement("span"); l.className = "lbl"; l.textContent = "Your path"; trail.appendChild(l);
+    hist.forEach(function(n, i){
+      if(i){ var a = document.createElement("span"); a.className = "arr"; a.textContent = "→"; a.setAttribute("aria-hidden","true"); trail.appendChild(a); }
+      var s = document.createElement("span");
+      s.className = "step" + (i === hist.length-1 ? " now" : "");
+      s.textContent = n; s.title = TITLES[n] || "";
+      trail.appendChild(s);
+    });
+  }
+
+  function renderFound(now){
+    document.querySelectorAll(".found").forEach(function(box){
+      box.querySelector(".found-count").textContent = found.length;
+      var ol = box.querySelector(".slots"); ol.textContent = "";
+      END_ORDER.forEach(function(n){
+        var e = ENDINGS[n], got = found.indexOf(n) !== -1;
+        var li = document.createElement("li");
+        li.className = "slot " + e.kind + (got ? " got" : "") + (n === now ? " now" : "");
+        var k = document.createElement("span"); k.className = "sk";
+        k.textContent = got ? (KIND[e.kind] || "Ending") : (e.kind === "bonus" ? KIND.bonus : "Not found");
+        var t = document.createElement("span"); t.className = "st";
+        t.textContent = got ? e.title : "? ? ?";
+        li.appendChild(k); li.appendChild(t); ol.appendChild(li);
+      });
+    });
+  }
+
+  function render(animate){
+    var n = cur();
+    Object.keys(secs).forEach(function(k){ secs[k].hidden = (+k !== n); });
+    var a = secs[n];
+    showChoices(a);
+    if(animate && !reduced){ a.classList.remove("enter"); void a.offsetWidth; a.classList.add("enter"); }
+    hero.hidden = !(n === 1 && hist.length === 1);
+    btnBack.disabled = hist.length < 2;
+    document.body.setAttribute("data-mood", MOOD[n] || "");
+    renderTrail();
+    if(a.dataset.end){
+      if(found.indexOf(n) === -1){ found.push(n); saveFound(); }
+      renderFound(n);
+    }
+    bg.scene(n);
+  }
+
+  function focusTop(){
+    try{ window.scrollTo({ top:0, behavior: reduced ? "auto" : "smooth" }); }catch(e){ window.scrollTo(0,0); }
+    var h = secs[cur()].querySelector("h2");
+    if(h){ try{ h.focus({ preventScroll:true }); }catch(e){ h.focus(); } }
+  }
+  function go(to){ if(!secs[to]) return; hist.push(to); render(true); focusTop(); }
+  function back(){ if(hist.length > 1){ hist.pop(); render(true); focusTop(); } }
+  function restart(){ hist = [1]; render(true); focusTop(); }
+
+  document.addEventListener("click", function(e){
+    var c = e.target.closest(".choice");
+    if(c){ go(+c.dataset.to); return; }
+    if(e.target.closest(".js-restart")){ restart(); return; }
+    if(e.target.closest(".js-back")){ back(); return; }
+    if(e.target.closest("#reset-endings")){ found = []; saveFound(); renderFound(secs[cur()].dataset.end ? cur() : 0); }
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.metaKey || e.ctrlKey || e.altKey) return;
+    if(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if(/^[1-9]$/.test(e.key)){
+      var b = visibleChoices()[+e.key - 1];
+      if(b){ e.preventDefault(); b.click(); }
+    } else if(e.key === "ArrowLeft"){ if(hist.length > 1){ e.preventDefault(); back(); } }
+  });
+
+  /* ---------- sky: the night inside the book.
+     dust:     small rose and champagne sparks drift up (intensity = how many)
+     pages:    a few loose pages float and turn
+     lanterns: warm lanterns rise (lanterns, glow)
+     ash:      grey ash falls (ash)
+     win / glow / magic: the dust turns gold (magic: rose and gold, with a burst)
+     paper:    the dust goes out and many white pages fall
+     blank:    everything fades at once ---------- */
+  var bg = (function(){
+    var cv = document.getElementById("sky");
+    var ctx = cv.getContext && cv.getContext("2d");
+    if(!ctx) return { scene:function(){} };
+    var W = 0, H = 0, dpr = 1, col = document.getElementById("col"), R = Math.random;
+    var dust = [], pages = [], lamps = [], ash = [];
+    var mood = "", intensity = .5, running = false, last = 0;
+    var C = { d1:"#f2a6be", d2:"#e6cfa1", win:"#e6c98a", lamp:"#f0a24e", page:"#efe3cf", ash:"#8e8088", k:.55 };
+
+    function readColors(){
+      var cs = getComputedStyle(document.documentElement);
+      var v = function(name, d){ return cs.getPropertyValue(name).trim() || d; };
+      C.d1 = v("--dust1", C.d1); C.d2 = v("--dust2", C.d2); C.win = v("--win", C.win);
+      C.lamp = v("--lantern", C.lamp); C.page = v("--page", C.page); C.ash = v("--ash", C.ash);
+      C.k = parseFloat(v("--bk", C.k)) || C.k;
+    }
+    function area(){ return W * H; }
+    function want(){
+      var base = intensity * area() / 13000;
+      var w = { dust:0, pages:0, lamps:0, ash:0 };
+      if(mood === "blank") return w;
+      if(mood === "paper"){ w.pages = Math.min(34, Math.round(area() / 26000) + 10); return w; }
+      if(mood === "ash"){ w.ash = Math.min(90, Math.round(area() / 12000) + 20); return w; }
+      w.dust = Math.min(110, Math.round(base * (mood === "win" || mood === "magic" ? 1.4 : mood === "lanterns" || mood === "glow" ? .45 : 1)));
+      w.pages = Math.min(5, Math.round(intensity * 3));
+      if(mood === "lanterns" || mood === "glow") w.lamps = Math.min(34, Math.round(area() / 40000) + (mood === "glow" ? 16 : 8));
+      return w;
+    }
+    function dustColor(){
+      if(mood === "win" || mood === "glow") return R() < .8 ? "win" : "d2";
+      if(mood === "magic") return R() < .5 ? "win" : "d1";
+      return R() < .65 ? "d1" : "d2";
+    }
+    function mkDust(edge){
+      return { x:R()*W, y:edge ? H + 10 + R()*H*.2 : R()*H, r:.7 + R()*1.7, vy:-(5 + R()*12), vx:(R()-.5)*4,
+               tw:R()*6.283, c:dustColor(), a:0, ta:.45 + R()*.55, leaving:false };
+    }
+    function mkPage(edge, falling){
+      var s = (W < 640 ? .7 : 1) * (16 + R()*16);
+      return { x:R()*W, y:falling ? (edge ? -40 - R()*H*.6 : R()*H) : (edge ? H + 40 : R()*H),
+               w:s, h:s*1.32, rot:R()*6.283, vr:(R()-.5)*.9, vy:falling ? 22 + R()*30 : -(4 + R()*6),
+               sway:R()*6.283, falling:falling, a:0, ta:falling ? .75 + R()*.25 : .28 + R()*.22, leaving:false };
+    }
+    function mkLamp(edge){
+      var s = (W < 640 ? .75 : 1) * (9 + R()*9);
+      return { x:R()*W, y:edge ? H + 30 + R()*H*.5 : R()*H, s:s, vy:-(9 + R()*14), sway:R()*6.283,
+               fl:R()*6.283, a:0, ta:.7 + R()*.3, leaving:false };
+    }
+    function mkAsh(edge){
+      return { x:R()*W, y:edge ? -10 - R()*H*.4 : R()*H, r:.8 + R()*1.8, vy:10 + R()*16, sway:R()*6.283,
+               a:0, ta:.4 + R()*.5, leaving:false };
+    }
+    function syncList(list, n, make, edge, quick){
+      var act = list.filter(function(p){ return !p.leaving; });
+      for(var i = act.length; i < n; i++){ var p = make(edge && !reduced); if(reduced) p.a = p.ta; list.push(p); }
+      for(var j = act.length - 1, ex = act.length - n; j >= 0 && ex > 0; j--, ex--){ act[j].leaving = true; act[j].quick = quick; }
+    }
+    function sync(edge){
+      var w = want(), quick = mood === "blank" || mood === "paper" || mood === "ash";
+      dust.forEach(function(p){ if(!p.leaving) p.c = dustColor(); });
+      syncList(dust, w.dust, mkDust, edge, quick);
+      var fall = mood === "paper";
+      pages.forEach(function(p){ if(!p.leaving && p.falling !== fall){ p.leaving = true; p.quick = true; } });
+      syncList(pages, w.pages, function(e){ return mkPage(e, fall); }, edge, quick);
+      syncList(lamps, w.lamps, mkLamp, edge, quick);
+      syncList(ash, w.ash, mkAsh, edge, quick);
+    }
+    function resize(){
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth; H = window.innerHeight;
+      cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      sync(false);
+      if(reduced){ settle(); draw(); }
+    }
+    function settle(){
+      [dust, pages, lamps, ash].forEach(function(list){
+        for(var i = list.length - 1; i >= 0; i--){ if(list[i].leaving) list.splice(i, 1); else list[i].a = list[i].ta; }
+      });
+    }
+    function burst(){
+      for(var i = 0; i < 40; i++){
+        var p = mkDust(false);
+        p.x = W*.5 + (R()-.5)*W*.5; p.y = H*.45 + (R()-.5)*H*.3;
+        p.vx = (R()-.5)*60; p.vy = -(10 + R()*40); p.a = p.ta;
+        dust.push(p);
+      }
+    }
+    function inside(x, rc){ return x > rc.left - 12 && x < rc.right + 12; }
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      var rc = col.getBoundingClientRect();
+      var i, p, al;
+      for(i = 0; i < pages.length; i++){
+        p = pages[i];
+        al = p.a * C.k * (inside(p.x, rc) ? (p.falling ? .45 : .25) : 1);
+        if(al < .004) continue;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.globalAlpha = Math.min(1, al);
+        ctx.fillStyle = C.page;
+        ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+        ctx.globalAlpha = Math.min(1, al) * .35;
+        ctx.fillStyle = C.ash;
+        for(var l = 0; l < 4; l++) ctx.fillRect(-p.w*.32, -p.h*.3 + l*p.h*.16, p.w*.64, 1);
+        ctx.restore();
+      }
+      for(i = 0; i < lamps.length; i++){
+        p = lamps[i];
+        al = p.a * C.k * 1.5 * (inside(p.x, rc) ? .35 : 1) * (.85 + .15*Math.sin(p.fl));
+        if(al < .004) continue;
+        var gw = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.s*2.6);
+        gw.addColorStop(0, C.lamp); gw.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.globalAlpha = Math.min(1, al) * .45;
+        ctx.fillStyle = gw;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.s*2.6, 0, 6.283); ctx.fill();
+        ctx.globalAlpha = Math.min(1, al);
+        ctx.fillStyle = C.lamp;
+        var lw = p.s*.9, lh = p.s*1.25;
+        ctx.beginPath();
+        ctx.moveTo(p.x - lw*.62, p.y - lh*.6); ctx.lineTo(p.x + lw*.62, p.y - lh*.6);
+        ctx.lineTo(p.x + lw*.48, p.y + lh*.6); ctx.lineTo(p.x - lw*.48, p.y + lh*.6);
+        ctx.closePath(); ctx.fill();
+      }
+      for(i = 0; i < dust.length; i++){
+        p = dust[i];
+        al = p.a * C.k * (.55 + .45*Math.sin(p.tw)) * (inside(p.x, rc) ? .3 : 1);
+        if(al < .004) continue;
+        ctx.globalAlpha = Math.min(1, al);
+        ctx.fillStyle = C[p.c];
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.283); ctx.fill();
+        if(p.r > 1.7){
+          ctx.globalAlpha = Math.min(1, al) * .5;
+          ctx.fillRect(p.x - p.r*2.4, p.y - .4, p.r*4.8, .8);
+          ctx.fillRect(p.x - .4, p.y - p.r*2.4, .8, p.r*4.8);
+        }
+      }
+      for(i = 0; i < ash.length; i++){
+        p = ash[i];
+        al = p.a * C.k * (inside(p.x, rc) ? .35 : 1);
+        if(al < .004) continue;
+        ctx.globalAlpha = Math.min(1, al);
+        ctx.fillStyle = C.ash;
+        ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r*1.4, p.r*.8, p.sway, 0, 6.283); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+    function fade(p, dt){
+      p.a += (0 - p.a) * Math.min(1, dt * (p.quick ? 5 : 1.2));
+      return p.a < .01;
+    }
+    function step(dt){
+      var i, p;
+      for(i = dust.length - 1; i >= 0; i--){
+        p = dust[i]; p.tw += dt*2.2;
+        p.x += p.vx*dt; p.y += p.vy*dt; p.vx *= (1 - Math.min(1, dt*.8));
+        if(p.leaving){ if(fade(p, dt)){ dust.splice(i,1); } continue; }
+        p.a += (p.ta - p.a) * Math.min(1, dt*1.4);
+        if(p.y < -10){ p.y = H + 10; p.x = R()*W; p.vx = (R()-.5)*4; p.vy = -(5 + R()*12); }
+      }
+      for(i = pages.length - 1; i >= 0; i--){
+        p = pages[i]; p.sway += dt*.7; p.rot += p.vr*dt;
+        p.y += p.vy*dt; p.x += Math.cos(p.sway)*(p.falling ? 18 : 6)*dt;
+        if(p.leaving){ if(fade(p, dt)){ pages.splice(i,1); } continue; }
+        p.a += (p.ta - p.a) * Math.min(1, dt*1.2);
+        if(p.falling && p.y > H + 50){ p.y = -50; p.x = R()*W; }
+        if(!p.falling && p.y < -60){ p.y = H + 60; p.x = R()*W; }
+      }
+      for(i = lamps.length - 1; i >= 0; i--){
+        p = lamps[i]; p.sway += dt*.6; p.fl += dt*5;
+        p.y += p.vy*dt; p.x += Math.cos(p.sway)*5*dt;
+        if(p.leaving){ if(fade(p, dt)){ lamps.splice(i,1); } continue; }
+        p.a += (p.ta - p.a) * Math.min(1, dt*.9);
+        if(p.y < -40){ p.y = H + 40; p.x = R()*W; }
+      }
+      for(i = ash.length - 1; i >= 0; i--){
+        p = ash[i]; p.sway += dt*1.1;
+        p.y += p.vy*dt; p.x += Math.sin(p.sway)*10*dt;
+        if(p.leaving){ if(fade(p, dt)){ ash.splice(i,1); } continue; }
+        p.a += (p.ta - p.a) * Math.min(1, dt*1.2);
+        if(p.y > H + 10){ p.y = -10; p.x = R()*W; }
+      }
+    }
+    function loop(ts){
+      if(!running) return;
+      var dt = last ? Math.min(.05, (ts - last) / 1000) : .016; last = ts;
+      step(dt); draw();
+      requestAnimationFrame(loop);
+    }
+    function start(){ if(reduced || running) return; running = true; last = 0; requestAnimationFrame(loop); }
+    function stop(){ running = false; }
+
+    function scene(n){
+      var m = MOOD[n] || "", prev = mood;
+      mood = m;
+      intensity = INTENSITY[n] != null ? INTENSITY[n] : .5;
+      readColors();
+      sync(true);
+      if(!reduced && (m === "magic" || m === "win") && prev !== m) burst();
+      if(reduced){ settle(); draw(); }
+    }
+
+    window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", function(){ document.hidden ? stop() : start(); });
+    if(window.matchMedia){
+      var mq = matchMedia("(prefers-color-scheme: dark)");
+      var onScheme = function(){ readColors(); if(reduced) draw(); };
+      mq.addEventListener ? mq.addEventListener("change", onScheme) : mq.addListener(onScheme);
+    }
+    new MutationObserver(function(){ readColors(); if(reduced) draw(); })
+      .observe(document.documentElement, { attributes:true, attributeFilter:["data-theme"] });
+
+    readColors(); resize(); start();
+    return { scene:scene };
+  })();
+
+  render(false);
+})();
+</script>
+
+</body>
+</html>
