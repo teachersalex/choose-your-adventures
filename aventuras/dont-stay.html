@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Don't Stay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column over a slow field of stars; the stars speed up while the
+   reader is on the planet (time racing at home) and calm down when the story ends well. */
+:root{
+  color-scheme: dark;
+  --ground:#1b1216;
+  --ink:#ede0e4;
+  --ink-soft:#b59da6;
+  --line:#3d2a33;
+  --panel:#241820;
+  --panel-hover:#2e1f28;
+  --accent:#f2a6be;
+  --accent-ink:#f5b5c9;
+  --on-accent:#2a0f19;
+  --star:#f6dde5;
+  --star-strength:.8;
+  --win:#e7c98e;
+  --focus:#f7c3d3;
+  --display:"Jost","Futura","Century Gothic","Avenir Next",sans-serif;
+  --body:"Literata",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --fs-body:clamp(1.15rem, .95rem + 1vw, 1.7rem);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    color-scheme: light;
+    --ground:#fbf1f4;
+    --ink:#2a1820;
+    --ink-soft:#6f5660;
+    --line:#eacfd8;
+    --panel:#ffffff;
+    --panel-hover:#fff4f8;
+    --accent:#c3466f;
+    --accent-ink:#a8325b;
+    --on-accent:#ffffff;
+    --star:#8c4f66;
+    --star-strength:.38;
+    --win:#8a6420;
+    --focus:#a8325b;
+  }
+}
+:root[data-theme="light"]{
+  color-scheme: light;
+  --ground:#fbf1f4;
+  --ink:#2a1820;
+  --ink-soft:#6f5660;
+  --line:#eacfd8;
+  --panel:#ffffff;
+  --panel-hover:#fff4f8;
+  --accent:#c3466f;
+  --accent-ink:#a8325b;
+  --on-accent:#ffffff;
+  --star:#8c4f66;
+  --star-strength:.38;
+  --win:#8a6420;
+  --focus:#a8325b;
+}
+:root[data-theme="dark"]{ color-scheme: dark; }
+
+body[data-mood="win"]{ --accent:var(--win); --accent-ink:var(--win); --focus:var(--win); --star:var(--win); }
+body[data-mood="empty"]{ --accent:var(--ink-soft); --accent-ink:var(--ink-soft); }
+
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--body);
+  -webkit-font-smoothing:antialiased;
+}
+#sky{ position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+
+.bar{
+  position:sticky; top:env(safe-area-inset-top,0px); z-index:3;
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px;
+  padding:10px 16px;
+  background:color-mix(in srgb, var(--ground) 86%, transparent);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line);
+}
+.brand{ display:flex; align-items:baseline; gap:.7em; font-family:var(--mono); font-size:.78rem; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.brand b{ font-weight:600; color:var(--accent-ink); }
+.controls{ display:flex; gap:8px; }
+.ctl{
+  font-family:var(--mono); font-size:.82rem; color:var(--ink);
+  background:transparent; border:1px solid var(--line); border-radius:3px;
+  padding:.45em .8em; cursor:pointer;
+}
+.ctl:hover:not(:disabled){ border-color:var(--accent); }
+.ctl:disabled{ opacity:.4; cursor:default; }
+
+main{ position:relative; z-index:1; padding-inline:16px; padding-block:clamp(1.5rem, 1rem + 3vw, 3.5rem) 4rem; }
+.col{ max-width:34em; margin-inline:auto; font-size:var(--fs-body); }
+
+.hero{ margin-bottom:2.2em; }
+.hero-kicker{ margin:0; font-family:var(--mono); font-size:clamp(.78rem,.7rem + .3vw,.95rem); letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); }
+.hero h1{
+  font-family:var(--display); font-weight:300; text-transform:uppercase;
+  font-size:clamp(2.7rem, 1.4rem + 6.4vw, 6.4rem); line-height:.98; letter-spacing:.09em;
+  margin:.22em 0 .4em; color:var(--accent-ink);
+  text-wrap:balance;
+}
+.hero .lede{ margin:0; color:var(--ink-soft); line-height:1.55; max-width:30em; }
+.hero .lede strong{ color:var(--ink); font-weight:600; }
+
+.trail{
+  display:flex; flex-wrap:wrap; align-items:center; gap:.35em .5em;
+  margin:0 0 1.6em; font-family:var(--mono); font-size:clamp(.78rem,.7rem + .3vw,.95rem); color:var(--ink-soft);
+}
+.trail .lbl{ letter-spacing:.14em; text-transform:uppercase; margin-right:.3em; }
+.trail .step{ font-variant-numeric:tabular-nums; border:1px solid var(--line); border-radius:3px; padding:.05em .45em; }
+.trail .step.now{ border-color:var(--accent); color:var(--accent-ink); font-weight:600; }
+.trail .arr{ opacity:.6; }
+
+.eyebrow{ margin:0; font-family:var(--mono); font-size:clamp(.78rem,.7rem + .3vw,.95rem); letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.sec h2{
+  font-family:var(--display); font-weight:400; text-transform:uppercase;
+  font-size:clamp(1.75rem, 1.25rem + 2.2vw, 2.9rem); line-height:1.08; letter-spacing:.06em;
+  margin:.25em 0 .8em; color:var(--accent-ink); text-wrap:balance;
+}
+.sec h2:focus, .sec h2:focus-visible{ outline:none; }
+
+.prose{ display:flex; flex-direction:column; gap:.85em; }
+.prose p{ margin:0; line-height:1.62; }
+
+.log{
+  font-family:var(--mono); font-size:.82em;
+  background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--accent);
+  padding:.85em 1em; display:flex; flex-direction:column; gap:.35em;
+}
+.log-head{ font-size:.78em; letter-spacing:.18em; text-transform:uppercase; color:var(--accent-ink); margin-bottom:.25em !important; }
+.log-line{ display:grid; grid-template-columns:6.2em 1fr; gap:.8em; line-height:1.5 !important; }
+.log-line .t{ color:var(--accent-ink); font-variant-numeric:tabular-nums; }
+.log-line.log-plain{ display:block; }
+
+.choices{ margin-top:2em; display:flex; flex-direction:column; gap:.7em; }
+.ask{ margin:0 0 .15em; font-family:var(--mono); font-size:clamp(.78rem,.7rem + .3vw,.95rem); letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.choice{
+  display:flex; align-items:center; gap:.85em; width:100%;
+  font:inherit; text-align:left; color:var(--ink);
+  background:var(--panel); border:1px solid var(--line); border-radius:4px;
+  padding:.75em 1em; cursor:pointer;
+  transition:border-color .2s, background-color .2s, transform .2s;
+}
+.choice:hover{ border-color:var(--accent); background:var(--panel-hover); transform:translateX(3px); }
+.choice:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+.key{
+  flex:none; display:grid; place-items:center;
+  width:1.85em; height:1.85em; border-radius:50%;
+  font-family:var(--mono); font-weight:600; font-size:.82em;
+  color:var(--accent-ink); border:1.5px solid var(--accent);
+}
+.ctext{ line-height:1.35; min-width:0; }
+.keyhint{ display:none; margin:.4em 0 0; font-family:var(--mono); font-size:.7em; color:var(--ink-soft); }
+@media (hover:hover) and (pointer:fine){ .keyhint{ display:block; } }
+
+.stamp{
+  align-self:flex-start;
+  margin:1.2em 0 0 !important;
+  font-family:var(--display); font-weight:400; text-transform:uppercase;
+  font-size:clamp(1.6rem, 1.2rem + 2vw, 2.6rem); line-height:1 !important; letter-spacing:.22em;
+  color:var(--accent-ink); border-top:1px solid var(--accent); border-bottom:1px solid var(--accent);
+  padding:.45em 0 .4em;
+}
+.stamp-sub{ display:block; font-family:var(--mono); font-size:.36em; letter-spacing:.24em; margin-top:.7em; }
+
+.ending{ margin-top:2em; display:flex; flex-direction:column; gap:1.1em; }
+.kind{ margin:0; font-family:var(--mono); font-size:clamp(.78rem,.7rem + .3vw,.95rem); letter-spacing:.18em; text-transform:uppercase; }
+.kind-bad{ color:var(--ink-soft); }
+.kind-good{ color:var(--accent-ink); font-weight:600; }
+.found{ border-top:1px solid var(--line); padding-top:1em; }
+.found-label{ margin:0; font-family:var(--mono); font-size:clamp(.78rem,.7rem + .3vw,.95rem); color:var(--ink-soft); }
+.found-label b{ color:var(--ink); font-variant-numeric:tabular-nums; }
+.slots{ list-style:none; margin:.7em 0 0; padding:0; display:grid; grid-template-columns:repeat(var(--n-end,3),minmax(0,1fr)); gap:.6em; font-size:.8em; }
+.slot{ border:1px dashed var(--line); border-radius:4px; padding:.6em .75em; color:var(--ink-soft); display:flex; flex-direction:column; gap:.25em; }
+.slot .sk{ font-family:var(--mono); font-size:.7em; letter-spacing:.12em; text-transform:uppercase; }
+.slot .st{ font-family:var(--display); text-transform:uppercase; letter-spacing:.06em; font-size:1em; line-height:1.15; }
+.slot.got{ border-style:solid; color:var(--ink); }
+.slot.got.good{ border-color:var(--accent); }
+.slot.now{ box-shadow:inset 0 0 0 1px var(--accent); }
+@media (max-width:560px){ .slots{ grid-template-columns:1fr; } }
+
+.end-actions{ display:flex; flex-wrap:wrap; gap:.6em; }
+.btn{ font:inherit; font-size:.9em; border-radius:4px; padding:.6em 1.1em; cursor:pointer; border:1.5px solid var(--accent); }
+.btn-main{ background:var(--accent); color:var(--on-accent); font-weight:600; }
+.btn-main:hover{ filter:brightness(1.08); }
+.btn-ghost{ background:transparent; color:var(--ink); border-color:var(--line); }
+.btn-ghost:hover{ border-color:var(--accent); }
+.btn:focus-visible, .ctl:focus-visible, .linkbtn:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+
+.foot{ margin-top:4em; padding-top:1em; border-top:1px solid var(--line); display:flex; flex-wrap:wrap; justify-content:space-between; gap:.6em 1.2em; font-family:var(--mono); font-size:.78rem; color:var(--ink-soft); }
+.foot p{ margin:0; }
+.linkbtn{ font:inherit; color:var(--ink-soft); background:none; border:0; padding:0; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+.linkbtn:hover{ color:var(--ink); }
+
+.sec.enter{ animation:rise .45s ease-out both; }
+@keyframes rise{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){
+  .sec.enter{ animation:none; }
+  .choice, .choice:hover{ transition:none; transform:none; }
+}
+</style>
+</head>
+<body>
+
+
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<header class="bar">
+  <div class="brand"><b>Interstellar</b><span>Don’t Stay</span></div>
+  <nav class="controls" aria-label="Story controls">
+    <button class="ctl js-back" id="btn-back" type="button" disabled>&#8592; Back</button>
+    <button class="ctl js-restart" type="button">Start again</button>
+  </nav>
+</header>
+
+<main>
+  <div class="col" id="col">
+    <section class="hero" id="hero">
+      <p class="hero-kicker">A story in the world of Interstellar</p>
+      <h1>Don’t Stay</h1>
+      <p class="lede">Read each part. At the end, choose <strong>1</strong> or <strong>2</strong>. There are three endings. Can you find the good one?</p>
+    </section>
+
+    <p class="trail" id="trail" aria-live="polite"><span class="lbl">Your path</span><span class="step now">1</span></p>
+
+<article class="sec" id="s1" data-n="1">
+<p class="eyebrow">Part 1</p>
+<h2 tabindex="-1">The Message</h2>
+<div class="prose">
+<p>You are a new pilot on Cooper Station, the big space station near Saturn.</p>
+<p>A message arrives from Dr. Amelia Brand. She lives on a new planet, on the other side of the wormhole.</p>
+<p>“A pilot from your station, Leo Marsh, was bringing seeds to my planet. His ship had a problem, and now it is on Miller’s planet. His signal says he is OK.</p>
+<p>“I was on that planet once. Time is very slow there. One hour on the planet is seven years at home. And the mountains there are not mountains. They are waves.</p>
+<p>“Go and get Leo. Don’t stay.”</p>
+<p>Before you leave, Leo’s daughter, Emma, comes to you. She is eight. She gives you a drawing: a man and a girl, hand in hand.</p>
+<p>“For my dad,” she says.</p>
+<p>Then you fly through the wormhole to Miller’s planet.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="2"><span class="key" aria-hidden="true">1</span><span class="ctext">Go down to Leo’s ship now.</span></button><button class="choice" type="button" data-to="3"><span class="key" aria-hidden="true">2</span><span class="ctext">Listen to Leo’s signal first.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s2" data-n="2" hidden>
+<p class="eyebrow">Part 2</p>
+<h2 tabindex="-1">The Water</h2>
+<div class="prose">
+<p>Your small ship lands on the water, near Leo’s ship. You step out.</p>
+<p>The water is not deep. It comes to your knees. Your body is heavy here. In the sky, you can see Gargantua, the black hole. It is enormous. Far away, there are big gray mountains.</p>
+<p>You look at your watch. Every minute here is more than a month at home.</p>
+<p>“Leo? Can you hear me?” you say on the radio.</p>
+<p>Nobody answers. Leo’s ship is very quiet, and half of it is under the water. You are afraid. Maybe Leo is dead.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="4"><span class="key" aria-hidden="true">1</span><span class="ctext">Walk to Leo’s ship.</span></button><button class="choice" type="button" data-to="11"><span class="key" aria-hidden="true">2</span><span class="ctext">Go back to your ship. Nobody is alive here.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s3" data-n="3" hidden>
+<p class="eyebrow">Part 3</p>
+<h2 tabindex="-1">The Signal</h2>
+<div class="prose">
+<p>You stay far above the planet. Up here, time is normal. You play Leo’s signal.</p>
+<div class="log" aria-label="Incoming signal"><p class="log-head">Incoming signal</p><p class="log-line log-plain">This is Leo Marsh. My ship is on the water planet.</p><p class="log-line log-plain">The engine is broken, but I am OK. I have the seeds.</p><p class="log-line log-plain">Please tell my daughter, Emma: Dad is coming home for her birthday.</p><p class="log-line log-plain">And tell her it’s beautiful here. There are big mountains near my ship.</p></div>
+<p>The message ends. Then it starts again: the same words, the same voice, again and again.</p>
+<p>You look down at the blue planet. Where do you land? Near Leo’s ship, on the water? Or on the mountains, high and far from the water?</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="4"><span class="key" aria-hidden="true">1</span><span class="ctext">Land near Leo’s ship.</span></button><button class="choice" type="button" data-to="5"><span class="key" aria-hidden="true">2</span><span class="ctext">Land on the mountains.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s4" data-n="4" hidden>
+<p class="eyebrow">Part 4</p>
+<h2 tabindex="-1">Leo’s Ship</h2>
+<div class="prose">
+<p>Now you are next to Leo’s ship. It is small, and half of it is under the water. The door is closed, but there is a small window in it.</p>
+<p>You look in. A man is sitting inside. He is talking to a small camera, and he is smiling. It’s Leo. He is alive!</p>
+<p>You are happy, but you are worried too. Every minute here is more than a month at home. And Leo’s ship can’t fly.</p>
+<p>On your radio, you can call Dr. Brand. She knows this planet.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="6"><span class="key" aria-hidden="true">1</span><span class="ctext">Open the door.</span></button><button class="choice" type="button" data-to="7"><span class="key" aria-hidden="true">2</span><span class="ctext">Call Dr. Brand first.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s5" data-n="5" hidden>
+<p class="eyebrow">Part 5</p>
+<h2 tabindex="-1">The Mountains</h2>
+<div class="prose">
+<p>You fly down to the mountains. They are big and gray. But something is strange. They move.</p>
+<p>They are not mountains. They are waves! One of them is very close, and it is very, very tall.</p>
+<p>You turn your ship, fast. The wave passes under you. You are very afraid, and your hands shake. Brand was right.</p>
+<p>You look at your watch: ten minutes near the planet. At home, that is more than a year.</p>
+<p>Far away, Leo’s ship is still on the water. The wave goes the other way.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="4"><span class="key" aria-hidden="true">1</span><span class="ctext">Fly to Leo’s ship.</span></button><button class="choice" type="button" data-to="11"><span class="key" aria-hidden="true">2</span><span class="ctext">Fly up, away from this planet.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s6" data-n="6" hidden>
+<p class="eyebrow">Part 6</p>
+<h2 tabindex="-1">Leo</h2>
+<div class="prose">
+<p>You open the door. Leo turns to you. He is about thirty years old, and he has a big smile.</p>
+<p>“You’re here already?” he says. “I sent my signal only a few minutes ago!”</p>
+<p>For Leo, it was a few minutes. For you and for Emma, it was months.</p>
+<p>“I’m making a video for Emma,” he says. “For her birthday. It’s next week.”</p>
+<p>You don’t say anything. Emma’s birthday is already over. You feel very sad.</p>
+<p>Leo points to some boxes. “These are the seeds. Brand needs them. There are four boxes. Help me, and then we can go.”</p>
+<p>The boxes are big and heavy.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="8"><span class="key" aria-hidden="true">1</span><span class="ctext">Help Leo with the boxes.</span></button><button class="choice" type="button" data-to="9"><span class="key" aria-hidden="true">2</span><span class="ctext">Give Leo Emma’s drawing.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s7" data-n="7" hidden>
+<p class="eyebrow">Part 7</p>
+<h2 tabindex="-1">Dr. Brand</h2>
+<div class="prose">
+<p>You call Dr. Brand. She answers.</p>
+<p>“I was on that planet with my friends,” she says. “I wanted Miller’s data, so we stayed too long. A wave came, and it took our friend Doyle. When we went back up, twenty-three years were gone.</p>
+<p>“Listen. The waves come again and again. Leo is going to want the seeds, but people are more important than seeds. A friend told me once: to go forward, you have to leave something behind.”</p>
+<p>“Can you send help?” you ask.</p>
+<p>“No. There is no time. It’s your decision.”</p>
+<p>Then the call ends.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="6"><span class="key" aria-hidden="true">1</span><span class="ctext">Open the door.</span></button><button class="choice" type="button" data-to="11"><span class="key" aria-hidden="true">2</span><span class="ctext">Go back up and wait for the waves to stop.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s8" data-n="8" hidden>
+<p class="eyebrow">Part 8</p>
+<h2 tabindex="-1">The Boxes</h2>
+<div class="prose">
+<p>You take a box. It is very heavy, and every step in the water is slow.</p>
+<p>You carry one box to your ship. Then another. Leo smiles. “Two more,” he says.</p>
+<p>You look at your watch. Every box takes many minutes. And every minute here is more than a month for Emma.</p>
+<p>You think about Emma at the station. She is waiting for her dad, and she is getting older, month by month.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="10"><span class="key" aria-hidden="true">1</span><span class="ctext">Go back for the last two boxes.</span></button><button class="choice" type="button" data-to="9"><span class="key" aria-hidden="true">2</span><span class="ctext">Stop and give Leo Emma’s drawing.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s9" data-n="9" hidden>
+<p class="eyebrow">Part 9</p>
+<h2 tabindex="-1">The Drawing</h2>
+<div class="prose">
+<p>You give Leo Emma’s drawing. He looks at it for a long time: a man and a girl, hand in hand.</p>
+<p>“Leo,” you say. “For you, it’s only minutes. For Emma, it’s months. She is waiting for you.”</p>
+<p>Leo understands. He is very sad. “Months,” he says quietly.</p>
+<p>Then he picks up a box. “OK. We go now. But this box comes with us. It’s only one minute.”</p>
+<p>You look behind him. Far away, the gray mountains look bigger now.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="10"><span class="key" aria-hidden="true">1</span><span class="ctext">Help Leo carry the box.</span></button><button class="choice" type="button" data-to="12"><span class="key" aria-hidden="true">2</span><span class="ctext">Leave the seeds and run to your ship.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s10" data-n="10" data-end="bad" hidden>
+<p class="eyebrow">Part 10</p>
+<h2 tabindex="-1">The Seeds</h2>
+<div class="prose">
+<p>You carry the seeds with Leo. Then the water around your legs moves, fast. You look up.</p>
+<p>The mountain is not a mountain. It’s a wave, and it’s very close.</p>
+<p>You and Leo run. You close the door of your ship, and the wave hits. The ship goes up, up, up, and then down again.</p>
+<p>You are alive. But the engines are full of water. You wait. One hour. Two hours. Three.</p>
+<p>When you arrive at Cooper Station, more than twenty years are gone. A woman is waiting at the door. She is almost thirty. Now she is almost the same age as her father. It’s Emma.</p>
+<p>“Hello, Dad,” she says.</p>
+<p>Leo looks at her. He is happy and very sad at the same time.</p>
+<p>The seeds are safe. But Leo lost twenty years with his daughter.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 3</p><ol class="slots" data-n="3" style="--n-end:3"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s11" data-n="11" data-end="bad" hidden>
+<p class="eyebrow">Part 11</p>
+<h2 tabindex="-1">The Empty Water</h2>
+<div class="prose">
+<p>Your ship goes up, away from the water. You look down.</p>
+<p>A big wave moves across the planet. It covers Leo’s ship. Then the water is calm again, and Leo’s ship is not there.</p>
+<p>You are alive. But you didn’t help Leo.</p>
+<p>You go home to Cooper Station. Emma is waiting at the door. She is taller now.</p>
+<p>“Where is my dad?” she asks.</p>
+<p>You can’t answer. You give her the drawing. She holds it and says nothing.</p>
+<p>After that day, Emma waits at the door every evening.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 3</p><ol class="slots" data-n="3" style="--n-end:3"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s12" data-n="12" data-end="good" hidden>
+<p class="eyebrow">Part 12</p>
+<h2 tabindex="-1">Emma</h2>
+<div class="prose">
+<p>You take the box from Leo’s hands and drop it in the water.</p>
+<p>“No!” Leo says. “Brand needs the seeds!”</p>
+<p>“Look!” you say. “That mountain is a wave! Emma needs you, Leo, not the seeds.”</p>
+<p>Leo looks at the wave. He looks at the drawing in his hand. Then he runs with you.</p>
+<p>You close the door and start the engines. The wave is very close now. Your ship goes up, over the wave, and away from the water.</p>
+<p>You look at your watch. You were on the planet for about one hour. At home, about seven years are gone.</p>
+<p>At Cooper Station, a girl is waiting at the door. She is fifteen now. Leo can’t speak. He gives her the drawing, and she hugs her father. They both cry.</p>
+<p>A message arrives from Dr. Brand: “We can find more seeds. Good work, pilot.”</p>
+<p class="stamp">THE END. <span class="stamp-sub">MISSION COMPLETE.</span></p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 3</p><ol class="slots" data-n="3" style="--n-end:3"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+    <footer class="foot">
+      <p>Teacher Alex · Readers · A2</p>
+      <p>A story in the world of Interstellar, the film by Christopher Nolan</p>
+      <button class="linkbtn" id="reset-endings" type="button">Reset endings</button>
+    </footer>
+  </div>
+</main>
+
+<script>
+(function(){
+  var ENDINGS = {"10": {"title": "The Seeds", "kind": "bad"}, "11": {"title": "The Empty Water", "kind": "bad"}, "12": {"title": "Emma", "kind": "good"}};
+  var TITLES = {"1": "The Message", "2": "The Water", "3": "The Signal", "4": "Leo’s Ship", "5": "The Mountains", "6": "Leo", "7": "Dr. Brand", "8": "The Boxes", "9": "The Drawing", "10": "The Seeds", "11": "The Empty Water", "12": "Emma"};
+  var END_ORDER = Object.keys(ENDINGS).map(Number).sort(function(a,b){ return a-b; });
+  var INTENSITY = {"1": 0.3, "2": 1, "3": 0.3, "4": 1, "5": 1.3, "6": 1, "7": 1, "8": 1.5, "9": 1.2, "10": 3, "11": 0, "12": 0.12};
+  var MOOD = {"10": "flood", "11": "empty", "12": "win"};
+  var STORE = "interstellar-dont-stay-endings-v1";
+  var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var secs = {};
+  document.querySelectorAll(".sec").forEach(function(a){ secs[+a.dataset.n] = a; });
+  var hero = document.getElementById("hero");
+  var trail = document.getElementById("trail");
+  var btnBack = document.getElementById("btn-back");
+  var hist = [1];
+
+  function loadFound(){
+    try{
+      var v = JSON.parse(localStorage.getItem(STORE) || "[]");
+      return Array.isArray(v) ? v.filter(function(n){ return ENDINGS[n]; }) : [];
+    }catch(e){ return []; }
+  }
+  function saveFound(){ try{ localStorage.setItem(STORE, JSON.stringify(found)); }catch(e){} }
+  var found = loadFound();
+
+  function cur(){ return hist[hist.length-1]; }
+
+  function renderTrail(){
+    trail.textContent = "";
+    var l = document.createElement("span"); l.className = "lbl"; l.textContent = "Your path"; trail.appendChild(l);
+    hist.forEach(function(n, i){
+      if(i){ var a = document.createElement("span"); a.className = "arr"; a.textContent = "→"; a.setAttribute("aria-hidden","true"); trail.appendChild(a); }
+      var s = document.createElement("span");
+      s.className = "step" + (i === hist.length-1 ? " now" : "");
+      s.textContent = n; s.title = TITLES[n] || "";
+      trail.appendChild(s);
+    });
+  }
+
+  function renderFound(now){
+    document.querySelectorAll(".found").forEach(function(box){
+      box.querySelector(".found-count").textContent = found.length;
+      var ol = box.querySelector(".slots"); ol.textContent = "";
+      END_ORDER.forEach(function(n){
+        var e = ENDINGS[n], got = found.indexOf(n) !== -1;
+        var li = document.createElement("li");
+        li.className = "slot" + (got ? " got " + e.kind : "") + (n === now ? " now" : "");
+        var k = document.createElement("span"); k.className = "sk";
+        k.textContent = got ? (e.kind === "good" ? "Good ending" : "Bad ending") : "Not found";
+        var t = document.createElement("span"); t.className = "st";
+        t.textContent = got ? e.title : "? ? ?";
+        li.appendChild(k); li.appendChild(t); ol.appendChild(li);
+      });
+    });
+  }
+
+  function render(animate){
+    var n = cur();
+    Object.keys(secs).forEach(function(k){ secs[k].hidden = (+k !== n); });
+    var a = secs[n];
+    if(animate && !reduced){ a.classList.remove("enter"); void a.offsetWidth; a.classList.add("enter"); }
+    hero.hidden = !(n === 1 && hist.length === 1);
+    btnBack.disabled = hist.length < 2;
+    document.body.setAttribute("data-mood", MOOD[n] || "");
+    renderTrail();
+    if(a.dataset.end){
+      if(found.indexOf(n) === -1){ found.push(n); saveFound(); }
+      renderFound(n);
+    }
+    sky.scene(n);
+  }
+
+  function focusTop(){
+    try{ window.scrollTo({ top:0, behavior: reduced ? "auto" : "smooth" }); }catch(e){ window.scrollTo(0,0); }
+    var h = secs[cur()].querySelector("h2");
+    if(h){ try{ h.focus({ preventScroll:true }); }catch(e){ h.focus(); } }
+  }
+  function go(to){ if(!secs[to]) return; hist.push(to); render(true); focusTop(); }
+  function back(){ if(hist.length > 1){ hist.pop(); render(true); focusTop(); } }
+  function restart(){ hist = [1]; render(true); focusTop(); }
+
+  document.addEventListener("click", function(e){
+    var c = e.target.closest(".choice");
+    if(c){ go(+c.dataset.to); return; }
+    if(e.target.closest(".js-restart")){ restart(); return; }
+    if(e.target.closest(".js-back")){ back(); return; }
+    if(e.target.closest("#reset-endings")){ found = []; saveFound(); renderFound(secs[cur()].dataset.end ? cur() : 0); }
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.metaKey || e.ctrlKey || e.altKey) return;
+    if(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if(e.key === "1" || e.key === "2"){
+      var btns = secs[cur()].querySelectorAll(".choice");
+      var b = btns[+e.key - 1];
+      if(b){ e.preventDefault(); b.click(); }
+    } else if(e.key === "ArrowLeft"){ if(hist.length > 1){ e.preventDefault(); back(); } }
+  });
+
+  /* ---------- sky: a field of stars that drifts; the drift speeds up while the reader
+     is on the planet, because time at home runs faster ---------- */
+  var sky = (function(){
+    var cv = document.getElementById("sky");
+    var ctx = cv.getContext && cv.getContext("2d");
+    if(!ctx) return { scene:function(){} };
+    var W = 0, H = 0, dpr = 1, col = document.getElementById("col"), R = Math.random;
+    var stars = [], speed = .3, tSpeed = .3, vis = 1, tVis = 1, visRate = 1.5, colAlpha = .18;
+    var color = "#f6dde5", strength = .8, running = false, last = 0;
+
+    function readColors(){
+      var cs = getComputedStyle(document.body);
+      color = cs.getPropertyValue("--star").trim() || color;
+      strength = parseFloat(cs.getPropertyValue("--star-strength")) || strength;
+    }
+    function build(){
+      var n = Math.min(380, Math.round(W * H / 3800));
+      stars = [];
+      for(var i=0;i<n;i++) stars.push({ x:R()*W, y:R()*H, z:.25 + R()*.75, tw:R()*6.283, tws:.4 + R()*1.4 });
+    }
+    function vel(z){ return (6 + 120 * speed * speed) * z; }
+    function resize(){
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth; H = window.innerHeight;
+      cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      build(); draw();
+    }
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      if(vis < .005) return;
+      ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineCap = "round";
+      var r = col.getBoundingClientRect();
+      for(var i=0;i<stars.length;i++){
+        var s = stars[i];
+        var inCol = s.x > r.left - 14 && s.x < r.right + 14;
+        var a = (.25 + .75*s.z) * (.65 + .35*Math.sin(s.tw)) * strength * vis * (inCol ? colAlpha : 1);
+        if(a < .01) continue;
+        ctx.globalAlpha = Math.min(1, a);
+        var len = reduced ? 0 : Math.min(240, vel(s.z) * .05);
+        if(len < 1.5){
+          var rad = .45 + s.z * .9;
+          ctx.beginPath(); ctx.arc(s.x, s.y, rad, 0, 6.283); ctx.fill();
+        } else {
+          ctx.lineWidth = .6 + s.z * .9;
+          ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.x + len, s.y); ctx.stroke();
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+    function step(dt){
+      speed += (tSpeed - speed) * Math.min(1, dt * 1.4);
+      vis += (tVis - vis) * Math.min(1, dt * visRate);
+      for(var i=0;i<stars.length;i++){
+        var s = stars[i];
+        s.x -= vel(s.z) * dt;
+        s.tw += s.tws * dt;
+        if(s.x < -250){ s.x = W + R()*40; s.y = R()*H; }
+      }
+    }
+    function loop(ts){
+      if(!running) return;
+      var dt = last ? Math.min(.05, (ts-last)/1000) : .016; last = ts;
+      step(dt); draw();
+      requestAnimationFrame(loop);
+    }
+    function start(){ if(reduced || running) return; running = true; last = 0; requestAnimationFrame(loop); }
+    function stop(){ running = false; }
+
+    /* mood "flood": stars streak, time at home runs very fast
+       mood "empty": the sky goes dark quickly
+       mood "win":   stars slow down and turn warm */
+    function scene(n){
+      var m = MOOD[n] || "";
+      tSpeed = INTENSITY[n] != null ? INTENSITY[n] : .3;
+      tVis = m === "empty" ? 0 : 1;
+      visRate = m === "empty" ? 2.5 : 1.5;
+      colAlpha = m === "flood" ? .12 : .18;
+      readColors();
+      if(reduced){ speed = tSpeed; vis = tVis; draw(); }
+    }
+
+    window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", function(){ document.hidden ? stop() : start(); });
+    if(window.matchMedia){
+      var mq = matchMedia("(prefers-color-scheme: dark)");
+      var onScheme = function(){ readColors(); if(reduced) draw(); };
+      mq.addEventListener ? mq.addEventListener("change", onScheme) : mq.addListener(onScheme);
+    }
+    new MutationObserver(function(){ readColors(); if(reduced) draw(); })
+      .observe(document.documentElement, { attributes:true, attributeFilter:["data-theme"] });
+
+    readColors(); resize(); start();
+    return { scene:scene };
+  })();
+
+  render(false);
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,769 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Vanessa Always Wins</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Prata&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=Spline+Sans+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column inside the Albuquerque mansion on the afternoon of the baby party.
+   The opening is the party invitation (script title in a double frame). Pastel balloons for a baby
+   that does not exist drift up behind the text, dimmer behind the column. Papers inside the story
+   (the plan, Cida's letter) are real paper cards. Dark theme: the green house at night, rose and
+   champagne. Light theme: the same house by day, pale sage paper and bottle-green ink.
+   Moods: win = gold confetti over the balloons; pop = every balloon bursts (the scream);
+   empty = the balloons leave at once; one = a single balloon stays. */
+:root{
+  color-scheme: dark;
+  --ground:#0b1411;
+  --ink:#eef1e8;
+  --ink-soft:#9eaaa2;
+  --line:#22322b;
+  --frame:#5b6d63;
+  --panel:#111e19;
+  --panel-hover:#182822;
+  --accent:#eda3b7;
+  --accent-ink:#f2b4c5;
+  --on-accent:#2b0d17;
+  --paper:#e8e1cf;
+  --paper-ink:#2b2620;
+  --paper-soft:#7a6f5f;
+  --b1:#f0a9bc;
+  --b2:#9fc2e6;
+  --b3:#e3c88a;
+  --bk:.2;
+  --win:#e3c47c;
+  --focus:#f2b4c5;
+  --script:"Pinyon Script","Snell Roundhand","Apple Chancery",cursive;
+  --display:"Prata","Didot","Bodoni 72","Iowan Old Style",Georgia,serif;
+  --body:"Literata",Georgia,"Times New Roman",serif;
+  --mono:"Spline Sans Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --fs-body:clamp(1.15rem, .95rem + 1vw, 1.7rem);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    color-scheme: light;
+    --ground:#eef0e8;
+    --ink:#15211b;
+    --ink-soft:#56645b;
+    --line:#d6dccf;
+    --frame:#9aa89e;
+    --panel:#fafbf6;
+    --panel-hover:#e9eee2;
+    --accent:#a12d4e;
+    --accent-ink:#8b2443;
+    --on-accent:#ffffff;
+    --paper:#fbf8ef;
+    --paper-ink:#2b2620;
+    --paper-soft:#7a6f5f;
+    --b1:#d97d97;
+    --b2:#6f97c4;
+    --b3:#c2a35f;
+    --bk:.14;
+    --win:#876214;
+    --focus:#8b2443;
+  }
+}
+:root[data-theme="light"]{
+  color-scheme: light;
+  --ground:#eef0e8;
+  --ink:#15211b;
+  --ink-soft:#56645b;
+  --line:#d6dccf;
+  --frame:#9aa89e;
+  --panel:#fafbf6;
+  --panel-hover:#e9eee2;
+  --accent:#a12d4e;
+  --accent-ink:#8b2443;
+  --on-accent:#ffffff;
+  --paper:#fbf8ef;
+  --paper-ink:#2b2620;
+  --paper-soft:#7a6f5f;
+  --b1:#d97d97;
+  --b2:#6f97c4;
+  --b3:#c2a35f;
+  --bk:.14;
+  --win:#876214;
+  --focus:#8b2443;
+}
+:root[data-theme="dark"]{ color-scheme: dark; }
+
+body[data-mood="win"]{ --accent:var(--win); --accent-ink:var(--win); --focus:var(--win); }
+body[data-mood="empty"], body[data-mood="pop"]{ --accent:var(--ink-soft); --accent-ink:var(--ink-soft); }
+
+[hidden]{ display:none !important; }
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--body);
+  -webkit-font-smoothing:antialiased;
+}
+#sky{ position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+
+.bar{
+  position:sticky; top:env(safe-area-inset-top,0px); z-index:3;
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px;
+  padding-block:10px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  background:color-mix(in srgb, var(--ground) 86%, transparent);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line);
+}
+.brand{ display:flex; flex-wrap:wrap; align-items:baseline; gap:.2em .8em; font-family:var(--mono); font-size:.74rem; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.brand b{ font-weight:500; color:var(--accent-ink); }
+.controls{ display:flex; gap:8px; }
+.ctl{
+  font-family:var(--mono); font-size:.78rem; color:var(--ink);
+  background:transparent; border:1px solid var(--line); border-radius:4px;
+  padding:.45em .9em; cursor:pointer;
+}
+.ctl:hover:not(:disabled){ border-color:var(--accent); }
+.ctl:disabled{ opacity:.4; cursor:default; }
+
+main{
+  position:relative; z-index:1;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:clamp(1.5rem, 1rem + 3vw, 3.5rem) 4rem;
+}
+.col{ max-width:34em; margin-inline:auto; font-size:var(--fs-body); }
+
+/* the invitation */
+.hero{
+  margin-bottom:2em; text-align:center;
+  border:4px double var(--frame); padding:1.1em 1em 1.3em;
+  background:color-mix(in srgb, var(--panel) 70%, transparent);
+}
+.hero-kicker{ margin:0; font-family:var(--mono); font-size:clamp(.72rem,.68rem + .3vw,.9rem); letter-spacing:.24em; text-transform:uppercase; color:var(--accent-ink); }
+.hero h1{
+  font-family:var(--script); font-weight:400;
+  font-size:clamp(3.3rem, 2rem + 6.2vw, 6.6rem); line-height:1.08;
+  margin:.12em 0 .25em; color:var(--ink);
+  text-wrap:balance;
+}
+.hero .lede{ margin:0 auto; color:var(--ink-soft); line-height:1.55; max-width:26em; }
+.hero .lede strong{ color:var(--ink); font-weight:600; }
+
+.trail{
+  display:flex; flex-wrap:wrap; align-items:center; gap:.35em .5em;
+  margin:0 0 1.6em; font-family:var(--mono); font-size:clamp(.74rem,.7rem + .3vw,.92rem); color:var(--ink-soft);
+}
+.trail .lbl{ letter-spacing:.14em; text-transform:uppercase; margin-right:.3em; }
+.trail .step{ font-variant-numeric:tabular-nums; border:1px solid var(--line); border-radius:4px; padding:.05em .55em; }
+.trail .step.now{ border-color:var(--accent); color:var(--accent-ink); font-weight:500; }
+.trail .arr{ opacity:.6; }
+
+.eyebrow{ margin:0; font-family:var(--mono); font-size:clamp(.74rem,.7rem + .3vw,.92rem); letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.sec h2{
+  font-family:var(--display); font-weight:400;
+  font-size:clamp(2.2rem, 1.6rem + 2.6vw, 3.6rem); line-height:1.05; letter-spacing:-.01em;
+  margin:.15em 0 .62em; color:var(--accent-ink); text-wrap:balance;
+}
+.sec h2:focus, .sec h2:focus-visible{ outline:none; }
+
+.prose{ display:flex; flex-direction:column; gap:.85em; }
+.prose p{ margin:0; line-height:1.62; }
+
+/* papers inside the story: the plan, the letter */
+.log{
+  align-self:flex-start; width:100%; max-width:24em;
+  margin:.3em 0;
+  background:var(--paper); color:var(--paper-ink);
+  background-image:linear-gradient(to bottom, transparent calc(50% - .5px), rgba(0,0,0,.06) 50%, transparent calc(50% + .5px));
+  border-radius:2px;
+  padding:1em 1.25em 1.15em;
+  box-shadow:0 1px 1px rgba(0,0,0,.12), 0 14px 26px -16px rgba(0,0,0,.55);
+  transform:rotate(-.7deg);
+  font-style:italic;
+  display:flex; flex-direction:column; gap:.5em;
+}
+.log-line{ margin:0 !important; line-height:1.5 !important; }
+.log-line .lbl{ font-family:var(--mono); font-style:normal; font-size:.7em; letter-spacing:.14em; text-transform:uppercase; color:var(--paper-soft); margin-right:.55em; }
+.log-line.sign{ align-self:flex-end; font-family:var(--script); font-style:normal; font-size:1.7em; line-height:1 !important; margin-top:.1em !important; }
+
+.choices{ margin-top:2em; display:flex; flex-direction:column; gap:.7em; }
+.ask{ margin:0 0 .15em; font-family:var(--mono); font-size:clamp(.74rem,.7rem + .3vw,.92rem); letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.choice{
+  display:flex; align-items:center; gap:.85em; width:100%;
+  font:inherit; text-align:left; color:var(--ink);
+  background:var(--panel); border:1px solid var(--line); border-radius:6px;
+  padding:.72em 1.2em .72em .8em; cursor:pointer;
+  transition:border-color .2s, background-color .2s, transform .2s;
+}
+.choice:hover{ border-color:var(--accent); background:var(--panel-hover); transform:translateX(3px); }
+.choice:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+.key{
+  flex:none; display:grid; place-items:center;
+  width:1.85em; height:1.85em; border-radius:50%;
+  font-family:var(--mono); font-weight:500; font-size:.82em;
+  color:var(--on-accent); background:var(--accent);
+}
+.ctext{ line-height:1.35; min-width:0; }
+.choice.unlocked{ border:1.5px dashed var(--accent); }
+.utag{ display:block; margin:0 0 .3em; font-family:var(--mono); font-size:.6em; letter-spacing:.2em; text-transform:uppercase; color:var(--accent-ink); }
+.keyhint{ display:none; margin:.4em 0 0; font-family:var(--mono); font-size:.7em; color:var(--ink-soft); }
+@media (hover:hover) and (pointer:fine){ .keyhint{ display:block; } }
+
+.stamp{
+  margin:1.4em 0 0 !important; padding:.5em 0 .45em;
+  font-family:var(--display); font-weight:400;
+  font-size:clamp(2rem, 1.5rem + 2.4vw, 3.1rem); line-height:1 !important; letter-spacing:.12em;
+  color:var(--accent-ink); text-align:center;
+  border:4px double var(--accent);
+}
+.stamp-sub{ display:block; margin-top:.75em; font-family:var(--mono); font-weight:400; font-size:.3em; letter-spacing:.3em; }
+
+.ending{ margin-top:2em; display:flex; flex-direction:column; gap:1.1em; }
+.kind{ margin:0; font-family:var(--mono); font-size:clamp(.74rem,.7rem + .3vw,.92rem); letter-spacing:.18em; text-transform:uppercase; }
+.kind-bad{ color:var(--ink-soft); }
+.kind-good, .kind-bonus{ color:var(--accent-ink); font-weight:500; }
+.found{ border-top:1px solid var(--line); padding-top:1em; }
+.found-label{ margin:0; font-family:var(--mono); font-size:clamp(.74rem,.7rem + .3vw,.92rem); color:var(--ink-soft); }
+.found-label b{ color:var(--ink); font-weight:500; font-variant-numeric:tabular-nums; }
+.slots{ list-style:none; margin:.7em 0 0; padding:0; display:grid; grid-template-columns:repeat(var(--n-end,3),minmax(0,1fr)); gap:.6em; font-size:.8em; }
+/* five endings: three on top, two below, both rows full */
+.slots[data-n="5"]{ grid-template-columns:repeat(6,minmax(0,1fr)); }
+.slots[data-n="5"] .slot{ grid-column:span 2; }
+.slots[data-n="5"] .slot:nth-child(n+4){ grid-column:span 3; }
+.slot{ min-width:0; border:1px dashed var(--line); border-radius:6px; padding:.6em .75em; color:var(--ink-soft); display:flex; flex-direction:column; gap:.3em; }
+.slot .sk{ font-family:var(--mono); font-size:.7em; letter-spacing:.12em; text-transform:uppercase; }
+.slot .st{ font-family:var(--display); font-weight:400; font-size:1.12em; line-height:1.12; overflow-wrap:anywhere; }
+.slot.got{ border-style:solid; color:var(--ink); background:var(--panel); }
+.slot.got.good{ border-color:var(--win); }
+.slot.now{ box-shadow:inset 0 0 0 1px var(--accent); }
+@media (max-width:700px){
+  .slots, .slots[data-n="5"]{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .slots[data-n="5"] .slot, .slots[data-n="5"] .slot:nth-child(n+4){ grid-column:auto; }
+  .slots[data-n="5"] .slot:last-child{ grid-column:1 / -1; }
+  .slots[data-n="3"]{ grid-template-columns:1fr; }
+}
+@media (max-width:380px){
+  .slots, .slots[data-n="5"]{ grid-template-columns:1fr; }
+}
+
+.end-actions{ display:flex; flex-wrap:wrap; gap:.6em; }
+.btn{ font:inherit; font-size:.9em; border-radius:6px; padding:.6em 1.2em; cursor:pointer; border:1.5px solid var(--accent); }
+.btn-main{ background:var(--accent); color:var(--on-accent); font-weight:600; }
+.btn-main:hover{ filter:brightness(1.08); }
+.btn-ghost{ background:transparent; color:var(--ink); border-color:var(--line); }
+.btn-ghost:hover{ border-color:var(--accent); }
+.btn:focus-visible, .ctl:focus-visible, .linkbtn:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+
+.foot{ margin-top:4em; padding-top:1em; border-top:1px solid var(--line); display:flex; flex-wrap:wrap; justify-content:space-between; gap:.6em 1.2em; font-family:var(--mono); font-size:.74rem; color:var(--ink-soft); }
+.foot p{ margin:0; }
+.linkbtn{ font:inherit; color:var(--ink-soft); background:none; border:0; padding:0; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+.linkbtn:hover{ color:var(--ink); }
+
+.sec.enter{ animation:rise .45s ease-out both; }
+@keyframes rise{ from{ opacity:.01; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){
+  .sec.enter{ animation:none; }
+  .choice, .choice:hover{ transition:none; transform:none; }
+}
+</style>
+</head>
+<body>
+
+
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<header class="bar">
+  <div class="brand"><b>Choose Your Story</b><span>Vanessa Always Wins</span></div>
+  <nav class="controls" aria-label="Story controls">
+    <button class="ctl js-back" id="btn-back" type="button" disabled>&#8592; Back</button>
+    <button class="ctl js-restart" type="button">Start again</button>
+  </nav>
+</header>
+
+<main>
+  <div class="col" id="col">
+    <section class="hero" id="hero">
+      <p class="hero-kicker">One party. Two secrets. Five endings.</p>
+      <h1>Vanessa Always Wins</h1>
+      <p class="lede">Read each part. At the end, choose <strong>1</strong> or <strong>2</strong>. Your choice changes <strong>everything</strong>.</p>
+    </section>
+
+    <p class="trail" id="trail" aria-live="polite"><span class="lbl">Your path</span><span class="step now">1</span></p>
+
+<article class="sec" id="s1" data-n="1">
+<p class="eyebrow">Part 1</p>
+<h2 tabindex="-1">The Party</h2>
+<div class="prose">
+<p>Saturday afternoon. A big party at the Albuquerque house: a party for Vanessa’s baby.</p>
+<p>Vanessa is six months pregnant. The father is Rafael. Next month, they’re getting married. But Rafael doesn’t love Vanessa. He’s marrying her because of the baby.</p>
+<p>Five years ago, you were Joana, the maid here, and Rafael was your boyfriend. Then Vanessa put her gold necklace in your bag and called the police. Rafael believed her. Vanessa always wins.</p>
+<p>Your mother, Cida, was the cook here. Before she died, she said: “I’m sorry... the box... in the kitchen...”</p>
+<p>Today, you are back. You are rich, and you have a new name. Nobody knows you. In your bag, you have a plan:</p>
+<div class="log" aria-label="Document"><p class="log-line log-plain">Step 1: Find Vanessa’s secret.</p><p class="log-line log-plain">Step 2: Destroy Vanessa.</p></div>
+<p>Vanessa stands up. Her hand is on her big belly. “I’m tired,” she says. She goes upstairs.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="2"><span class="key" aria-hidden="true">1</span><span class="ctext">Follow Vanessa.</span></button><button class="choice" type="button" data-to="3"><span class="key" aria-hidden="true">2</span><span class="ctext">Go to the kitchen. Find the box.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s2" data-n="2" hidden>
+<p class="eyebrow">Part 2</p>
+<h2 tabindex="-1">The Mirror</h2>
+<div class="prose">
+<p>You go up the stairs. Vanessa’s door is open a little.</p>
+<p>Vanessa is in front of the mirror. Her hand goes under her dress. She takes out a pillow. No belly. No baby.</p>
+<p>You take a photo with your phone. She doesn’t see you.</p>
+<p>She throws the pillow on the bed and laughs. “Next month, I’m marrying Rafael. Then I cry and say: ’I lost the baby.’ Poor me!”</p>
+<p>Downstairs, on a big TV, there are photos of Vanessa and her belly. But up here, Vanessa is alone. Now she is in your hands.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="4"><span class="key" aria-hidden="true">1</span><span class="ctext">Put the photo on the big TV.</span></button><button class="choice" type="button" data-to="5"><span class="key" aria-hidden="true">2</span><span class="ctext">Go in. Show Vanessa the photo.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s3" data-n="3" hidden>
+<p class="eyebrow">Part 3</p>
+<h2 tabindex="-1">The Box</h2>
+<div class="prose">
+<p>The kitchen is the same. Your mother’s old chair is there.</p>
+<p>Behind the coffee, you find a little box. Inside, there is a letter.</p>
+<div class="log" aria-label="Document"><p class="log-line log-plain">My daughter,</p><p class="log-line log-plain">You and Vanessa were born on the same night, in the same hospital. I changed the babies.</p><p class="log-line log-plain">Vanessa is my daughter. You are Vera’s daughter.</p><p class="log-line log-plain">I wanted a good life for my baby. I’m sorry.</p><p class="log-line log-plain">Cida</p></div>
+<p>You sit in Cida’s chair. Your hands shake.</p>
+<p>Vera Albuquerque. Vanessa’s mother. For Vera, the family name is everything. And she is your mother.</p>
+<p>Through the window, you see Vera in the garden, alone.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="6"><span class="key" aria-hidden="true">1</span><span class="ctext">Read the letter at the party.</span></button><button class="choice" type="button" data-to="7"><span class="key" aria-hidden="true">2</span><span class="ctext">Show Vera the letter. Only Vera.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s4" data-n="4" data-end="good" hidden>
+<p class="eyebrow">Part 4</p>
+<h2 tabindex="-1">The Big TV</h2>
+<div class="prose">
+<p>You go downstairs and connect your phone to the big TV. New photo: Vanessa in front of the mirror, with a pillow in her hands.</p>
+<p>Silence. Everybody looks at Vanessa. She is on the stairs, with her big belly. Her face is white.</p>
+<p>“It’s a lie!” she says.</p>
+<p>But Rafael looks at you. “Who are you?”</p>
+<p>“You don’t remember me? Joana. The maid. Vanessa put that necklace in my bag, Rafael.”</p>
+<p>Rafael’s eyes are wet. “Joana... I’m so sorry. Coffee tomorrow? Just coffee?”</p>
+<p>You smile. “Just coffee.”</p>
+<p>On the stairs, Vanessa sits down, alone. Today, Vanessa doesn’t win.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 5</p><ol class="slots" data-n="5" style="--n-end:5"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s5" data-n="5" data-end="bad" hidden>
+<p class="eyebrow">Part 5</p>
+<h2 tabindex="-1">My Baby!</h2>
+<div class="prose">
+<p>You go in and show Vanessa the photo. “Remember me? Joana. The maid.”</p>
+<p>Vanessa isn’t afraid. She smiles.</p>
+<p>Very fast, she takes your phone and deletes the photo. She puts the pillow under her dress again. Then she falls on the floor and screams: “HELP! MY BABY!”</p>
+<p>Everybody runs up the stairs. Rafael is the first. Vanessa is crying. “It’s Joana, the maid! She pushed me! My baby!”</p>
+<p>That night, at the hospital, Vanessa says: “I lost the baby.” Her plan, one month early. Rafael holds her hand all night.</p>
+<p>And you? You are at the police station again.</p>
+<p>Five years ago, a necklace. Today, a baby. Vanessa always wins.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 5</p><ol class="slots" data-n="5" style="--n-end:5"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s6" data-n="6" data-end="bad" hidden>
+<p class="eyebrow">Part 6</p>
+<h2 tabindex="-1">Not My Daughter</h2>
+<div class="prose">
+<p>You go to the living room and hit a glass with a spoon. Everybody looks at you: Vera, Vanessa, a hundred people.</p>
+<p>You read the letter to everybody. Silence. Then Vanessa laughs. “Mom, this woman is crazy!”</p>
+<p>Vera takes the letter and reads it. Her face is red.</p>
+<p>“Cida was a liar,” Vera says. She puts the letter in her glass of wine. The words disappear. “Vanessa is my daughter. My only daughter. Security!”</p>
+<p>Two men take your arms. At the door, you look back. Vera is hugging Vanessa. For one second, Vera looks at you. Her eyes are wet. Then she looks away.</p>
+<p>Today, you find your mother. And today, you lose her.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 5</p><ol class="slots" data-n="5" style="--n-end:5"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s7" data-n="7" hidden>
+<p class="eyebrow">Part 7</p>
+<h2 tabindex="-1">The Garden</h2>
+<div class="prose">
+<p>In the garden, you give Vera the letter. She reads it again and again. She sits down.</p>
+<p>She looks at your face for a long time. “Your eyes... my mother’s eyes.” She cries and hugs you. “My daughter.”</p>
+<p>Then she stands up. “I need to see Vanessa.”</p>
+<p>You go upstairs with her and wait at the door. Vera hugs Vanessa. Her hand is on Vanessa’s belly. Vera’s face changes.</p>
+<p>Back in the garden, Vera says: “Vanessa’s belly is soft. There is no baby.”</p>
+<p>“It’s a pillow,” you say.</p>
+<p>Vera holds your hand. “I know Vanessa. She always wins. Do we tell everybody now? Or do we do a DNA test and wait two weeks?”</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="8"><span class="key" aria-hidden="true">1</span><span class="ctext">Tell everybody. Now.</span></button><button class="choice" type="button" data-to="9"><span class="key" aria-hidden="true">2</span><span class="ctext">Do the DNA test. Wait.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s8" data-n="8" data-end="good" hidden>
+<p class="eyebrow">Part 8</p>
+<h2 tabindex="-1">Two Daughters</h2>
+<div class="prose">
+<p>At the party, Vera stops the music. Everybody looks at her. Vanessa is next to Rafael, with her big belly.</p>
+<p>“This is Joana, Cida’s daughter. Remember her? But she isn’t Cida’s daughter. She is my daughter.”</p>
+<p>Vanessa laughs. “Mom, what is this?”</p>
+<p>Vera pulls Vanessa’s dress, hard. The pillow falls on the floor. Rafael looks at it for a long time. Then he walks out.</p>
+<p>Two weeks later, the DNA test says yes.</p>
+<p>Vanessa leaves the house with one bag. At the door, you give her the little box. “Your mother’s things. Cida was your mother.”</p>
+<p>That night, you sleep in this house again. Not in the maid’s room. In your room.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 5</p><ol class="slots" data-n="5" style="--n-end:5"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s9" data-n="9" data-end="bad" hidden>
+<p class="eyebrow">Part 9</p>
+<h2 tabindex="-1">Two Weeks</h2>
+<div class="prose">
+<p>You and Vera do the DNA test. You wait.</p>
+<p>But Vanessa knows everything in this house. One night, she finds the DNA papers in Vera’s bag. Two names: Vera Albuquerque and Joana.</p>
+<p>The next morning, Vanessa’s room is empty. On the bed, there is only the pillow.</p>
+<p>At the bank, Vera’s face is white. Vanessa knows the family passwords. The money is gone.</p>
+<p>That afternoon, the DNA result arrives: yes. You are Vera’s daughter.</p>
+<p>In Cida’s old kitchen, Vera makes coffee for you. It’s terrible coffee. You laugh. She laughs too.</p>
+<p>No money. Vanessa always wins. But tonight, you have a mother.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 5</p><ol class="slots" data-n="5" style="--n-end:5"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+    <footer class="foot">
+      <p>Teacher Alex · Readers</p>
+      <p>An original story</p>
+      <button class="linkbtn" id="reset-endings" type="button">Reset endings</button>
+    </footer>
+  </div>
+</main>
+
+<script>
+/* engine:v2 — choices with conditions ([if 6, not 7] in the .story.md), bonus endings, number keys 1-9 */
+(function(){
+  var ENDINGS = {"4": {"title": "The Big TV", "kind": "good"}, "5": {"title": "My Baby!", "kind": "bad"}, "6": {"title": "Not My Daughter", "kind": "bad"}, "8": {"title": "Two Daughters", "kind": "good"}, "9": {"title": "Two Weeks", "kind": "bad"}};
+  var TITLES = {"1": "The Party", "2": "The Mirror", "3": "The Box", "4": "The Big TV", "5": "My Baby!", "6": "Not My Daughter", "7": "The Garden", "8": "Two Daughters", "9": "Two Weeks"};
+  var END_ORDER = Object.keys(ENDINGS).map(Number).sort(function(a,b){ return a-b; });
+  var INTENSITY = {"1": 0.75, "2": 0.35, "3": 0.2, "4": 0.7, "5": 0, "6": 0, "7": 0.45, "8": 0.7, "9": 0};
+  var MOOD = {"4": "win", "5": "pop", "6": "empty", "8": "win", "9": "one"};
+  var STORE = "vanessa-always-wins-endings-v1";
+  var KIND = { good:"Good ending", bad:"Bad ending", bonus:"Bonus ending" };
+  var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* papers: "Step 1:" gets a small label; a last line of one short word is a signature */
+  document.querySelectorAll(".log").forEach(function(log){
+    var lines = log.querySelectorAll(".log-line");
+    lines.forEach(function(line){
+      var m = /^(Step \d+:)\s(.+)$/.exec(line.textContent.trim());
+      if(!m) return;
+      line.textContent = "";
+      var l = document.createElement("span"); l.className = "lbl"; l.textContent = m[1];
+      line.appendChild(l); line.appendChild(document.createTextNode(m[2]));
+    });
+    var last = lines[lines.length - 1];
+    if(lines.length > 2 && last && /^[A-Z][a-z]{1,12}$/.test(last.textContent.trim())) last.classList.add("sign");
+  });
+
+  var secs = {};
+  document.querySelectorAll(".sec").forEach(function(a){ secs[+a.dataset.n] = a; });
+  var hero = document.getElementById("hero");
+  var trail = document.getElementById("trail");
+  var btnBack = document.getElementById("btn-back");
+  var hist = [1];
+
+  function loadFound(){
+    try{
+      var v = JSON.parse(localStorage.getItem(STORE) || "[]");
+      return Array.isArray(v) ? v.filter(function(n){ return ENDINGS[n]; }) : [];
+    }catch(e){ return []; }
+  }
+  function saveFound(){ try{ localStorage.setItem(STORE, JSON.stringify(found)); }catch(e){} }
+  var found = loadFound();
+
+  function cur(){ return hist[hist.length-1]; }
+  function nums(s){ return (s || "").split(" ").filter(Boolean); }
+
+  function showChoices(sec){
+    var seen = {}, k = 0;
+    hist.forEach(function(n){ seen[n] = true; });
+    sec.querySelectorAll(".choice").forEach(function(b){
+      var ok = nums(b.getAttribute("data-if")).every(function(x){ return seen[x]; }) &&
+               !nums(b.getAttribute("data-ifnot")).some(function(x){ return seen[x]; });
+      b.hidden = !ok;
+      if(ok){ k++; var key = b.querySelector(".key"); if(key) key.textContent = k; }
+    });
+  }
+  function visibleChoices(){
+    return [].filter.call(secs[cur()].querySelectorAll(".choice"), function(b){ return !b.hidden; });
+  }
+
+  function renderTrail(){
+    trail.textContent = "";
+    var l = document.createElement("span"); l.className = "lbl"; l.textContent = "Your path"; trail.appendChild(l);
+    hist.forEach(function(n, i){
+      if(i){ var a = document.createElement("span"); a.className = "arr"; a.textContent = "→"; a.setAttribute("aria-hidden","true"); trail.appendChild(a); }
+      var s = document.createElement("span");
+      s.className = "step" + (i === hist.length-1 ? " now" : "");
+      s.textContent = n; s.title = TITLES[n] || "";
+      trail.appendChild(s);
+    });
+  }
+
+  function renderFound(now){
+    document.querySelectorAll(".found").forEach(function(box){
+      box.querySelector(".found-count").textContent = found.length;
+      var ol = box.querySelector(".slots"); ol.textContent = "";
+      END_ORDER.forEach(function(n){
+        var e = ENDINGS[n], got = found.indexOf(n) !== -1;
+        var li = document.createElement("li");
+        li.className = "slot " + e.kind + (got ? " got" : "") + (n === now ? " now" : "");
+        var k = document.createElement("span"); k.className = "sk";
+        k.textContent = got ? (KIND[e.kind] || "Ending") : (e.kind === "bonus" ? KIND.bonus : "Not found");
+        var t = document.createElement("span"); t.className = "st";
+        t.textContent = got ? e.title : "? ? ?";
+        li.appendChild(k); li.appendChild(t); ol.appendChild(li);
+      });
+    });
+  }
+
+  function render(animate){
+    var n = cur();
+    Object.keys(secs).forEach(function(k){ secs[k].hidden = (+k !== n); });
+    var a = secs[n];
+    showChoices(a);
+    if(animate && !reduced){ a.classList.remove("enter"); void a.offsetWidth; a.classList.add("enter"); }
+    hero.hidden = !(n === 1 && hist.length === 1);
+    btnBack.disabled = hist.length < 2;
+    document.body.setAttribute("data-mood", MOOD[n] || "");
+    renderTrail();
+    if(a.dataset.end){
+      if(found.indexOf(n) === -1){ found.push(n); saveFound(); }
+      renderFound(n);
+    }
+    bg.scene(n);
+  }
+
+  function focusTop(){
+    try{ window.scrollTo({ top:0, behavior: reduced ? "auto" : "smooth" }); }catch(e){ window.scrollTo(0,0); }
+    var h = secs[cur()].querySelector("h2");
+    if(h){ try{ h.focus({ preventScroll:true }); }catch(e){ h.focus(); } }
+  }
+  function go(to){ if(!secs[to]) return; hist.push(to); render(true); focusTop(); }
+  function back(){ if(hist.length > 1){ hist.pop(); render(true); focusTop(); } }
+  function restart(){ hist = [1]; render(true); focusTop(); }
+
+  document.addEventListener("click", function(e){
+    var c = e.target.closest(".choice");
+    if(c){ go(+c.dataset.to); return; }
+    if(e.target.closest(".js-restart")){ restart(); return; }
+    if(e.target.closest(".js-back")){ back(); return; }
+    if(e.target.closest("#reset-endings")){ found = []; saveFound(); renderFound(secs[cur()].dataset.end ? cur() : 0); }
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.metaKey || e.ctrlKey || e.altKey) return;
+    if(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if(/^[1-9]$/.test(e.key)){
+      var b = visibleChoices()[+e.key - 1];
+      if(b){ e.preventDefault(); b.click(); }
+    } else if(e.key === "ArrowLeft"){ if(hist.length > 1){ e.preventDefault(); back(); } }
+  });
+
+  /* ---------- sky: party balloons (pink, blue, champagne) drift up behind the text.
+     intensity: more balloons
+     win:   balloons keep rising and gold confetti falls
+     pop:   every balloon bursts, one after another, and the room goes quiet
+     empty: every balloon fades at once
+     one:   the others leave; one champagne balloon stays and floats ---------- */
+  var bg = (function(){
+    var cv = document.getElementById("sky");
+    var ctx = cv.getContext && cv.getContext("2d");
+    if(!ctx) return { scene:function(){} };
+    var W = 0, H = 0, dpr = 1, col = document.getElementById("col"), R = Math.random;
+    var balls = [], bursts = [], conf = [];
+    var mood = "", intensity = .5, running = false, last = 0, confClock = 0;
+    var C = { b:["#f0a9bc","#9fc2e6","#e3c88a"], k:.2, win:"#e3c47c", accent:"#eda3b7" };
+
+    function readColors(){
+      var cs = getComputedStyle(document.body);
+      var v = function(name, d){ return cs.getPropertyValue(name).trim() || d; };
+      C.b = [v("--b1", C.b[0]), v("--b2", C.b[1]), v("--b3", C.b[2])];
+      C.k = parseFloat(v("--bk", C.k)) || C.k;
+      C.win = v("--win", C.win); C.accent = v("--accent", C.accent);
+    }
+    function target(){
+      if(mood === "empty" || mood === "pop") return 0;
+      if(mood === "one") return 1;
+      var n = intensity * W * H / 70000;
+      return Math.min(40, Math.round(n) + (intensity > 0 ? 1 : 0));
+    }
+    function makeBall(fromEdge){
+      var sc = W < 640 ? .72 : 1;
+      return { x:R()*W, y:fromEdge ? H + 60 + R()*H*.3 : R()*H,
+               r:(20 + R()*16) * sc, c:Math.floor(R()*3),
+               vy:-(9 + R()*12), sway:R()*6.283, a:0, ta:.6 + R()*.4,
+               leaving:false, quick:false, popAt:-1, keep:false };
+    }
+    function sync(fromEdge){
+      var act = balls.filter(function(b){ return !b.leaving; }), want = target();
+      if(mood === "one"){
+        var keep = act[0];
+        if(!keep){ keep = makeBall(fromEdge && !reduced); balls.push(keep); act = [keep]; }
+        keep.keep = true; keep.c = 2; keep.ta = 1;
+        act.forEach(function(b){ if(b !== keep){ b.leaving = true; b.quick = false; } });
+        return;
+      }
+      balls.forEach(function(b){ b.keep = false; });
+      for(var i = act.length; i < want; i++){ var nb = makeBall(fromEdge && !reduced); if(reduced) nb.a = nb.ta; balls.push(nb); }
+      for(var j = act.length - 1, ex = act.length - want; j >= 0 && ex > 0; j--, ex--){
+        if(mood === "pop"){ act[j].popAt = .15 + R()*1.4; }
+        else { act[j].leaving = true; act[j].quick = mood === "empty"; }
+      }
+    }
+    function burst(b){
+      bursts.push({ x:b.x, y:b.y, r:b.r, c:b.c, t:0 });
+    }
+    function confetti(n, anywhere){
+      for(var i = 0; i < n && conf.length < 150; i++){
+        conf.push({ x:R()*W, y:anywhere ? R()*H : -12 - R()*40, vx:(R() - .5)*18, vy:26 + R()*30,
+                    rot:R()*6.283, vr:(R() - .5)*4, s:3 + R()*4.5, c:R() < .75 ? 0 : 1, sw:R()*6.283 });
+      }
+    }
+    function resize(){
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth; H = window.innerHeight;
+      cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      sync(false);
+      if(reduced){ settle(); draw(); }
+    }
+    function settle(){
+      balls = balls.filter(function(b){ return !b.leaving && b.popAt < 0; });
+      balls.forEach(function(b){ b.a = b.ta; if(b.keep){ b.x = W*.82; b.y = H*.42; } });
+      bursts = []; conf = [];
+      if(mood === "win") confetti(50, true);
+    }
+    function drawBall(b, alpha){
+      var rx = b.r*.84, ry = b.r, sw = Math.sin(b.sway)*b.r*.35;
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = C.b[b.c]; ctx.lineWidth = 1.2;
+      ctx.beginPath();                                                     /* string */
+      ctx.moveTo(b.x, b.y + ry + 4);
+      ctx.quadraticCurveTo(b.x + sw, b.y + ry + b.r*1.3, b.x - sw*.6, b.y + ry + b.r*2.5);
+      ctx.stroke();
+      ctx.fillStyle = C.b[b.c];
+      ctx.beginPath();                                                     /* body and knot */
+      ctx.ellipse(b.x, b.y, rx, ry, 0, 0, 6.283);
+      ctx.moveTo(b.x - 3.5, b.y + ry + 5); ctx.lineTo(b.x + 3.5, b.y + ry + 5); ctx.lineTo(b.x, b.y + ry - 1);
+      ctx.fill();
+      ctx.globalCompositeOperation = "destination-out";                   /* shine cut through to the page */
+      ctx.globalAlpha = .55;
+      ctx.beginPath();
+      ctx.ellipse(b.x - rx*.38, b.y - ry*.42, rx*.16, ry*.27, -.5, 0, 6.283);
+      ctx.fill();
+      ctx.globalCompositeOperation = "source-over";
+    }
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      var rc = col.getBoundingClientRect(), L = rc.left - 12, Rt = rc.right + 12;
+      var inside = function(x){ return x > L && x < Rt; };
+      for(var i = 0; i < balls.length; i++){
+        var b = balls[i];
+        var al = b.a * C.k * (inside(b.x) ? .32 : 1) * (b.keep ? 2.6 : 1);
+        if(al > .003) drawBall(b, Math.min(1, al));
+      }
+      for(var q = 0; q < bursts.length; q++){
+        var u = bursts[q], k = u.t / .4;
+        ctx.globalAlpha = Math.max(0, (1 - k)) * Math.min(1, C.k * 4) * (inside(u.x) ? .5 : 1);
+        ctx.strokeStyle = C.b[u.c]; ctx.lineWidth = 2;
+        ctx.beginPath();
+        for(var s = 0; s < 9; s++){
+          var ang = s * .698 + u.r, r0 = u.r*(.3 + k*.9), r1 = u.r*(.6 + k*1.4);
+          ctx.moveTo(u.x + Math.cos(ang)*r0, u.y + Math.sin(ang)*r0);
+          ctx.lineTo(u.x + Math.cos(ang)*r1, u.y + Math.sin(ang)*r1);
+        }
+        ctx.stroke();
+      }
+      for(var p = 0; p < conf.length; p++){
+        var c = conf[p];
+        ctx.globalAlpha = inside(c.x) ? .35 : .8;
+        ctx.fillStyle = c.c ? C.accent : C.win;
+        ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(c.rot);
+        ctx.beginPath(); ctx.rect(-c.s*.5, -c.s*.25, c.s, c.s*.5); ctx.fill();
+        ctx.restore();
+      }
+      ctx.globalAlpha = 1;
+    }
+    function step(dt){
+      for(var i = balls.length - 1; i >= 0; i--){
+        var b = balls[i];
+        b.sway += dt*.8;
+        if(b.keep){
+          b.y += ((H*.42) - b.y) * Math.min(1, dt*.6);
+          b.x += ((W*.82) - b.x) * Math.min(1, dt*.4) + Math.cos(b.sway)*4*dt;
+          b.a += (b.ta - b.a) * Math.min(1, dt);
+          continue;
+        }
+        b.y += b.vy * dt; b.x += Math.cos(b.sway) * 6 * dt;
+        if(b.popAt >= 0){
+          b.popAt -= dt;
+          if(b.popAt < 0){ burst(b); balls.splice(i, 1); continue; }
+        }
+        if(b.leaving){
+          b.a += (0 - b.a) * Math.min(1, dt * (b.quick ? 7 : 1.2));
+          b.y += b.vy * dt * (b.quick ? 0 : 2);
+          if(b.a < .01){ balls.splice(i, 1); continue; }
+        } else {
+          b.a += (b.ta - b.a) * Math.min(1, dt * 1.5);
+          if(b.y + b.r*3.6 < -20){ b.y = H + 40 + R()*60; b.x = R()*W; }
+        }
+      }
+      for(var q = bursts.length - 1; q >= 0; q--){ bursts[q].t += dt; if(bursts[q].t > .4) bursts.splice(q, 1); }
+      if(mood === "win"){
+        confClock -= dt;
+        if(confClock <= 0){ confetti(3, false); confClock = .22 + R()*.25; }
+      }
+      for(var p = conf.length - 1; p >= 0; p--){
+        var c = conf[p];
+        c.sw += dt*2;
+        c.x += (c.vx + Math.sin(c.sw)*14) * dt; c.y += c.vy * dt * (mood === "win" ? 1 : 3);
+        c.rot += c.vr * dt;
+        if(c.y > H + 20) conf.splice(p, 1);
+      }
+    }
+    function loop(ts){
+      if(!running) return;
+      var dt = last ? Math.min(.05, (ts - last) / 1000) : .016; last = ts;
+      step(dt); draw();
+      requestAnimationFrame(loop);
+    }
+    function start(){ if(reduced || running) return; running = true; last = 0; requestAnimationFrame(loop); }
+    function stop(){ running = false; }
+
+    function scene(n){
+      var m = MOOD[n] || "", prev = mood;
+      mood = m;
+      intensity = INTENSITY[n] != null ? INTENSITY[n] : .5;
+      readColors();
+      sync(true);
+      if(m === "win" && prev !== "win"){ confClock = .3; confetti(24, false); }
+      if(reduced){ settle(); draw(); }
+    }
+
+    window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", function(){ document.hidden ? stop() : start(); });
+    if(window.matchMedia){
+      var mq = matchMedia("(prefers-color-scheme: dark)");
+      var onScheme = function(){ readColors(); if(reduced) draw(); };
+      mq.addEventListener ? mq.addEventListener("change", onScheme) : mq.addListener(onScheme);
+    }
+    new MutationObserver(function(){ readColors(); if(reduced) draw(); })
+      .observe(document.documentElement, { attributes:true, attributeFilter:["data-theme"] });
+
+    readColors(); resize(); start();
+    return { scene:scene };
+  })();
+
+  render(false);
+})();
+</script>
+
+</body>
+</html>

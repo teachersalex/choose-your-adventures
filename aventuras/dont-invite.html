@@ -1,0 +1,784 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Don't Invite Him In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column over Mystic Falls at night. Fog drifts low across the page and crows
+   cross the sky; they thicken as the danger grows. Text messages in the story render as a phone
+   thread. Giving in fills the sky with crows, running away empties it, and the good ending clears
+   the fog and lights soft fireworks. Light theme: the same town on a misty morning. */
+:root{
+  color-scheme: dark;
+  --ground:#0c1117;
+  --ink:#e8e5ee;
+  --ink-soft:#9fa5b7;
+  --line:#243041;
+  --panel:#121a24;
+  --panel-hover:#182331;
+  --accent:#b292ea;
+  --accent-ink:#c6aef2;
+  --on-accent:#170d26;
+  --bubble:#1d2735;
+  --fog:#90a4ba;
+  --fog-k:.20;
+  --crow:#56657b;
+  --crow-k:.9;
+  --win:#e9b85f;
+  --focus:#c6aef2;
+  --display:"Cormorant Garamond","Cormorant","EB Garamond",Garamond,"Iowan Old Style",Georgia,serif;
+  --body:"Literata",Georgia,"Times New Roman",serif;
+  --mono:"DM Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --phone:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --fs-body:clamp(1.15rem, .95rem + 1vw, 1.7rem);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    color-scheme: light;
+    --ground:#e8ecf0;
+    --ink:#161a21;
+    --ink-soft:#525a69;
+    --line:#ccd4dd;
+    --panel:#f8f9fb;
+    --panel-hover:#f1ecfa;
+    --accent:#6a42b5;
+    --accent-ink:#55309a;
+    --on-accent:#ffffff;
+    --bubble:#dde3ea;
+    --fog:#ffffff;
+    --fog-k:.62;
+    --crow:#1e232b;
+    --crow-k:.7;
+    --win:#985809;
+    --focus:#55309a;
+  }
+}
+:root[data-theme="light"]{
+  color-scheme: light;
+  --ground:#e8ecf0;
+  --ink:#161a21;
+  --ink-soft:#525a69;
+  --line:#ccd4dd;
+  --panel:#f8f9fb;
+  --panel-hover:#f1ecfa;
+  --accent:#6a42b5;
+  --accent-ink:#55309a;
+  --on-accent:#ffffff;
+  --bubble:#dde3ea;
+  --fog:#ffffff;
+  --fog-k:.62;
+  --crow:#1e232b;
+  --crow-k:.7;
+  --win:#985809;
+  --focus:#55309a;
+}
+:root[data-theme="dark"]{ color-scheme: dark; }
+
+body[data-mood="win"]{ --accent:var(--win); --accent-ink:var(--win); --focus:var(--win); }
+body[data-mood="empty"]{ --accent:var(--ink-soft); --accent-ink:var(--ink-soft); }
+
+[hidden]{ display:none !important; }
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--body);
+  -webkit-font-smoothing:antialiased;
+}
+#night{ position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+
+.bar{
+  position:sticky; top:env(safe-area-inset-top,0px); z-index:3;
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px;
+  padding:10px 16px;
+  background:color-mix(in srgb, var(--ground) 86%, transparent);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line);
+}
+.brand{ display:flex; flex-wrap:wrap; align-items:baseline; gap:.2em .8em; font-family:var(--mono); font-size:.76rem; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.brand b{ font-weight:500; color:var(--accent-ink); }
+.controls{ display:flex; gap:8px; }
+.ctl{
+  font-family:var(--mono); font-size:.8rem; color:var(--ink);
+  background:transparent; border:1px solid var(--line); border-radius:4px;
+  padding:.45em .8em; cursor:pointer;
+}
+.ctl:hover:not(:disabled){ border-color:var(--accent); }
+.ctl:disabled{ opacity:.4; cursor:default; }
+
+main{ position:relative; z-index:1; padding-inline:16px; padding-block:clamp(1.5rem, 1rem + 3vw, 3.5rem) 4rem; }
+.col{ max-width:34em; margin-inline:auto; font-size:var(--fs-body); }
+
+.hero{ margin-bottom:2.2em; }
+.hero-kicker{ margin:0; font-family:var(--mono); font-size:clamp(.76rem,.7rem + .3vw,.95rem); letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); }
+.hero h1{
+  font-family:var(--display); font-style:italic; font-weight:600;
+  font-size:clamp(3.4rem, 1.9rem + 7.4vw, 7.8rem); line-height:.86; letter-spacing:-.015em;
+  margin:.16em 0 .36em; color:var(--ink);
+  text-wrap:balance;
+}
+.hero .lede{ margin:0; color:var(--ink-soft); line-height:1.55; max-width:30em; }
+.hero .lede strong{ color:var(--ink); font-weight:600; }
+
+.trail{
+  display:flex; flex-wrap:wrap; align-items:center; gap:.35em .5em;
+  margin:0 0 1.6em; font-family:var(--mono); font-size:clamp(.76rem,.7rem + .3vw,.95rem); color:var(--ink-soft);
+}
+.trail .lbl{ letter-spacing:.14em; text-transform:uppercase; margin-right:.3em; }
+.trail .step{ font-variant-numeric:tabular-nums; border:1px solid var(--line); border-radius:4px; padding:.05em .45em; }
+.trail .step.now{ border-color:var(--accent); color:var(--accent-ink); font-weight:500; }
+.trail .arr{ opacity:.6; }
+
+.eyebrow{ margin:0; font-family:var(--mono); font-size:clamp(.76rem,.7rem + .3vw,.95rem); letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.sec h2{
+  font-family:var(--display); font-style:italic; font-weight:600;
+  font-size:clamp(2.4rem, 1.7rem + 2.8vw, 4rem); line-height:.98; letter-spacing:-.01em;
+  margin:.1em 0 .62em; color:var(--accent-ink); text-wrap:balance;
+}
+.sec h2:focus, .sec h2:focus-visible{ outline:none; }
+
+.prose{ display:flex; flex-direction:column; gap:.85em; }
+.prose p{ margin:0; line-height:1.62; }
+
+/* text messages: a phone thread */
+.log{
+  align-self:flex-start; width:100%; max-width:23em;
+  font-family:var(--phone); font-size:.8em; color:var(--ink);
+  background:var(--panel); border:1px solid var(--line); border-radius:22px;
+  padding:.9em .9em 1.1em; display:flex; flex-direction:column; gap:.6em;
+}
+.log-head{ margin:0 0 .2em !important; text-align:center; font-family:var(--mono); font-size:.74em; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); }
+.log-line{ display:flex; flex-direction:column; align-items:flex-start; gap:.25em; line-height:1.35 !important; }
+.log-line .t{ font-family:var(--mono); font-size:.7em; letter-spacing:.04em; color:var(--ink-soft); font-variant-numeric:tabular-nums; padding-inline:.6em; }
+.log-line .msg{ display:block; max-width:85%; min-width:0; background:var(--bubble); border-radius:1.15em 1.15em 1.15em .35em; padding:.5em .85em .55em; }
+.log-line.me{ align-items:flex-end; }
+.log-line.me .msg{ background:var(--accent); color:var(--on-accent); border-radius:1.15em 1.15em .35em 1.15em; }
+.log-line.log-plain{ display:block; }
+
+.choices{ margin-top:2em; display:flex; flex-direction:column; gap:.7em; }
+.ask{ margin:0 0 .15em; font-family:var(--mono); font-size:clamp(.76rem,.7rem + .3vw,.95rem); letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.choice{
+  display:flex; align-items:center; gap:.85em; width:100%;
+  font:inherit; text-align:left; color:var(--ink);
+  background:var(--panel); border:1px solid var(--line); border-radius:6px;
+  padding:.75em 1em; cursor:pointer;
+  transition:border-color .2s, background-color .2s, transform .2s;
+}
+.choice:hover{ border-color:var(--accent); background:var(--panel-hover); transform:translateX(3px); }
+.choice:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+.key{
+  flex:none; display:grid; place-items:center;
+  width:1.85em; height:1.85em; border-radius:50%;
+  font-family:var(--mono); font-weight:500; font-size:.82em;
+  color:var(--accent-ink); border:1.5px solid var(--accent);
+}
+.ctext{ line-height:1.35; min-width:0; }
+.choice.unlocked{ border:1.5px dashed var(--accent); }
+.utag{ display:block; margin:0 0 .3em; font-family:var(--mono); font-size:.6em; letter-spacing:.2em; text-transform:uppercase; color:var(--accent-ink); }
+.keyhint{ display:none; margin:.4em 0 0; font-family:var(--mono); font-size:.7em; color:var(--ink-soft); }
+@media (hover:hover) and (pointer:fine){ .keyhint{ display:block; } }
+
+.stamp{
+  margin:1.4em 0 0 !important; padding:.4em 0 .35em;
+  font-family:var(--display); font-style:italic; font-weight:600;
+  font-size:clamp(2.1rem, 1.5rem + 2.6vw, 3.4rem); line-height:1 !important;
+  color:var(--accent-ink); text-align:center;
+  border-top:1px solid var(--accent); border-bottom:1px solid var(--accent);
+}
+.stamp-sub{ display:block; margin-top:.75em; font-family:var(--mono); font-style:normal; font-weight:400; font-size:.3em; letter-spacing:.3em; }
+
+.ending{ margin-top:2em; display:flex; flex-direction:column; gap:1.1em; }
+.kind{ margin:0; font-family:var(--mono); font-size:clamp(.76rem,.7rem + .3vw,.95rem); letter-spacing:.18em; text-transform:uppercase; }
+.kind-bad{ color:var(--ink-soft); }
+.kind-good, .kind-bonus{ color:var(--accent-ink); font-weight:500; }
+.found{ border-top:1px solid var(--line); padding-top:1em; }
+.found-label{ margin:0; font-family:var(--mono); font-size:clamp(.76rem,.7rem + .3vw,.95rem); color:var(--ink-soft); }
+.found-label b{ color:var(--ink); font-weight:500; font-variant-numeric:tabular-nums; }
+.slots{ list-style:none; margin:.7em 0 0; padding:0; display:grid; grid-template-columns:repeat(var(--n-end,3),minmax(0,1fr)); gap:.6em; font-size:.8em; }
+.slot{ min-width:0; border:1px dashed var(--line); border-radius:6px; padding:.6em .75em; color:var(--ink-soft); display:flex; flex-direction:column; gap:.25em; }
+.slot .sk{ font-family:var(--mono); font-size:.7em; letter-spacing:.12em; text-transform:uppercase; }
+.slot .st{ font-family:var(--display); font-style:italic; font-weight:600; font-size:1.25em; line-height:1.05; }
+.slot.got{ border-style:solid; color:var(--ink); background:var(--panel); }
+.slot.got.good{ border-color:var(--win); }
+.slot.now{ box-shadow:inset 0 0 0 1px var(--accent); }
+@media (max-width:700px){ .slots{ grid-template-columns:repeat(2,minmax(0,1fr)); } .slots[data-n="3"]{ grid-template-columns:1fr; } }
+@media (max-width:380px){ .slots{ grid-template-columns:1fr; } }
+
+.end-actions{ display:flex; flex-wrap:wrap; gap:.6em; }
+.btn{ font:inherit; font-size:.9em; border-radius:6px; padding:.6em 1.1em; cursor:pointer; border:1.5px solid var(--accent); }
+.btn-main{ background:var(--accent); color:var(--on-accent); font-weight:600; }
+.btn-main:hover{ filter:brightness(1.08); }
+.btn-ghost{ background:transparent; color:var(--ink); border-color:var(--line); }
+.btn-ghost:hover{ border-color:var(--accent); }
+.btn:focus-visible, .ctl:focus-visible, .linkbtn:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+
+.foot{ margin-top:4em; padding-top:1em; border-top:1px solid var(--line); display:flex; flex-wrap:wrap; justify-content:space-between; gap:.6em 1.2em; font-family:var(--mono); font-size:.76rem; color:var(--ink-soft); }
+.foot p{ margin:0; }
+.linkbtn{ font:inherit; color:var(--ink-soft); background:none; border:0; padding:0; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+.linkbtn:hover{ color:var(--ink); }
+
+.sec.enter{ animation:rise .45s ease-out both; }
+@keyframes rise{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){
+  .sec.enter{ animation:none; }
+  .choice, .choice:hover{ transition:none; transform:none; }
+}
+</style>
+</head>
+<body>
+
+
+<canvas id="night" aria-hidden="true"></canvas>
+
+<header class="bar">
+  <div class="brand"><b>The Vampire Diaries</b><span>Don’t Invite Him In</span></div>
+  <nav class="controls" aria-label="Story controls">
+    <button class="ctl js-back" id="btn-back" type="button" disabled>&#8592; Back</button>
+    <button class="ctl js-restart" type="button">Start again</button>
+  </nav>
+</header>
+
+<main>
+  <div class="col" id="col">
+    <section class="hero" id="hero">
+      <p class="hero-kicker">A Mystic Falls story</p>
+      <h1>Don’t Invite Him In</h1>
+      <p class="lede">Read each part. At the end, choose <strong>1</strong> or <strong>2</strong>. There are three endings. Can you find the happy one?</p>
+    </section>
+
+    <p class="trail" id="trail" aria-live="polite"><span class="lbl">Your path</span><span class="step now">1</span></p>
+
+<article class="sec" id="s1" data-n="1">
+<p class="eyebrow">Part 1</p>
+<h2 tabindex="-1">The New Girl</h2>
+<div class="prose">
+<p>This year, your parents work in another country, so you live with your grandmother in Mystic Falls, in a big old house near the woods.</p>
+<p>On your first morning, Grandma gives you an old necklace with a little purple flower inside. “It’s vervain,” she says. “Never take it off. And never invite a stranger into this house at night. It’s an old family rule.”</p>
+<p>At school, a blond girl sits next to you. “I’m Caroline. You’re new, so now we’re best friends.”</p>
+<p>In history class, you meet Noah. He’s new too. He’s quiet, with dark eyes and a nice smile. He wears a ring with a blue stone. When he gives you a pen, his hand is very cold. You give him your number, and he gives you his.</p>
+<p>After school, Caroline says: “Mystic Grill tonight! Everybody goes there.”</p>
+<p>And Noah says: “Can I walk you home?”</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="2"><span class="key" aria-hidden="true">1</span><span class="ctext">Go to the Mystic Grill with Caroline.</span></button><button class="choice" type="button" data-to="3"><span class="key" aria-hidden="true">2</span><span class="ctext">Walk home with Noah.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s2" data-n="2" hidden>
+<p class="eyebrow">Part 2</p>
+<h2 tabindex="-1">The Mystic Grill</h2>
+<div class="prose">
+<p>The Mystic Grill is full of students. “Noah is cute,” Caroline says. “And he looks at you a lot.”</p>
+<p>At the bar, a man in a black leather jacket is watching you. He has very blue eyes and a beautiful smile.</p>
+<p>“Don’t look at him,” Caroline says. “That’s Damon Salvatore. He’s trouble.”</p>
+<p>Then her phone rings. It’s her mom, the sheriff. Caroline has to go. “Sorry! Text me when you’re home!”</p>
+<p>A minute later, Damon sits next to you. “You’re the new girl,” he says. “You live with your grandmother, in the old house near the woods.”</p>
+<p>“What do you want?” you ask.</p>
+<p>“I’m bored, and you’re new,” he says. “And I know a secret about Noah. Come outside, and I’ll tell you.”</p>
+<p>Outside the window, a big black bird is watching you. It’s a crow.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="5"><span class="key" aria-hidden="true">1</span><span class="ctext">Follow Damon outside.</span></button><button class="choice" type="button" data-to="4"><span class="key" aria-hidden="true">2</span><span class="ctext">Say no and go home.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s3" data-n="3" hidden>
+<p class="eyebrow">Part 3</p>
+<h2 tabindex="-1">The Walk Home</h2>
+<div class="prose">
+<p>You walk home with Noah under a pink sky. He asks a lot of questions, and he really listens. You tell him a bad joke, and he laughs. You offer him a cookie, but he isn’t hungry.</p>
+<p>At your door, it’s almost dark. You want to say, “Come in for tea.” But you remember Grandma’s rule.</p>
+<p>Noah stops at the bottom of the steps and looks at your necklace. “Your grandmother is a smart woman,” he says. “Go inside, and don’t open the door again tonight. Not for anybody.”</p>
+<p>Then he walks away.</p>
+<p>Fog comes out of the trees, and a big black bird, a crow, lands on the porch. A man in a black jacket is on the steps. “Noah is sweet, isn’t he?” he says. “Sweet and boring. I’m Damon, Noah’s friend. Can I come in?”</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="10"><span class="key" aria-hidden="true">1</span><span class="ctext">Invite him in.</span></button><button class="choice" type="button" data-to="4"><span class="key" aria-hidden="true">2</span><span class="ctext">Go inside and close the door.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s4" data-n="4" hidden>
+<p class="eyebrow">Part 4</p>
+<h2 tabindex="-1">The Knock</h2>
+<div class="prose">
+<p>Later that night, Grandma is asleep. You are in bed with your phone.</p>
+<div class="log" aria-label="Messages"><p class="log-head">Messages</p><p class="log-line"><span class="t">11:02 p.m.</span> <span>Caroline: Are you home??</span></p><p class="log-line"><span class="t">11:04 p.m.</span> <span>You: Yes.</span></p><p class="log-line"><span class="t">11:04 p.m.</span> <span>Caroline: Good. Now tell me everything about Noah.</span></p><p class="log-line"><span class="t">11:05 p.m.</span> <span>Caroline: He likes you. I know it. I’m never wrong.</span></p></div>
+<p>Then somebody knocks on the front door, and a voice says your name.</p>
+<p>You go downstairs and look through the window. It’s Damon, on the porch.</p>
+<p>He looks deep into your eyes through the glass. “Open the door,” he says slowly. “Invite me in.” But you feel nothing. He looks at your necklace. “Vervain,” he says. “Smart grandma.”</p>
+<p>He smiles. “OK, no tricks. Ask Noah two questions for me. Why are his hands always cold? And why does he never eat?”</p>
+<p>A crow flies over the house, and Damon is gone. You can’t sleep.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="6"><span class="key" aria-hidden="true">1</span><span class="ctext">Call Noah and ask him.</span></button><button class="choice" type="button" data-to="7"><span class="key" aria-hidden="true">2</span><span class="ctext">Wake up Grandma and tell her everything.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s5" data-n="5" hidden>
+<p class="eyebrow">Part 5</p>
+<h2 tabindex="-1">Fog</h2>
+<div class="prose">
+<p>Outside, there’s fog everywhere. You follow Damon to the trees.</p>
+<p>“Noah isn’t like you,” he says. “Noah is dangerous.”</p>
+<p>Then he turns around. His eyes are red now, with dark lines under them, and his teeth are long and sharp. You can’t move.</p>
+<p>“Damon. Stop.”</p>
+<p>A young man is behind you. Damon laughs. “Hello, brother.” Then a crow flies out of the fog, and Damon is gone.</p>
+<p>“I’m Stefan,” the young man says. “Go home. My brother can’t come into your house without an invitation. So he’s going to ask, and he’s going to be very nice. Don’t invite him in.”</p>
+<p>“And Noah?” you ask.</p>
+<p>“Noah is different. Damon always asks to come in. Noah never asks. Remember that.”</p>
+<p>You are shaking. Vampires are real, and they live in your new town.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="4"><span class="key" aria-hidden="true">1</span><span class="ctext">Go home to Grandma.</span></button><button class="choice" type="button" data-to="11"><span class="key" aria-hidden="true">2</span><span class="ctext">Go home and close the door on everybody.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s6" data-n="6" hidden>
+<p class="eyebrow">Part 6</p>
+<h2 tabindex="-1">The Truth</h2>
+<div class="prose">
+<p>Ten minutes later, Noah is at your door. He stays at the bottom of the steps.</p>
+<p>You open the door, but you stay inside. “Why are your hands always cold?” you ask. “Why do you never eat?”</p>
+<p>For a long time, Noah says nothing. Then he looks at you. “Because I’m a vampire.”</p>
+<p>Your heart beats very fast.</p>
+<p>“Like Damon,” he says. “But I’m not like Damon. I don’t hurt people. I came to Mystic Falls for a normal life: school, friends, maybe a girlfriend.” “And I’m never going to ask to come in. Damon asks. I don’t.”</p>
+<p>A crow is watching from the fence. Damon is near.</p>
+<p>Noah is waiting for your answer. His eyes are sad.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="8"><span class="key" aria-hidden="true">1</span><span class="ctext">Close the door and run upstairs.</span></button><button class="choice" type="button" data-to="9"><span class="key" aria-hidden="true">2</span><span class="ctext">Stay and listen to him.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s7" data-n="7" hidden>
+<p class="eyebrow">Part 7</p>
+<h2 tabindex="-1">Grandma</h2>
+<div class="prose">
+<p>You wake up Grandma and tell her everything. She doesn’t laugh. She goes to the kitchen and makes two cups of tea.</p>
+<p>“We’re an old Mystic Falls family,” she says. “We know about the vampires. That’s why you wear vervain. With vervain, they can’t control your mind.”</p>
+<p>“And Damon?”</p>
+<p>“He’s going to come back, and he’s going to be very sweet. Don’t invite him in. An invitation is forever. You can’t take it back.”</p>
+<p>“And Noah?”</p>
+<p>Grandma smiles. “When I was young, your grandfather waited at that door every night for a month. He never asked to come in. He only said, ’I can wait.’” She takes your hand. “A boy who says ’Let me in, let me in’? Close the door. A boy who waits? Maybe you can open it.”</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="6"><span class="key" aria-hidden="true">1</span><span class="ctext">Call Noah.</span></button><button class="choice" type="button" data-to="11"><span class="key" aria-hidden="true">2</span><span class="ctext">Close the door on everybody. Vampires, boys, everybody.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s8" data-n="8" hidden>
+<p class="eyebrow">Part 8</p>
+<h2 tabindex="-1">The Window</h2>
+<div class="prose">
+<p>You close the door and run up to your room. You are crying. Noah is a vampire. Damon is a vampire. Is everybody in this town a vampire?</p>
+<p>Then you hear a sound at the window. Tap. Tap. Tap.</p>
+<p>Damon is sitting in the big tree outside. He smiles at you through the glass.</p>
+<p>“Poor girl,” he says softly. “I can help you. Take off that necklace, invite me in, and I can make you forget everything. Noah, the vampires, this terrible night. No more fear.”</p>
+<p>You are very tired. Forget everything? It sounds so easy.</p>
+<p>You look down. Noah is still at the bottom of the steps, in the rain. He isn’t asking for anything. He’s only waiting.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="10"><span class="key" aria-hidden="true">1</span><span class="ctext">Open the window and invite Damon in.</span></button><button class="choice" type="button" data-to="9"><span class="key" aria-hidden="true">2</span><span class="ctext">Close the curtains and run back down to Noah.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s9" data-n="9" hidden>
+<p class="eyebrow">Part 9</p>
+<h2 tabindex="-1">Two at the Door</h2>
+<div class="prose">
+<p>The rain is heavy now, and Noah is wet and cold. But he doesn’t move from the bottom of the steps.</p>
+<p>“I’m not going to ask to come in,” he says. “Not tonight, not ever. It’s your house and your decision. I can wait.”</p>
+<p>Then somebody laughs in the fog. Damon walks out of the trees and stands next to Noah.</p>
+<p>“Oh, please,” Damon says. “He didn’t tell you the truth. I did. So who is the good guy here? Invite me in. I can keep you safe.”</p>
+<p>Two vampires are at your door, and they are both looking at you.</p>
+<p>Damon is smiling. Noah is waiting.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="12"><span class="key" aria-hidden="true">1</span><span class="ctext">Say: “Come in, Noah.”</span></button><button class="choice" type="button" data-to="10"><span class="key" aria-hidden="true">2</span><span class="ctext">Say: “Come in, Damon.”</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s10" data-n="10" data-end="bad" hidden>
+<p class="eyebrow">Part 10</p>
+<h2 tabindex="-1">Forget</h2>
+<div class="prose">
+<p>“Come in, Damon.”</p>
+<p>He smiles, and he comes in. He looks around Grandma’s house and sits in her favorite chair.</p>
+<p>Damon is funny and charming. He talks and talks, and you laugh. Then he looks at your necklace. “Take that off,” he says softly. And you do. It’s easy. It’s very easy.</p>
+<p>He looks deep into your eyes. “Forget Noah,” he says. “Forget me. Forget tonight.”</p>
+<p>The next morning, you wake up in your bed, and you don’t remember the night.</p>
+<p>At school, a boy with dark eyes says hello. He looks very sad. You don’t know his name.</p>
+<p>That night, there’s fog outside your window and a crow in the tree. Damon can come into your house now. Any night. Forever.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 3</p><ol class="slots" data-n="3" style="--n-end:3"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s11" data-n="11" data-end="bad" hidden>
+<p class="eyebrow">Part 11</p>
+<h2 tabindex="-1">Closed Doors</h2>
+<div class="prose">
+<p>You close the door. You close the windows. You put your phone in a drawer.</p>
+<p>No more Mystic Grill. No more boys. No more vampires.</p>
+<p>The next day, you don’t go to school. You don’t answer Caroline. You don’t answer Noah.</p>
+<p>Every evening, Grandma brings a cup of tea to your bedroom door. “The rule is for strangers, honey,” she says. “Not for your friends.” But you don’t open the door.</p>
+<p>Two weeks later, it’s Founder’s Day. From your window, you can see the fireworks over the town.</p>
+<p>You take your phone out of the drawer. There’s a photo from Caroline: everybody under the fireworks. They are all smiling. Noah is there too, at the back, alone. He isn’t smiling.</p>
+<p>You are safe in your room. But you are alone.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 3</p><ol class="slots" data-n="3" style="--n-end:3"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s12" data-n="12" data-end="good" hidden>
+<p class="eyebrow">Part 12</p>
+<h2 tabindex="-1">Come In</h2>
+<div class="prose">
+<p>“Come in, Noah.”</p>
+<p>Noah walks up the steps and into the house. He’s wet and cold, and he’s smiling.</p>
+<p>Outside, Damon rolls his eyes. “Boring,” he says. Then a crow flies away into the night, and the fog is gone.</p>
+<p>The lights go on. Grandma is on the stairs in her robe. She looks at Noah, at his ring, at his wet clothes. “You waited outside in the rain?”</p>
+<p>“Yes,” Noah says.</p>
+<p>“Then you aren’t a stranger,” Grandma says.</p>
+<p>Soon there are three cups on the kitchen table: two cups of tea and a hot chocolate. “Not my tea for you,” Grandma tells Noah. “It has vervain in it.” Noah laughs.</p>
+<p>Under the table, he holds your hand. It’s cold, but you don’t care.</p>
+<p>“Next week is Founder’s Day,” he says. “There are fireworks. Do you want to watch them with me?”</p>
+<p>“Yes,” you say.</p>
+<p class="stamp">THE END. <span class="stamp-sub">HAPPILY EVER AFTER.</span></p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 3</p><ol class="slots" data-n="3" style="--n-end:3"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+    <footer class="foot">
+      <p>Teacher Alex · Readers · A2</p>
+      <p>A story in the world of The Vampire Diaries, the TV series by Kevin Williamson and Julie Plec</p>
+      <button class="linkbtn" id="reset-endings" type="button">Reset endings</button>
+    </footer>
+  </div>
+</main>
+
+<script>
+/* engine:v2 — choices with conditions ([if 6, not 7] in the .story.md), bonus endings, number keys 1-9 */
+(function(){
+  var ENDINGS = {"10": {"title": "Forget", "kind": "bad"}, "11": {"title": "Closed Doors", "kind": "bad"}, "12": {"title": "Come In", "kind": "good"}};
+  var TITLES = {"1": "The New Girl", "2": "The Mystic Grill", "3": "The Walk Home", "4": "The Knock", "5": "Fog", "6": "The Truth", "7": "Grandma", "8": "The Window", "9": "Two at the Door", "10": "Forget", "11": "Closed Doors", "12": "Come In"};
+  var END_ORDER = Object.keys(ENDINGS).map(Number).sort(function(a,b){ return a-b; });
+  var INTENSITY = {"1": 0.3, "2": 0.6, "3": 0.8, "4": 0.9, "5": 1.6, "6": 0.9, "7": 0.35, "8": 1.4, "9": 1.2, "10": 2.4, "11": 0, "12": 0};
+  var MOOD = {"10": "flood", "11": "empty", "12": "win"};
+  var STORE = "tvd-dont-invite-endings-v1";
+  var KIND = { good:"Good ending", bad:"Bad ending", bonus:"Bonus ending" };
+  var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* text messages: "Caroline: Are you home??" becomes a bubble with the name over it; "You:" goes right */
+  document.querySelectorAll(".log-line").forEach(function(line){
+    var spans = line.querySelectorAll("span");
+    if(spans.length < 2) return;
+    var t = spans[0], body = spans[1], m = /^([A-Z][\w ]{0,20}): (.+)$/.exec(body.textContent);
+    if(!m) return;
+    var who = m[1];
+    t.textContent = who + " · " + t.textContent;
+    body.textContent = m[2];
+    body.className = "msg";
+    if(who === "You") line.classList.add("me");
+  });
+
+  var secs = {};
+  document.querySelectorAll(".sec").forEach(function(a){ secs[+a.dataset.n] = a; });
+  var hero = document.getElementById("hero");
+  var trail = document.getElementById("trail");
+  var btnBack = document.getElementById("btn-back");
+  var hist = [1];
+
+  function loadFound(){
+    try{
+      var v = JSON.parse(localStorage.getItem(STORE) || "[]");
+      return Array.isArray(v) ? v.filter(function(n){ return ENDINGS[n]; }) : [];
+    }catch(e){ return []; }
+  }
+  function saveFound(){ try{ localStorage.setItem(STORE, JSON.stringify(found)); }catch(e){} }
+  var found = loadFound();
+
+  function cur(){ return hist[hist.length-1]; }
+  function nums(s){ return (s || "").split(" ").filter(Boolean); }
+
+  /* a choice shows only when the path so far went through every part in data-if and none in data-ifnot */
+  function showChoices(sec){
+    var seen = {}, k = 0;
+    hist.forEach(function(n){ seen[n] = true; });
+    sec.querySelectorAll(".choice").forEach(function(b){
+      var ok = nums(b.getAttribute("data-if")).every(function(x){ return seen[x]; }) &&
+               !nums(b.getAttribute("data-ifnot")).some(function(x){ return seen[x]; });
+      b.hidden = !ok;
+      if(ok){ k++; var key = b.querySelector(".key"); if(key) key.textContent = k; }
+    });
+  }
+  function visibleChoices(){
+    return [].filter.call(secs[cur()].querySelectorAll(".choice"), function(b){ return !b.hidden; });
+  }
+
+  function renderTrail(){
+    trail.textContent = "";
+    var l = document.createElement("span"); l.className = "lbl"; l.textContent = "Your path"; trail.appendChild(l);
+    hist.forEach(function(n, i){
+      if(i){ var a = document.createElement("span"); a.className = "arr"; a.textContent = "→"; a.setAttribute("aria-hidden","true"); trail.appendChild(a); }
+      var s = document.createElement("span");
+      s.className = "step" + (i === hist.length-1 ? " now" : "");
+      s.textContent = n; s.title = TITLES[n] || "";
+      trail.appendChild(s);
+    });
+  }
+
+  function renderFound(now){
+    document.querySelectorAll(".found").forEach(function(box){
+      box.querySelector(".found-count").textContent = found.length;
+      var ol = box.querySelector(".slots"); ol.textContent = "";
+      END_ORDER.forEach(function(n){
+        var e = ENDINGS[n], got = found.indexOf(n) !== -1;
+        var li = document.createElement("li");
+        li.className = "slot " + e.kind + (got ? " got" : "") + (n === now ? " now" : "");
+        var k = document.createElement("span"); k.className = "sk";
+        k.textContent = got ? (KIND[e.kind] || "Ending") : (e.kind === "bonus" ? KIND.bonus : "Not found");
+        var t = document.createElement("span"); t.className = "st";
+        t.textContent = got ? e.title : "? ? ?";
+        li.appendChild(k); li.appendChild(t); ol.appendChild(li);
+      });
+    });
+  }
+
+  function render(animate){
+    var n = cur();
+    Object.keys(secs).forEach(function(k){ secs[k].hidden = (+k !== n); });
+    var a = secs[n];
+    showChoices(a);
+    if(animate && !reduced){ a.classList.remove("enter"); void a.offsetWidth; a.classList.add("enter"); }
+    hero.hidden = !(n === 1 && hist.length === 1);
+    btnBack.disabled = hist.length < 2;
+    document.body.setAttribute("data-mood", MOOD[n] || "");
+    renderTrail();
+    if(a.dataset.end){
+      if(found.indexOf(n) === -1){ found.push(n); saveFound(); }
+      renderFound(n);
+    }
+    bg.scene(n);
+  }
+
+  function focusTop(){
+    try{ window.scrollTo({ top:0, behavior: reduced ? "auto" : "smooth" }); }catch(e){ window.scrollTo(0,0); }
+    var h = secs[cur()].querySelector("h2");
+    if(h){ try{ h.focus({ preventScroll:true }); }catch(e){ h.focus(); } }
+  }
+  function go(to){ if(!secs[to]) return; hist.push(to); render(true); focusTop(); }
+  function back(){ if(hist.length > 1){ hist.pop(); render(true); focusTop(); } }
+  function restart(){ hist = [1]; render(true); focusTop(); }
+
+  document.addEventListener("click", function(e){
+    var c = e.target.closest(".choice");
+    if(c){ go(+c.dataset.to); return; }
+    if(e.target.closest(".js-restart")){ restart(); return; }
+    if(e.target.closest(".js-back")){ back(); return; }
+    if(e.target.closest("#reset-endings")){ found = []; saveFound(); renderFound(secs[cur()].dataset.end ? cur() : 0); }
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.metaKey || e.ctrlKey || e.altKey) return;
+    if(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if(/^[1-9]$/.test(e.key)){
+      var b = visibleChoices()[+e.key - 1];
+      if(b){ e.preventDefault(); b.click(); }
+    } else if(e.key === "ArrowLeft"){ if(hist.length > 1){ e.preventDefault(); back(); } }
+  });
+
+  /* ---------- night: fog banks drift low across the page and crows cross the sky.
+     intensity: more fog and more crows
+     flood: the sky fills with crows that flap faster
+     empty: the crows fly off and the fog goes at once
+     win:   the crows leave, the fog clears slowly, and small fireworks open far away ---------- */
+  var bg = (function(){
+    var cv = document.getElementById("night");
+    var ctx = cv.getContext && cv.getContext("2d");
+    if(!ctx) return { scene:function(){} };
+    var W = 0, H = 0, dpr = 1, col = document.getElementById("col"), R = Math.random;
+    var fogs = [], crows = [], sparks = [];
+    var mood = "", intensity = .3, colAlpha = .22, running = false, last = 0, burstClock = 0;
+    var C = { fog:"#90a4ba", fk:.2, crow:"#4a586d", ck:.9, win:"#e9b85f", accent:"#b292ea" };
+
+    function rgba(hex, a){
+      var h = (hex || "").replace("#", "");
+      if(h.length === 3) h = h.split("").map(function(c){ return c + c; }).join("");
+      var n = parseInt(h, 16);
+      if(isNaN(n) || h.length !== 6) return "rgba(128,128,128," + a + ")";
+      return "rgba(" + (n >> 16 & 255) + "," + (n >> 8 & 255) + "," + (n & 255) + "," + a + ")";
+    }
+    function readColors(){
+      var cs = getComputedStyle(document.body);
+      var v = function(name, d){ return cs.getPropertyValue(name).trim() || d; };
+      C.fog = v("--fog", C.fog); C.crow = v("--crow", C.crow); C.win = v("--win", C.win);
+      C.fk = parseFloat(v("--fog-k", C.fk)) || C.fk; C.ck = parseFloat(v("--crow-k", C.ck)) || C.ck;
+      C.accent = v("--accent", C.accent);
+    }
+    function quiet(){ return mood === "empty" || mood === "win"; }
+    function fogTarget(){ return quiet() ? 0 : Math.min(26, Math.round(4 + intensity * 9)); }
+    function crowTarget(){
+      if(quiet()) return 0;
+      var n = intensity * W * H / 120000 * (mood === "flood" ? 1.6 : 1);
+      return Math.min(48, Math.round(n) + (intensity > 0 ? 1 : 0));
+    }
+    function makeFog(){
+      var small = W < 640 ? .6 : 1;
+      return { x:R()*W, y:H*(.3 + R()*.8), r:(170 + R()*300) * small, vx:(R() < .5 ? -1 : 1) * (4 + R()*11),
+               a:0, ta:.45 + R()*.55, dying:false, delay:0 };
+    }
+    function makeCrow(fromEdge){
+      var dir = R() < .5 ? 1 : -1;
+      return { x:fromEdge ? (dir > 0 ? -40 - R()*80 : W + 40 + R()*80) : R()*W, y:H*(.05 + R()*.6),
+               s:(15 + R()*15) * (W < 640 ? .75 : 1), vx:dir * (38 + R()*60), vy:(R() - .5)*10, ph:R()*6.283, fs:7 + R()*4,
+               a:fromEdge ? 0 : 0, ta:.55 + R()*.45, leaving:false };
+    }
+    function sync(fromEdge){
+      var fa = fogs.filter(function(f){ return !f.dying; }), fw = fogTarget();
+      for(var i = fa.length; i < fw; i++){ var f = makeFog(); if(reduced) f.a = f.ta; fogs.push(f); }
+      for(var j = fa.length - 1, ex = fa.length - fw; j >= 0 && ex > 0; j--, ex--){
+        fa[j].dying = true; fa[j].delay = mood === "empty" ? R()*.2 : R()*1.5;
+      }
+      var ca = crows.filter(function(c){ return !c.leaving; }), cw = crowTarget();
+      for(var k = ca.length; k < cw; k++){ var c = makeCrow(fromEdge && !reduced); if(reduced) c.a = c.ta; crows.push(c); }
+      for(var m = ca.length - 1, ex2 = ca.length - cw; m >= 0 && ex2 > 0; m--, ex2--){
+        var q = ca[m]; q.leaving = true; q.vy = -(30 + R()*50); q.vx *= mood === "empty" ? 2.2 : 1.3;
+      }
+    }
+    function burst(){
+      var x = W*(.1 + R()*.8), y = H*(.1 + R()*.3), n = 26 + Math.floor(R()*16);
+      for(var i = 0; i < n; i++){
+        var ang = (i / n) * 6.283 + R()*.2, sp = 34 + R()*48;
+        sparks.push({ x:x, y:y, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp, age:0, life:1.5 + R()*.9, c:R() < .78 ? 0 : 1 });
+      }
+    }
+    function resize(){
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth; H = window.innerHeight;
+      cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      sync(false);
+      if(reduced){ settle(); draw(); }
+    }
+    function settle(){
+      fogs = fogs.filter(function(f){ return !f.dying; });
+      crows = crows.filter(function(c){ return !c.leaving; });
+      fogs.forEach(function(f){ f.a = f.ta; }); crows.forEach(function(c){ c.a = c.ta; });
+      sparks = [];
+    }
+    function drawCrow(c, alpha){
+      var s = c.s, tip = -Math.sin(c.ph) * s * .8;
+      ctx.save();
+      ctx.translate(c.x, c.y); ctx.scale(c.vx < 0 ? -1 : 1, 1); ctx.rotate(c.leaving ? -.25 : c.vy * .006);
+      ctx.globalAlpha = alpha;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, s*.42, s*.13, 0, 0, 6.283);                           /* body */
+      ctx.moveTo(s*.56, -s*.03); ctx.arc(s*.46, -s*.03, s*.11, 0, 6.283);      /* head */
+      ctx.moveTo(s*.56, -s*.06); ctx.lineTo(s*.72, -s*.01); ctx.lineTo(s*.55, s*.02); /* beak */
+      ctx.moveTo(-s*.36, 0); ctx.lineTo(-s*.66, -s*.1); ctx.lineTo(-s*.62, s*.12); /* tail */
+      ctx.fill();
+      ctx.beginPath();                                                          /* wing */
+      ctx.moveTo(s*.12, -s*.04);
+      ctx.quadraticCurveTo(-s*.02, tip*.55 - s*.04, -s*.4, tip);
+      ctx.quadraticCurveTo(-s*.22, tip*.4, -s*.26, -s*.02);
+      ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      var r = col.getBoundingClientRect(), L = r.left - 12, Rt = r.right + 12;
+      var fogMul = mood === "flood" ? 1.45 : 1;
+      for(var i = 0; i < fogs.length; i++){
+        var f = fogs[i], al = f.a * C.fk * fogMul * ((f.x > L && f.x < Rt) ? .6 : 1);
+        if(al < .004) continue;
+        ctx.save();
+        ctx.translate(f.x, f.y); ctx.scale(1, .42);
+        var g = ctx.createRadialGradient(0, 0, 0, 0, 0, f.r);
+        g.addColorStop(0, rgba(C.fog, Math.min(1, al)));
+        g.addColorStop(.55, rgba(C.fog, Math.min(1, al) * .45));
+        g.addColorStop(1, rgba(C.fog, 0));
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(0, 0, f.r, 0, 6.283); ctx.fill();
+        ctx.restore();
+      }
+      ctx.fillStyle = C.crow;
+      for(var k = 0; k < crows.length; k++){
+        var c = crows[k], inCol = c.x > L && c.x < Rt;
+        var al2 = c.a * C.ck * (inCol ? colAlpha : 1);
+        if(al2 > .004) drawCrow(c, Math.min(1, al2));
+      }
+      for(var p = 0; p < sparks.length; p++){
+        var sp = sparks[p], life = 1 - sp.age / sp.life;
+        var al3 = life * .85 * ((sp.x > L && sp.x < Rt) ? .35 : 1);
+        if(al3 < .01) continue;
+        ctx.globalAlpha = al3;
+        ctx.fillStyle = sp.c ? C.accent : C.win;
+        ctx.beginPath(); ctx.arc(sp.x, sp.y, 1.1 + life*.9, 0, 6.283); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+    function step(dt){
+      var fogRate = mood === "empty" ? 3 : (mood === "win" ? .6 : .8);
+      for(var i = fogs.length - 1; i >= 0; i--){
+        var f = fogs[i];
+        f.x += f.vx * dt;
+        if(!f.dying){
+          if(f.x - f.r > W) f.x = -f.r; else if(f.x + f.r < 0) f.x = W + f.r;
+        } else { f.delay -= dt; if(f.delay <= 0) f.ta = 0; }
+        f.a += (f.ta - f.a) * Math.min(1, dt * fogRate);
+        if(f.dying && f.delay <= 0 && f.a < .01) fogs.splice(i, 1);
+      }
+      var flap = mood === "flood" ? 1.45 : 1;
+      for(var k = crows.length - 1; k >= 0; k--){
+        var c = crows[k];
+        c.ph += c.fs * flap * dt;
+        c.x += c.vx * dt; c.y += c.vy * dt;
+        c.a += (c.ta - c.a) * Math.min(1, dt * 2);
+        if(c.leaving){
+          c.vy -= 50 * dt;
+          if(c.x < -80 || c.x > W + 80 || c.y < -60) crows.splice(k, 1);
+        } else {
+          if(c.vx > 0 && c.x > W + 60){ c.x = -60; c.y = H*(.05 + R()*.6); }
+          else if(c.vx < 0 && c.x < -60){ c.x = W + 60; c.y = H*(.05 + R()*.6); }
+          if(c.y < H*.03) c.vy = Math.abs(c.vy); else if(c.y > H*.72) c.vy = -Math.abs(c.vy);
+        }
+      }
+      if(mood === "win"){
+        burstClock -= dt;
+        if(burstClock <= 0){ burst(); burstClock = 2.3 + R()*2.4; }
+      }
+      for(var p = sparks.length - 1; p >= 0; p--){
+        var s = sparks[p];
+        s.vy += 20 * dt; s.vx *= (1 - .7*dt); s.vy *= (1 - .5*dt);
+        s.x += s.vx * dt; s.y += s.vy * dt;
+        s.age += dt * (mood === "win" ? 1 : 3);
+        if(s.age >= s.life) sparks.splice(p, 1);
+      }
+    }
+    function loop(ts){
+      if(!running) return;
+      var dt = last ? Math.min(.05, (ts - last) / 1000) : .016; last = ts;
+      step(dt); draw();
+      requestAnimationFrame(loop);
+    }
+    function start(){ if(reduced || running) return; running = true; last = 0; requestAnimationFrame(loop); }
+    function stop(){ running = false; }
+
+    function scene(n){
+      var m = MOOD[n] || "", prev = mood;
+      mood = m;
+      intensity = INTENSITY[n] != null ? INTENSITY[n] : .3;
+      colAlpha = m === "flood" ? .4 : .22;
+      readColors();
+      sync(true);
+      if(m === "win" && prev !== "win") burstClock = 1.4;
+      if(reduced){ settle(); draw(); }
+    }
+
+    window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", function(){ document.hidden ? stop() : start(); });
+    if(window.matchMedia){
+      var mq = matchMedia("(prefers-color-scheme: dark)");
+      var onScheme = function(){ readColors(); if(reduced) draw(); };
+      mq.addEventListener ? mq.addEventListener("change", onScheme) : mq.addListener(onScheme);
+    }
+    new MutationObserver(function(){ readColors(); if(reduced) draw(); })
+      .observe(document.documentElement, { attributes:true, attributeFilter:["data-theme"] });
+
+    readColors(); resize(); start();
+    return { scene:scene };
+  })();
+
+  render(false);
+})();
+</script>
+
+</body>
+</html>

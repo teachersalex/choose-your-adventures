@@ -1,0 +1,914 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>The Message</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=Red+Hat+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column on a phone-lit night before a wedding. Faint chat bubbles drift up
+   behind the text, some with typing dots, some with a heart; they multiply as the secret grows.
+   Messages inside the story render as a phone thread. The scandal ending floods the screen with
+   bubbles and red notification badges, the lonely ending clears it at once, and the free endings
+   let gold confetti fall. Light theme: the same story in daylight, blush paper and wine ink. */
+:root{
+  color-scheme: dark;
+  --ground:#160b11;
+  --ink:#f4e9ed;
+  --ink-soft:#b39aa5;
+  --line:#3a2330;
+  --panel:#1f121a;
+  --panel-hover:#2a1722;
+  --accent:#ec6a8a;
+  --accent-ink:#f490a9;
+  --on-accent:#25070f;
+  --bubble:#2f1c26;
+  --bub:#e07b98;
+  --bub-k:.12;
+  --badge:#ff5a5f;
+  --win:#e9bf6c;
+  --focus:#f490a9;
+  --display:"Gloock","Bodoni Moda","Bodoni 72",Didot,"Iowan Old Style",Georgia,serif;
+  --body:"Literata",Georgia,"Times New Roman",serif;
+  --mono:"Red Hat Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --phone:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --fs-body:clamp(1.15rem, .95rem + 1vw, 1.7rem);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    color-scheme: light;
+    --ground:#f8eff2;
+    --ink:#26131b;
+    --ink-soft:#6e5360;
+    --line:#e7d2da;
+    --panel:#fffafc;
+    --panel-hover:#fbedf2;
+    --accent:#b0254b;
+    --accent-ink:#9a1c40;
+    --on-accent:#ffffff;
+    --bubble:#efe0e6;
+    --bub:#b0254b;
+    --bub-k:.07;
+    --badge:#d9343c;
+    --win:#97650a;
+    --focus:#9a1c40;
+  }
+}
+:root[data-theme="light"]{
+  color-scheme: light;
+  --ground:#f8eff2;
+  --ink:#26131b;
+  --ink-soft:#6e5360;
+  --line:#e7d2da;
+  --panel:#fffafc;
+  --panel-hover:#fbedf2;
+  --accent:#b0254b;
+  --accent-ink:#9a1c40;
+  --on-accent:#ffffff;
+  --bubble:#efe0e6;
+  --bub:#b0254b;
+  --bub-k:.07;
+  --badge:#d9343c;
+  --win:#97650a;
+  --focus:#9a1c40;
+}
+:root[data-theme="dark"]{ color-scheme: dark; }
+
+body[data-mood="win"]{ --accent:var(--win); --accent-ink:var(--win); --focus:var(--win); }
+body[data-mood="empty"]{ --accent:var(--ink-soft); --accent-ink:var(--ink-soft); }
+
+[hidden]{ display:none !important; }
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--body);
+  -webkit-font-smoothing:antialiased;
+}
+#sky{ position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+
+.bar{
+  position:sticky; top:env(safe-area-inset-top,0px); z-index:3;
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px;
+  padding:10px 16px;
+  background:color-mix(in srgb, var(--ground) 86%, transparent);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line);
+}
+.brand{ display:flex; flex-wrap:wrap; align-items:baseline; gap:.2em .8em; font-family:var(--mono); font-size:.76rem; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.brand b{ font-weight:500; color:var(--accent-ink); }
+.controls{ display:flex; gap:8px; }
+.ctl{
+  font-family:var(--mono); font-size:.8rem; color:var(--ink);
+  background:transparent; border:1px solid var(--line); border-radius:999px;
+  padding:.45em .9em; cursor:pointer;
+}
+.ctl:hover:not(:disabled){ border-color:var(--accent); }
+.ctl:disabled{ opacity:.4; cursor:default; }
+
+main{ position:relative; z-index:1; padding-inline:16px; padding-block:clamp(1.5rem, 1rem + 3vw, 3.5rem) 4rem; }
+.col{ max-width:34em; margin-inline:auto; font-size:var(--fs-body); }
+
+.hero{ margin-bottom:2.2em; }
+.hero-kicker{ margin:0; font-family:var(--mono); font-size:clamp(.76rem,.7rem + .3vw,.95rem); letter-spacing:.2em; text-transform:uppercase; color:var(--accent-ink); }
+.hero h1{
+  font-family:var(--display); font-style:normal; font-weight:400;
+  font-size:clamp(3.4rem, 1.9rem + 7.4vw, 7.6rem); line-height:.88; letter-spacing:-.02em;
+  margin:.18em 0 .4em; color:var(--ink);
+  text-wrap:balance;
+}
+.hero .lede{ margin:0; color:var(--ink-soft); line-height:1.55; max-width:30em; }
+.hero .lede strong{ color:var(--ink); font-weight:600; }
+
+/* who is reading: many students read on the same screen, so each name keeps her own endings */
+.who{ margin-top:1.6em; display:flex; flex-direction:column; gap:.75em; }
+.who-list{ display:flex; flex-wrap:wrap; gap:.55em; }
+.who-chip{
+  display:inline-flex; align-items:center; gap:.6em; max-width:100%;
+  font:inherit; color:var(--ink); background:var(--panel);
+  border:1px solid var(--line); border-radius:999px;
+  padding:.5em .55em .5em 1.1em; cursor:pointer;
+  transition:border-color .2s, background-color .2s;
+}
+.who-chip:hover{ border-color:var(--accent); background:var(--panel-hover); }
+.who-chip:focus-visible, .who-input:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+.who-name{ min-width:0; overflow-wrap:anywhere; line-height:1.2; }
+.who-count{
+  flex:none; font-family:var(--mono); font-size:.7em; font-weight:500; font-variant-numeric:tabular-nums;
+  color:var(--on-accent); background:var(--accent); border-radius:999px; padding:.3em .75em;
+}
+.who-form{ display:flex; flex-wrap:wrap; align-items:center; gap:.55em; }
+.who-input{
+  flex:1 1 9em; min-width:0;
+  font:inherit; color:var(--ink); background:var(--panel);
+  border:1px solid var(--line); border-radius:999px; padding:.6em 1.1em;
+}
+.who-input::placeholder{ color:var(--ink-soft); opacity:1; }
+.who-legacy{ margin-top:.5em; padding-top:1em; border-top:1px solid var(--line); }
+.who-note{ flex:1 1 100%; margin:0; font-size:.85em; line-height:1.4; color:var(--ink-soft); }
+.who-line{ margin:1.1em 0 0; font-family:var(--mono); font-size:clamp(.76rem,.7rem + .3vw,.95rem); color:var(--ink-soft); }
+.who-line b{ font-weight:500; color:var(--accent-ink); }
+
+.trail{
+  display:flex; flex-wrap:wrap; align-items:center; gap:.35em .5em;
+  margin:0 0 1.6em; font-family:var(--mono); font-size:clamp(.76rem,.7rem + .3vw,.95rem); color:var(--ink-soft);
+}
+.trail .lbl{ letter-spacing:.14em; text-transform:uppercase; margin-right:.3em; }
+.trail .step{ font-variant-numeric:tabular-nums; border:1px solid var(--line); border-radius:999px; padding:.05em .55em; }
+.trail .step.now{ border-color:var(--accent); color:var(--accent-ink); font-weight:500; }
+.trail .arr{ opacity:.6; }
+
+.eyebrow{ margin:0; font-family:var(--mono); font-size:clamp(.76rem,.7rem + .3vw,.95rem); letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.sec h2{
+  font-family:var(--display); font-style:normal; font-weight:400;
+  font-size:clamp(2.4rem, 1.7rem + 2.8vw, 3.9rem); line-height:1; letter-spacing:-.015em;
+  margin:.12em 0 .62em; color:var(--accent-ink); text-wrap:balance;
+}
+.sec h2:focus, .sec h2:focus-visible{ outline:none; }
+
+.prose{ display:flex; flex-direction:column; gap:.85em; }
+.prose p{ margin:0; line-height:1.62; }
+
+/* text messages: a phone thread */
+.log{
+  align-self:flex-start; width:100%; max-width:23em;
+  font-family:var(--phone); font-size:.8em; color:var(--ink);
+  background:var(--panel); border:1px solid var(--line); border-radius:22px;
+  padding:.9em .9em 1.1em; display:flex; flex-direction:column; gap:.6em;
+}
+.log-head{ margin:0 0 .2em !important; text-align:center; font-family:var(--mono); font-size:.74em; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); }
+.log-line{ display:flex; flex-direction:column; align-items:flex-start; gap:.25em; line-height:1.35 !important; }
+.log-line .t{ font-family:var(--mono); font-size:.7em; letter-spacing:.04em; color:var(--ink-soft); font-variant-numeric:tabular-nums; padding-inline:.6em; }
+.log-line .msg{ display:block; max-width:85%; min-width:0; background:var(--bubble); border-radius:1.15em 1.15em 1.15em .35em; padding:.5em .85em .55em; }
+.log-line.me{ align-items:flex-end; }
+.log-line.me .msg{ background:var(--accent); color:var(--on-accent); border-radius:1.15em 1.15em .35em 1.15em; }
+.log-line.log-plain{ display:block; }
+
+/* a photo inside the thread: a picture tile with its caption */
+.log-line .msg.photo{ display:flex; flex-direction:column; gap:.45em; width:13em; max-width:85%; padding:.35em .35em .5em; }
+.photo .pic{
+  display:grid; place-items:center; aspect-ratio:4/3; max-width:100%; border-radius:.85em;
+  background:linear-gradient(160deg, color-mix(in srgb, var(--ink) 16%, var(--bubble)), color-mix(in srgb, var(--ink) 4%, var(--bubble)));
+  color:color-mix(in srgb, var(--ink) 55%, transparent);
+}
+.log-line.me .photo .pic{
+  background:linear-gradient(160deg, color-mix(in srgb, var(--on-accent) 22%, var(--accent)), color-mix(in srgb, var(--on-accent) 6%, var(--accent)));
+  color:color-mix(in srgb, var(--on-accent) 60%, transparent);
+}
+.photo .pic svg{ width:2.2em; height:2.2em; }
+.photo .cap{ padding-inline:.5em; }
+
+/* "Renata is typing..." */
+.log-line.log-plain.typing-line{ display:flex; flex-direction:column; align-items:flex-start; gap:.35em; font-style:italic; color:var(--ink-soft); padding-inline:.6em; }
+.msg.typing{ display:inline-flex !important; align-items:center; gap:.3em; padding:.75em .95em !important; margin-left:-.6em; }
+.msg.typing i{ display:block; width:.45em; height:.45em; border-radius:50%; background:var(--ink-soft); animation:dot 1.3s infinite ease-in-out; }
+.msg.typing i:nth-child(2){ animation-delay:.18s; }
+.msg.typing i:nth-child(3){ animation-delay:.36s; }
+@keyframes dot{ 0%,70%,100%{ opacity:.3; transform:none; } 35%{ opacity:1; transform:translateY(-3px); } }
+
+.choices{ margin-top:2em; display:flex; flex-direction:column; gap:.7em; }
+.ask{ margin:0 0 .15em; font-family:var(--mono); font-size:clamp(.76rem,.7rem + .3vw,.95rem); letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.choice{
+  display:flex; align-items:center; gap:.85em; width:100%;
+  font:inherit; text-align:left; color:var(--ink);
+  background:var(--panel); border:1px solid var(--line); border-radius:999px;
+  padding:.7em 1.2em .7em .8em; cursor:pointer;
+  transition:border-color .2s, background-color .2s, transform .2s;
+}
+.choice:hover{ border-color:var(--accent); background:var(--panel-hover); transform:translateX(3px); }
+.choice:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+.key{
+  flex:none; display:grid; place-items:center;
+  width:1.85em; height:1.85em; border-radius:50%;
+  font-family:var(--mono); font-weight:500; font-size:.82em;
+  color:var(--on-accent); background:var(--accent);
+}
+.ctext{ line-height:1.35; min-width:0; }
+.choice.unlocked{ border:1.5px dashed var(--accent); }
+.utag{ display:block; margin:0 0 .3em; font-family:var(--mono); font-size:.6em; letter-spacing:.2em; text-transform:uppercase; color:var(--accent-ink); }
+.keyhint{ display:none; margin:.4em 0 0; font-family:var(--mono); font-size:.7em; color:var(--ink-soft); }
+@media (hover:hover) and (pointer:fine){ .keyhint{ display:block; } }
+
+.stamp{
+  margin:1.4em 0 0 !important; padding:.45em 0 .4em;
+  font-family:var(--display); font-style:normal; font-weight:400;
+  font-size:clamp(2.1rem, 1.5rem + 2.6vw, 3.3rem); line-height:1 !important; letter-spacing:.02em;
+  color:var(--accent-ink); text-align:center;
+  border-top:1px solid var(--accent); border-bottom:1px solid var(--accent);
+}
+.stamp-sub{ display:block; margin-top:.75em; font-family:var(--mono); font-style:normal; font-weight:400; font-size:.3em; letter-spacing:.3em; }
+
+.ending{ margin-top:2em; display:flex; flex-direction:column; gap:1.1em; }
+.kind{ margin:0; font-family:var(--mono); font-size:clamp(.76rem,.7rem + .3vw,.95rem); letter-spacing:.18em; text-transform:uppercase; }
+.kind-bad{ color:var(--ink-soft); }
+.kind-good, .kind-bonus{ color:var(--accent-ink); font-weight:500; }
+.found{ border-top:1px solid var(--line); padding-top:1em; }
+.found-label{ margin:0; font-family:var(--mono); font-size:clamp(.76rem,.7rem + .3vw,.95rem); color:var(--ink-soft); }
+.found-label b{ color:var(--ink); font-weight:500; font-variant-numeric:tabular-nums; }
+.found-who{ color:var(--accent-ink); }
+.slots{ list-style:none; margin:.7em 0 0; padding:0; display:grid; grid-template-columns:repeat(var(--n-end,3),minmax(0,1fr)); gap:.6em; font-size:.8em; }
+.slot{ min-width:0; border:1px dashed var(--line); border-radius:10px; padding:.6em .75em; color:var(--ink-soft); display:flex; flex-direction:column; gap:.3em; }
+.slot .sk{ font-family:var(--mono); font-size:.7em; letter-spacing:.12em; text-transform:uppercase; }
+.slot .st{ font-family:var(--display); font-weight:400; font-size:1.2em; line-height:1.08; }
+.slot.got{ border-style:solid; color:var(--ink); background:var(--panel); }
+.slot.got.good{ border-color:var(--win); }
+.slot.now{ box-shadow:inset 0 0 0 1px var(--accent); }
+@media (max-width:700px){ .slots{ grid-template-columns:repeat(2,minmax(0,1fr)); } .slots[data-n="3"]{ grid-template-columns:1fr; } }
+@media (max-width:380px){ .slots{ grid-template-columns:1fr; } }
+
+.end-actions{ display:flex; flex-wrap:wrap; gap:.6em; }
+.btn{ font:inherit; font-size:.9em; border-radius:999px; padding:.6em 1.2em; cursor:pointer; border:1.5px solid var(--accent); }
+.btn-main{ background:var(--accent); color:var(--on-accent); font-weight:600; }
+.btn-main:hover{ filter:brightness(1.08); }
+.btn-ghost{ background:transparent; color:var(--ink); border-color:var(--line); }
+.btn-ghost:hover{ border-color:var(--accent); }
+.btn:focus-visible, .ctl:focus-visible, .linkbtn:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+
+.foot{ margin-top:4em; padding-top:1em; border-top:1px solid var(--line); display:flex; flex-wrap:wrap; justify-content:space-between; gap:.6em 1.2em; font-family:var(--mono); font-size:.76rem; color:var(--ink-soft); }
+.foot p{ margin:0; }
+.foot-actions{ display:flex; flex-wrap:wrap; gap:.6em 1.2em; }
+.linkbtn{ font:inherit; color:var(--ink-soft); background:none; border:0; padding:0; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+.linkbtn:hover{ color:var(--ink); }
+
+.sec.enter{ animation:rise .45s ease-out both; }
+@keyframes rise{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){
+  .sec.enter{ animation:none; }
+  .choice, .choice:hover{ transition:none; transform:none; }
+  .msg.typing i{ animation:none; opacity:.7; }
+}
+</style>
+</head>
+<body>
+
+
+
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<header class="bar">
+  <div class="brand"><b>Choose Your Story</b><span>The Message</span></div>
+  <nav class="controls" aria-label="Story controls">
+    <button class="ctl js-who" id="btn-who" type="button" title="Change reader" hidden></button>
+    <button class="ctl js-back" id="btn-back" type="button" disabled>&#8592; Back</button>
+    <button class="ctl js-restart" id="btn-restart" type="button">Start again</button>
+  </nav>
+</header>
+
+<main>
+  <div class="col" id="col">
+    <section class="hero" id="hero">
+      <p class="hero-kicker">One message. Four endings.</p>
+      <h1>The Message</h1>
+      <p class="lede">Read each part. At the end, choose <strong>1</strong> or <strong>2</strong>. Your choice changes <strong>everything</strong>.</p>
+      <p class="who-line" id="who-line" hidden></p>
+      <div class="who" id="who" hidden>
+        <p class="ask" id="who-ask">Who is reading?</p>
+        <div class="who-list" id="who-list" role="group" aria-labelledby="who-ask"></div>
+        <div class="who-form">
+          <input class="who-input" id="who-name" type="text" maxlength="24" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Your name" aria-label="Your name">
+          <button class="btn btn-main" id="who-start" type="button">Start</button>
+        </div>
+        <div class="who-form who-legacy" id="who-legacy" hidden>
+          <p class="who-note" id="who-legacy-note"></p>
+          <input class="who-input" id="who-legacy-name" type="text" maxlength="24" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Name" aria-label="Name of the reader who found these endings">
+          <button class="btn btn-ghost" id="who-legacy-save" type="button">Save</button>
+        </div>
+      </div>
+    </section>
+
+    <p class="trail" id="trail" aria-live="polite"><span class="lbl">Your path</span><span class="step now">1</span></p>
+
+<article class="sec" id="s1" data-n="1">
+<p class="eyebrow">Part 1</p>
+<h2 tabindex="-1">Friday Night</h2>
+<div class="prose">
+<p>Friday night. You are at Diego’s apartment. Tomorrow is your wedding.</p>
+<p>After the wedding, you and Diego go to Paris. You pay for everything. The tickets are in your bag.</p>
+<p>Diego is in the shower. His phone is on the sofa, next to you. It makes a sound. You look.</p>
+<div class="log" aria-label="Messages"><p class="log-head">Messages</p><p class="log-line"><span class="t">11:46 p.m.</span> <span>Paula: Are you there?</span></p><p class="log-line"><span class="t">11:47 p.m.</span> <span>Paula: Please don’t marry her. I love you. ❤️</span></p></div>
+<p>Paula is your best friend. Tomorrow, at the wedding, she stands next to you.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="2"><span class="key" aria-hidden="true">1</span><span class="ctext">Read more messages.</span></button><button class="choice" type="button" data-to="3"><span class="key" aria-hidden="true">2</span><span class="ctext">Wait for Diego.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s2" data-n="2" hidden>
+<p class="eyebrow">Part 2</p>
+<h2 tabindex="-1">The Phone</h2>
+<div class="prose">
+<p>You take the phone. You read.</p>
+<p>There are a lot of messages. There are photos too. Diego and Paula at a restaurant. Diego and Paula at the beach.</p>
+<p>Then you see this:</p>
+<div class="log" aria-label="Messages"><p class="log-head">Messages</p><p class="log-line"><span class="t">10:12 p.m.</span> <span>Paula: Tomorrow is the wedding. 😢</span></p><p class="log-line"><span class="t">10:15 p.m.</span> <span>Diego: Relax. She pays for Paris. Then bye bye. 😘</span></p></div>
+<p>You take a photo of Diego’s message with your phone.</p>
+<p>In the shower, Diego is singing. He is happy.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="4"><span class="key" aria-hidden="true">1</span><span class="ctext">Tell everyone at the wedding.</span></button><button class="choice" type="button" data-to="5"><span class="key" aria-hidden="true">2</span><span class="ctext">Take the tickets and leave tonight.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s3" data-n="3" hidden>
+<p class="eyebrow">Part 3</p>
+<h2 tabindex="-1">Diego</h2>
+<div class="prose">
+<p>Diego comes out of the bathroom.</p>
+<p>“Diego, your phone. Messages from Paula.”</p>
+<p>You give him the phone. He reads the messages. He is quiet. Then he smiles.</p>
+<p>“Oh, Paula... She is crazy. She likes me, but I don’t like her.”</p>
+<p>He kisses you.</p>
+<p>“Tomorrow, you are my wife.”</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="6"><span class="key" aria-hidden="true">1</span><span class="ctext">Believe him.</span></button><button class="choice" type="button" data-to="7"><span class="key" aria-hidden="true">2</span><span class="ctext">Call Paula. Now.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s4" data-n="4" data-end="good" hidden>
+<p class="eyebrow">Part 4</p>
+<h2 tabindex="-1">The Church</h2>
+<div class="prose">
+<p>Saturday. The church is full. Two hundred people are there.</p>
+<p>Diego is at the altar. He smiles. Paula is next to you. She smiles too.</p>
+<p>Then, the big question: “Do you take Diego as your husband?”</p>
+<p>You take the microphone. “Before I answer, I have a message for everyone. From Diego to Paula.”</p>
+<p>You read it: “She pays for Paris. Then bye bye.”</p>
+<p>The church is very quiet. Diego’s face is red. Paula’s face is white.</p>
+<p>You give your flowers to Paula. “You want him? He is yours.”</p>
+<p>And you walk out of the church. Alone. Free.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 4</p><ol class="slots" data-n="4" style="--n-end:4"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s5" data-n="5" data-end="good" hidden>
+<p class="eyebrow">Part 5</p>
+<h2 tabindex="-1">Paris</h2>
+<div class="prose">
+<p>You put Diego’s phone back on the sofa. You take your bag. The tickets to Paris are inside. You don’t say goodbye.</p>
+<p>That night, you go to the airport.</p>
+<p>Saturday, 4 p.m. At the church, two hundred people wait. Diego waits. Paula waits.</p>
+<p>You don’t come.</p>
+<p>Diego’s phone makes a sound. It’s you:</p>
+<div class="log" aria-label="Messages"><p class="log-head">Messages</p><p class="log-line"><span class="t">4:05 p.m.</span> <span>You: 📷 The Eiffel Tower</span></p><p class="log-line"><span class="t">4:05 p.m.</span> <span>You: Paris is beautiful. Kisses to Paula. ❤️</span></p></div>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 4</p><ol class="slots" data-n="4" style="--n-end:4"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s6" data-n="6" data-end="bad" hidden>
+<p class="eyebrow">Part 6</p>
+<h2 tabindex="-1">Alone in Paris</h2>
+<div class="prose">
+<p>“Okay,” you say. You want to believe him.</p>
+<p>Saturday, you marry Diego. Paula is next to you. She cries a lot. “She is so happy for you!” everyone says.</p>
+<p>Sunday, you are in Paris with your husband.</p>
+<p>Monday morning, you wake up. Diego is not there. His bag is not there. Your credit card is not there.</p>
+<p>Your phone makes a sound. It’s Paula:</p>
+<div class="log" aria-label="Messages"><p class="log-head">Messages</p><p class="log-line"><span class="t">9:30 a.m.</span> <span>Paula: 📷 Diego and me at the airport</span></p><p class="log-line"><span class="t">9:30 a.m.</span> <span>Paula: Thank you for everything, friend. ❤️</span></p></div>
+<p>You are in Paris. Alone. And married.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 4</p><ol class="slots" data-n="4" style="--n-end:4"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s7" data-n="7" data-end="good" hidden>
+<p class="eyebrow">Part 7</p>
+<h2 tabindex="-1">The Wife</h2>
+<div class="prose">
+<p>You take your phone and call Paula. You turn on the speaker.</p>
+<p>“Hi, friend!” Paula says.</p>
+<p>“Hi, Paula. Diego is here. He says you are crazy.”</p>
+<p>Silence.</p>
+<p>Then Paula screams: “Crazy?! Diego, tell her the truth! Tell her about your WIFE!”</p>
+<p>“His... wife?” Diego looks at the floor.</p>
+<p>“Her name is Renata,” Paula says. “She lives in Curitiba. They have two kids.”</p>
+<p>You end the call. You open Instagram. You find her: Renata, Curitiba. In her photos: Renata, two kids... and Diego.</p>
+<p>You write a message. Then you press SEND.</p>
+<div class="log" aria-label="Messages"><p class="log-head">Messages</p><p class="log-line"><span class="t">11:58 p.m.</span> <span>You: Hi, Renata. We need to talk about your husband.</span></p><p class="log-line log-plain">Renata is typing...</p></div>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 4</p><ol class="slots" data-n="4" style="--n-end:4"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+    <footer class="foot">
+      <p>Teacher Alex · Readers</p>
+      <p>An original story</p>
+      <span class="foot-actions">
+        <button class="linkbtn" id="reset-endings" type="button">Reset endings</button>
+        <button class="linkbtn" id="remove-reader" type="button">Remove reader</button>
+      </span>
+    </footer>
+  </div>
+</main>
+
+<script>
+/* engine:v2 — choices with conditions ([if 6, not 7] in the .story.md), bonus endings, number keys 1-9 */
+/* + readers — the page asks "Who is reading?" each time it opens; every name keeps her own endings */
+(function(){
+  var ENDINGS = {"4": {"title": "The Church", "kind": "good"}, "5": {"title": "Paris", "kind": "good"}, "6": {"title": "Alone in Paris", "kind": "bad"}, "7": {"title": "The Wife", "kind": "good"}};
+  var TITLES = {"1": "Friday Night", "2": "The Phone", "3": "Diego", "4": "The Church", "5": "Paris", "6": "Alone in Paris", "7": "The Wife"};
+  var END_ORDER = Object.keys(ENDINGS).map(Number).sort(function(a,b){ return a-b; });
+  var INTENSITY = {"1": 0.45, "2": 0.9, "3": 0.7, "4": 0, "5": 0, "6": 0, "7": 2.2};
+  var MOOD = {"4": "win", "5": "win", "6": "empty", "7": "flood"};
+  var STORE = "the-message-endings-v1";      /* the old shared list, from before readers existed */
+  var READERS = "the-message-readers-v1";    /* { legacyDone, readers:[{ name, found:[n] }] } */
+  var KIND = { good:"Good ending", bad:"Bad ending", bonus:"Bonus ending" };
+  var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var PIC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg>';
+
+  /* text messages: "Paula: Are you there?" becomes a bubble with the name over it; "You:" goes right.
+     "📷 caption" becomes a photo tile; a plain line "Renata is typing..." gets a typing bubble. */
+  document.querySelectorAll(".log-line").forEach(function(line){
+    var spans = line.querySelectorAll("span");
+    if(spans.length < 2){
+      if(/ is typing\.\.\.$/.test(line.textContent.trim())){
+        line.classList.add("typing-line");
+        var dots = document.createElement("span");
+        dots.className = "msg typing"; dots.setAttribute("aria-hidden", "true");
+        dots.innerHTML = "<i></i><i></i><i></i>";
+        line.appendChild(dots);
+      }
+      return;
+    }
+    var t = spans[0], body = spans[1], m = /^([A-Z][\w ]{0,20}): (.+)$/.exec(body.textContent);
+    if(!m) return;
+    var who = m[1], said = m[2];
+    t.textContent = who + " · " + t.textContent;
+    body.className = "msg";
+    if(/^📷\s*/.test(said)){
+      body.className = "msg photo";
+      body.textContent = "";
+      var pic = document.createElement("span"); pic.className = "pic"; pic.innerHTML = PIC;
+      var cap = document.createElement("span"); cap.className = "cap"; cap.textContent = said.replace(/^📷\s*/, "");
+      body.setAttribute("aria-label", "Photo: " + cap.textContent);
+      body.appendChild(pic); body.appendChild(cap);
+    } else {
+      body.textContent = said;
+    }
+    if(who === "You") line.classList.add("me");
+  });
+
+  var secs = {};
+  document.querySelectorAll(".sec").forEach(function(a){ secs[+a.dataset.n] = a; });
+  var hero = document.getElementById("hero");
+  var trail = document.getElementById("trail");
+  var btnBack = document.getElementById("btn-back");
+  var hist = [1];
+
+  /* readers: names and endings live only in this browser. An old shared list waits in the picker
+     until someone gives it a name; the old key itself is never touched. */
+  var who = document.getElementById("who");
+  var whoLine = document.getElementById("who-line");
+  var whoList = document.getElementById("who-list");
+  var whoName = document.getElementById("who-name");
+  var whoLegacy = document.getElementById("who-legacy");
+  var whoLegacyNote = document.getElementById("who-legacy-note");
+  var whoLegacyName = document.getElementById("who-legacy-name");
+  var btnWho = document.getElementById("btn-who");
+  var btnRestart = document.getElementById("btn-restart");
+  var btnReset = document.getElementById("reset-endings");
+  var btnRemove = document.getElementById("remove-reader");
+  var removeTimer = 0;
+
+  function tidyName(s){ return String(s == null ? "" : s).replace(/\s+/g, " ").trim().slice(0, 24); }
+  function cleanFound(v){
+    if(!Array.isArray(v)) return [];
+    v = v.map(Number);
+    return v.filter(function(n, i){ return ENDINGS[n] && v.indexOf(n) === i; });
+  }
+  function loadBook(){
+    var b = null;
+    try{ b = JSON.parse(localStorage.getItem(READERS) || "null"); }catch(e){}
+    if(!b || !Array.isArray(b.readers)) b = { legacyDone:false, readers:[] };
+    return {
+      legacyDone: !!b.legacyDone,
+      readers: b.readers.filter(function(r){ return r && tidyName(r.name); })
+                        .map(function(r){ return { name:tidyName(r.name), found:cleanFound(r.found) }; })
+    };
+  }
+  function loadLegacy(){
+    try{ return cleanFound(JSON.parse(localStorage.getItem(STORE) || "[]")); }catch(e){ return []; }
+  }
+  function saveBook(){ try{ localStorage.setItem(READERS, JSON.stringify(book)); }catch(e){} }
+
+  var book = loadBook();
+  var legacy = book.legacyDone ? [] : loadLegacy();
+  var reader = null;     /* null while the page asks "Who is reading?" */
+  var found = [];        /* the endings of the reader on screen */
+
+  function findReader(name){
+    var k = name.toLowerCase();
+    for(var i = 0; i < book.readers.length; i++){ if(book.readers[i].name.toLowerCase() === k) return book.readers[i]; }
+    return null;
+  }
+  function addReader(name, list){
+    var r = findReader(name);
+    if(!r){ r = { name:name, found:[] }; book.readers.push(r); }
+    (list || []).forEach(function(n){ if(r.found.indexOf(n) === -1) r.found.push(n); });
+    saveBook();
+    return r;
+  }
+  function pick(r){ reader = r; found = r.found; hist = [1]; render(true); focusTop(); }
+  function unpick(){ reader = null; found = []; hist = [1]; render(true); focusTop(); }
+  function startNew(){
+    var name = tidyName(whoName.value);
+    if(!name){ whoName.focus(); return; }
+    whoName.value = "";
+    pick(addReader(name));
+  }
+  function claimLegacy(){
+    var name = tidyName(whoLegacyName.value);
+    if(!name){ whoLegacyName.focus(); return; }
+    whoLegacyName.value = "";
+    book.legacyDone = true;
+    addReader(name, legacy);
+    legacy = [];
+    renderWho();
+  }
+  function renderWho(){
+    whoList.textContent = "";
+    book.readers.forEach(function(r, i){
+      var b = document.createElement("button"); b.type = "button"; b.className = "who-chip"; b.setAttribute("data-reader", i);
+      b.setAttribute("aria-label", r.name + ": " + r.found.length + " of " + END_ORDER.length + " endings found");
+      var nm = document.createElement("span"); nm.className = "who-name"; nm.textContent = r.name;
+      var ct = document.createElement("span"); ct.className = "who-count"; ct.textContent = r.found.length + "/" + END_ORDER.length;
+      b.appendChild(nm); b.appendChild(ct); whoList.appendChild(b);
+    });
+    whoList.hidden = !book.readers.length;
+    whoLegacy.hidden = !legacy.length;
+    if(legacy.length){
+      whoLegacyNote.textContent = legacy.length === 1 ? "1 ending is saved here. Who found it?"
+                                                      : legacy.length + " endings are saved here. Who found them?";
+    }
+  }
+  function renderWhoLine(){
+    whoLine.textContent = "";
+    if(!reader) return;
+    var b = document.createElement("b"); b.textContent = reader.name;
+    whoLine.appendChild(document.createTextNode("Reader: "));
+    whoLine.appendChild(b);
+    whoLine.appendChild(document.createTextNode(" · Endings found: " + found.length + " of " + END_ORDER.length));
+  }
+
+  function cur(){ return hist[hist.length-1]; }
+  function nums(s){ return (s || "").split(" ").filter(Boolean); }
+
+  /* a choice shows only when the path so far went through every part in data-if and none in data-ifnot */
+  function showChoices(sec){
+    var seen = {}, k = 0;
+    hist.forEach(function(n){ seen[n] = true; });
+    sec.querySelectorAll(".choice").forEach(function(b){
+      var ok = nums(b.getAttribute("data-if")).every(function(x){ return seen[x]; }) &&
+               !nums(b.getAttribute("data-ifnot")).some(function(x){ return seen[x]; });
+      b.hidden = !ok;
+      if(ok){ k++; var key = b.querySelector(".key"); if(key) key.textContent = k; }
+    });
+  }
+  function visibleChoices(){
+    return [].filter.call(secs[cur()].querySelectorAll(".choice"), function(b){ return !b.hidden; });
+  }
+
+  function renderTrail(){
+    trail.textContent = "";
+    var l = document.createElement("span"); l.className = "lbl"; l.textContent = "Your path"; trail.appendChild(l);
+    hist.forEach(function(n, i){
+      if(i){ var a = document.createElement("span"); a.className = "arr"; a.textContent = "→"; a.setAttribute("aria-hidden","true"); trail.appendChild(a); }
+      var s = document.createElement("span");
+      s.className = "step" + (i === hist.length-1 ? " now" : "");
+      s.textContent = n; s.title = TITLES[n] || "";
+      trail.appendChild(s);
+    });
+  }
+
+  function renderFound(now){
+    document.querySelectorAll(".found").forEach(function(box){
+      box.querySelector(".found-count").textContent = found.length;
+      var lab = box.querySelector(".found-label"), fw = lab.querySelector(".found-who");
+      if(!fw){ fw = document.createElement("span"); fw.className = "found-who"; lab.insertBefore(fw, lab.firstChild); }
+      fw.textContent = reader ? reader.name + " · " : "";
+      var ol = box.querySelector(".slots"); ol.textContent = "";
+      END_ORDER.forEach(function(n){
+        var e = ENDINGS[n], got = found.indexOf(n) !== -1;
+        var li = document.createElement("li");
+        li.className = "slot " + e.kind + (got ? " got" : "") + (n === now ? " now" : "");
+        var k = document.createElement("span"); k.className = "sk";
+        k.textContent = got ? (KIND[e.kind] || "Ending") : (e.kind === "bonus" ? KIND.bonus : "Not found");
+        var t = document.createElement("span"); t.className = "st";
+        t.textContent = got ? e.title : "? ? ?";
+        li.appendChild(k); li.appendChild(t); ol.appendChild(li);
+      });
+    });
+  }
+
+  function render(animate){
+    var n = cur(), picking = !reader;
+    Object.keys(secs).forEach(function(k){ secs[k].hidden = picking || (+k !== n); });
+    var a = secs[n];
+    showChoices(a);
+    if(animate && !reduced && !picking){ a.classList.remove("enter"); void a.offsetWidth; a.classList.add("enter"); }
+    hero.hidden = !(n === 1 && hist.length === 1);
+    trail.hidden = picking;
+    who.hidden = !picking; whoLine.hidden = picking;
+    btnWho.hidden = picking; btnWho.textContent = reader ? "Reader: " + reader.name : "";
+    btnRestart.disabled = picking;
+    btnReset.hidden = picking; btnRemove.hidden = picking;
+    clearTimeout(removeTimer); removeTimer = 0; btnRemove.textContent = "Remove reader";
+    if(picking) renderWho(); else renderWhoLine();
+    btnBack.disabled = hist.length < 2;
+    document.body.setAttribute("data-mood", MOOD[n] || "");
+    renderTrail();
+    if(a.dataset.end){
+      if(found.indexOf(n) === -1){ found.push(n); saveBook(); }
+      renderFound(n);
+    }
+    bg.scene(n);
+  }
+
+  function focusTop(){
+    try{ window.scrollTo({ top:0, behavior: reduced ? "auto" : "smooth" }); }catch(e){ window.scrollTo(0,0); }
+    if(!reader) return;
+    var h = secs[cur()].querySelector("h2");
+    if(h){ try{ h.focus({ preventScroll:true }); }catch(e){ h.focus(); } }
+  }
+  function go(to){ if(!reader || !secs[to]) return; hist.push(to); render(true); focusTop(); }
+  function back(){ if(hist.length > 1){ hist.pop(); render(true); focusTop(); } }
+  function restart(){ hist = [1]; render(true); focusTop(); }
+
+  document.addEventListener("click", function(e){
+    var c = e.target.closest(".choice");
+    if(c){ go(+c.dataset.to); return; }
+    var chip = e.target.closest(".who-chip");
+    if(chip){ var r = book.readers[+chip.getAttribute("data-reader")]; if(r) pick(r); return; }
+    if(e.target.closest("#who-start")){ startNew(); return; }
+    if(e.target.closest("#who-legacy-save")){ claimLegacy(); return; }
+    if(e.target.closest(".js-who")){ unpick(); return; }
+    if(e.target.closest(".js-restart")){ restart(); return; }
+    if(e.target.closest(".js-back")){ back(); return; }
+    if(e.target.closest("#reset-endings")){
+      if(!reader) return;
+      reader.found = found = []; saveBook();
+      renderFound(secs[cur()].dataset.end ? cur() : 0); renderWhoLine();
+      return;
+    }
+    if(e.target.closest("#remove-reader")){
+      if(!reader) return;
+      if(removeTimer){ book.readers.splice(book.readers.indexOf(reader), 1); saveBook(); unpick(); }   /* second click */
+      else {
+        btnRemove.textContent = "Remove " + reader.name + "? Click again";
+        removeTimer = setTimeout(function(){ removeTimer = 0; btnRemove.textContent = "Remove reader"; }, 4000);
+      }
+    }
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.metaKey || e.ctrlKey || e.altKey || e.isComposing) return;
+    if(e.key === "Enter" && e.target === whoName){ e.preventDefault(); startNew(); return; }
+    if(e.key === "Enter" && e.target === whoLegacyName){ e.preventDefault(); claimLegacy(); return; }
+    if(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if(!reader) return;
+    if(/^[1-9]$/.test(e.key)){
+      var b = visibleChoices()[+e.key - 1];
+      if(b){ e.preventDefault(); b.click(); }
+    } else if(e.key === "ArrowLeft"){ if(hist.length > 1){ e.preventDefault(); back(); } }
+  });
+
+  /* ---------- sky: faint chat bubbles drift up behind the text (lines, typing dots or a heart).
+     intensity: more bubbles
+     flood: the screen fills with bubbles that rise faster and carry red notification badges
+     empty: every bubble fades at once
+     win:   the bubbles fade slowly and gold confetti falls ---------- */
+  var bg = (function(){
+    var cv = document.getElementById("sky");
+    var ctx = cv.getContext && cv.getContext("2d");
+    if(!ctx) return { scene:function(){} };
+    var W = 0, H = 0, dpr = 1, col = document.getElementById("col"), R = Math.random;
+    var bubs = [], conf = [];
+    var mood = "", intensity = .4, colAlpha = .3, running = false, last = 0, confClock = 0;
+    var C = { bub:"#e07b98", bk:.12, badge:"#ff5a5f", win:"#e9bf6c", accent:"#ec6a8a" };
+
+    function rgba(hex, a){
+      var h = (hex || "").replace("#", "");
+      if(h.length === 3) h = h.split("").map(function(c){ return c + c; }).join("");
+      var n = parseInt(h, 16);
+      if(isNaN(n) || h.length !== 6) return "rgba(128,128,128," + a + ")";
+      return "rgba(" + (n >> 16 & 255) + "," + (n >> 8 & 255) + "," + (n & 255) + "," + a + ")";
+    }
+    function readColors(){
+      var cs = getComputedStyle(document.body);
+      var v = function(name, d){ return cs.getPropertyValue(name).trim() || d; };
+      C.bub = v("--bub", C.bub); C.badge = v("--badge", C.badge); C.win = v("--win", C.win);
+      C.bk = parseFloat(v("--bub-k", C.bk)) || C.bk;
+      C.accent = v("--accent", C.accent);
+    }
+    function quiet(){ return mood === "empty" || mood === "win"; }
+    function target(){
+      if(quiet()) return 0;
+      var n = intensity * W * H / 65000 * (mood === "flood" ? 1.5 : 1);
+      return Math.min(70, Math.round(n) + (intensity > 0 ? 1 : 0));
+    }
+    function makeBub(fromEdge){
+      var sc = W < 640 ? .72 : 1, r = R();
+      return { x:R()*W, y:fromEdge ? H + 30 + R()*H*.25 : R()*H,
+               w:(46 + R()*86) * sc, h:(25 + R()*9) * sc, side:R() < .5 ? -1 : 1,
+               k:r < .45 ? "lines" : (r < .75 ? "dots" : "heart"),
+               vy:-(7 + R()*14), sway:R()*6.283, ph:R()*6.283,
+               a:0, ta:.55 + R()*.45, leaving:false, quick:false, badge:false };
+    }
+    function sync(fromEdge){
+      var act = bubs.filter(function(b){ return !b.leaving; }), want = target();
+      for(var i = act.length; i < want; i++){ var b = makeBub(fromEdge && !reduced); if(reduced) b.a = b.ta; bubs.push(b); }
+      for(var j = act.length - 1, ex = act.length - want; j >= 0 && ex > 0; j--, ex--){
+        act[j].leaving = true; act[j].quick = mood === "empty";
+      }
+      bubs.forEach(function(b){ b.badge = mood === "flood" && !b.leaving && R() < .55; });
+    }
+    function confetti(n, anywhere){
+      for(var i = 0; i < n && conf.length < 160; i++){
+        conf.push({ x:R()*W, y:anywhere ? R()*H : -12 - R()*40, vx:(R() - .5)*18, vy:26 + R()*30,
+                    rot:R()*6.283, vr:(R() - .5)*4, s:3 + R()*4.5, c:R() < .72 ? 0 : 1,
+                    petal:R() < .4, sw:R()*6.283 });
+      }
+    }
+    function resize(){
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth; H = window.innerHeight;
+      cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      sync(false);
+      if(reduced){ settle(); draw(); }
+    }
+    function settle(){
+      bubs = bubs.filter(function(b){ return !b.leaving; });
+      bubs.forEach(function(b){ b.a = b.ta; });
+      conf = [];
+      if(mood === "win") confetti(60, true);
+    }
+    function roundRect(x, y, w, h, r){
+      ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+    }
+    function heart(cx, cy, s){
+      ctx.moveTo(cx, cy + s*.35);
+      ctx.bezierCurveTo(cx - s*.95, cy - s*.25, cx - s*.45, cy - s*.95, cx, cy - s*.4);
+      ctx.bezierCurveTo(cx + s*.45, cy - s*.95, cx + s*.95, cy - s*.25, cx, cy + s*.35);
+    }
+    function drawBub(b, alpha){
+      var x = b.x - b.w/2, y = b.y - b.h/2, r = b.h/2;
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = C.bub;
+      ctx.beginPath();
+      roundRect(x, y, b.w, b.h, r);
+      var tx = b.side < 0 ? x + r*.55 : x + b.w - r*.55;              /* tail */
+      ctx.moveTo(tx - 5*b.side, y + b.h - 3); ctx.lineTo(tx - 7*b.side, y + b.h + 6); ctx.lineTo(tx + 5*b.side, y + b.h - 1);
+      ctx.fill();
+      ctx.globalCompositeOperation = "destination-out";                  /* marks cut through to the page */
+      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      var cy = b.y;
+      if(b.k === "lines"){
+        var lh = Math.max(2, b.h*.12);
+        roundRect(x + r*.8, cy - lh*1.6, b.w*.62, lh, lh/2);
+        roundRect(x + r*.8, cy + lh*.6, b.w*.38, lh, lh/2);
+      } else if(b.k === "dots"){
+        for(var i = 0; i < 3; i++){
+          var dr = b.h*.09 * (1 + .35*Math.max(0, Math.sin(b.ph - i*.9)));
+          var dx = b.x + (i - 1) * b.h*.32;
+          ctx.moveTo(dx + dr, cy); ctx.arc(dx, cy, dr, 0, 6.283);
+        }
+      } else {
+        heart(b.x, cy + b.h*.06, b.h*.42);
+      }
+      ctx.fill();
+      ctx.globalCompositeOperation = "source-over";
+      if(b.badge){
+        ctx.globalAlpha = Math.min(1, alpha * 4.5);
+        ctx.fillStyle = C.badge;
+        ctx.beginPath(); ctx.arc(x + b.w - 2, y + 2, Math.max(4, b.h*.2), 0, 6.283); ctx.fill();
+      }
+    }
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      var rc = col.getBoundingClientRect(), L = rc.left - 12, Rt = rc.right + 12;
+      for(var i = 0; i < bubs.length; i++){
+        var b = bubs[i], inCol = b.x > L && b.x < Rt;
+        var al = b.a * C.bk * (inCol ? colAlpha : 1) * (mood === "flood" ? 1.35 : 1);
+        if(al > .003) drawBub(b, Math.min(1, al));
+      }
+      for(var p = 0; p < conf.length; p++){
+        var c = conf[p], inC = c.x > L && c.x < Rt;
+        ctx.globalAlpha = inC ? .35 : .8;
+        ctx.fillStyle = c.c ? C.accent : C.win;
+        ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(c.rot);
+        ctx.beginPath();
+        if(c.petal){ ctx.ellipse(0, 0, c.s*.9, c.s*.5, 0, 0, 6.283); }
+        else { ctx.rect(-c.s*.5, -c.s*.25, c.s, c.s*.5); }
+        ctx.fill(); ctx.restore();
+      }
+      ctx.globalAlpha = 1;
+    }
+    function step(dt){
+      var rise = mood === "flood" ? 2.1 : 1;
+      for(var i = bubs.length - 1; i >= 0; i--){
+        var b = bubs[i];
+        b.sway += dt*.7; b.ph += dt*5;
+        b.y += b.vy * rise * dt; b.x += Math.cos(b.sway) * 5 * dt;
+        if(b.leaving){
+          b.a += (0 - b.a) * Math.min(1, dt * (b.quick ? 7 : 1.1));
+          if(b.a < .01){ bubs.splice(i, 1); continue; }
+        } else {
+          b.a += (b.ta - b.a) * Math.min(1, dt * 1.5);
+          if(b.y + b.h < -30){ b.y = H + 30 + R()*40; b.x = R()*W; }
+        }
+      }
+      if(mood === "win"){
+        confClock -= dt;
+        if(confClock <= 0){ confetti(3, false); confClock = .22 + R()*.25; }
+      }
+      for(var p = conf.length - 1; p >= 0; p--){
+        var c = conf[p];
+        c.sw += dt*2;
+        c.x += (c.vx + Math.sin(c.sw)*14) * dt; c.y += c.vy * dt * (mood === "win" ? 1 : 3);
+        c.rot += c.vr * dt;
+        if(c.y > H + 20) conf.splice(p, 1);
+      }
+    }
+    function loop(ts){
+      if(!running) return;
+      var dt = last ? Math.min(.05, (ts - last) / 1000) : .016; last = ts;
+      step(dt); draw();
+      requestAnimationFrame(loop);
+    }
+    function start(){ if(reduced || running) return; running = true; last = 0; requestAnimationFrame(loop); }
+    function stop(){ running = false; }
+
+    function scene(n){
+      var m = MOOD[n] || "", prev = mood;
+      mood = m;
+      intensity = INTENSITY[n] != null ? INTENSITY[n] : .4;
+      colAlpha = m === "flood" ? .5 : .3;
+      readColors();
+      sync(true);
+      if(m === "win" && prev !== "win"){ confClock = .3; confetti(24, false); }
+      if(reduced){ settle(); draw(); }
+    }
+
+    window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", function(){ document.hidden ? stop() : start(); });
+    if(window.matchMedia){
+      var mq = matchMedia("(prefers-color-scheme: dark)");
+      var onScheme = function(){ readColors(); if(reduced) draw(); };
+      mq.addEventListener ? mq.addEventListener("change", onScheme) : mq.addListener(onScheme);
+    }
+    new MutationObserver(function(){ readColors(); if(reduced) draw(); })
+      .observe(document.documentElement, { attributes:true, attributeFilter:["data-theme"] });
+
+    readColors(); resize(); start();
+    return { scene:scene };
+  })();
+
+  render(false);
+})();
+</script>
+
+</body>
+</html>

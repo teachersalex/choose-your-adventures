@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Don't Lose Anyone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column on glazed tile, under a sky with gulls and a slow Atlantic swell at
+   the foot of the screen. The title sits on a Lisbon street plaque: blue letters on white tiles.
+   Fog rolls in for Sintra and for the lost-tourist ending, the gulls leave for the office ending,
+   and the good endings get a low sunset over the water.
+   Light theme: tin-glazed white with cobalt. Dark theme: the Atlantic at night. */
+:root{
+  color-scheme: light;
+  --ground:#eef2f6;
+  --ink:#14233f;
+  --ink-soft:#4f5f7b;
+  --line:#c9d3e0;
+  --panel:#f9fbfd;
+  --panel-hover:#ffffff;
+  --accent:#1f4fb5;
+  --accent-ink:#1b46a3;
+  --on-accent:#ffffff;
+  --win:#9a5a00;
+  --mute:#5d6b80;
+  --focus:#1b46a3;
+  --tile:#fbfcfe;
+  --tile-ink:#1f4fb5;
+  --tile-mid:#9db4e6;
+  --joint:rgba(31,79,181,.14);
+  --gull:#24375e;
+  --sea:#1f4fb5;
+  --fogc:#c3cddb;
+  --sun:#e59a2c;
+  --sky-k:.55;
+  --fog-max:.55;
+  --display:"Young Serif","Georgia","Times New Roman",serif;
+  --body:"Literata",Georgia,"Times New Roman",serif;
+  --mono:"DM Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --fs-body:clamp(1.12rem, .95rem + .9vw, 1.6rem);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --ground:#0b1424;
+    --ink:#e8eef7;
+    --ink-soft:#97a6bf;
+    --line:#24334c;
+    --panel:#111d32;
+    --panel-hover:#172742;
+    --accent:#7aa3ff;
+    --accent-ink:#8fb2ff;
+    --on-accent:#0b1424;
+    --win:#f2b54b;
+    --mute:#a3afc2;
+    --focus:#8fb2ff;
+    --tile:#eaf0f8;
+    --tile-ink:#1d4aa8;
+    --tile-mid:#9db4e6;
+    --joint:rgba(29,74,168,.16);
+    --gull:#c9d6ee;
+    --sea:#7aa3ff;
+    --fogc:#93a3bb;
+    --sun:#f2a93b;
+    --sky-k:.7;
+    --fog-max:.2;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --ground:#0b1424;
+  --ink:#e8eef7;
+  --ink-soft:#97a6bf;
+  --line:#24334c;
+  --panel:#111d32;
+  --panel-hover:#172742;
+  --accent:#7aa3ff;
+  --accent-ink:#8fb2ff;
+  --on-accent:#0b1424;
+  --win:#f2b54b;
+  --mute:#a3afc2;
+  --focus:#8fb2ff;
+  --tile:#eaf0f8;
+  --tile-ink:#1d4aa8;
+  --tile-mid:#9db4e6;
+  --joint:rgba(29,74,168,.16);
+  --gull:#c9d6ee;
+  --sea:#7aa3ff;
+  --fogc:#93a3bb;
+  --sun:#f2a93b;
+  --sky-k:.7;
+  --fog-max:.2;
+}
+
+body[data-mood="win"]{ --accent:var(--win); --accent-ink:var(--win); --focus:var(--win); }
+body[data-mood="flood"]{ --accent:var(--mute); --accent-ink:var(--mute); --focus:var(--mute); }
+body[data-mood="empty"]{ --accent:var(--ink-soft); --accent-ink:var(--ink-soft); }
+
+[hidden]{ display:none !important; }
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--body);
+  -webkit-font-smoothing:antialiased;
+}
+#sky{ position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+
+.bar{
+  position:sticky; top:env(safe-area-inset-top,0px); z-index:3;
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px;
+  padding:10px 16px;
+  background:color-mix(in srgb, var(--ground) 86%, transparent);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line);
+}
+.brand{ display:flex; flex-wrap:wrap; align-items:baseline; gap:.2em .8em; font-family:var(--mono); font-size:.76rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
+.brand b{ font-weight:500; color:var(--accent-ink); }
+.controls{ display:flex; gap:8px; }
+.ctl{
+  font-family:var(--mono); font-size:.8rem; color:var(--ink);
+  background:transparent; border:1px solid var(--line); border-radius:3px;
+  padding:.45em .9em; cursor:pointer;
+}
+.ctl:hover:not(:disabled){ border-color:var(--accent); }
+.ctl:disabled{ opacity:.4; cursor:default; }
+
+main{ position:relative; z-index:1; padding-inline:16px; padding-block:clamp(1.5rem, 1rem + 3vw, 3.5rem) 6rem; }
+.col{ max-width:34em; margin-inline:auto; font-size:var(--fs-body); }
+
+.hero{ margin-bottom:2.2em; display:flex; flex-direction:column; gap:1em; }
+.hero-kicker{ margin:0; font-family:var(--mono); font-size:clamp(.76rem,.7rem + .3vw,.95rem); letter-spacing:.18em; text-transform:uppercase; color:var(--accent-ink); }
+
+/* the title on a Lisbon street plaque: white tiles, cobalt letters, a double frame */
+.plaque{
+  align-self:flex-start; max-width:100%;
+  background-color:var(--tile);
+  background-image:
+    linear-gradient(to right, var(--joint) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--joint) 1px, transparent 1px);
+  background-size:1.6em 1.6em;
+  border:4px solid var(--tile-ink); border-radius:4px;
+  outline:1.5px solid var(--tile-ink); outline-offset:-10px;
+  padding:.55em .8em .5em;
+}
+.plaque h1{
+  font-family:var(--display); font-weight:400;
+  font-size:clamp(2.3rem, 1.4rem + 4.6vw, 4.8rem); line-height:1.02; letter-spacing:-.01em;
+  margin:0; color:var(--tile-ink); text-wrap:balance; overflow-wrap:anywhere;
+}
+.route{
+  list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:.35em .55em;
+  font-family:var(--mono); font-size:clamp(.74rem,.68rem + .3vw,.92rem); color:var(--ink-soft);
+}
+.route li{ display:flex; align-items:center; gap:.55em; }
+.route li + li::before{ content:""; width:.38em; height:.38em; border-radius:50%; background:var(--accent); opacity:.7; }
+.hero .lede{ margin:0; color:var(--ink-soft); line-height:1.55; max-width:30em; }
+.hero .lede strong{ color:var(--ink); font-weight:600; }
+
+/* a strip of azulejo, used as a divider */
+.tiles{
+  height:22px; border-radius:2px;
+  border-block:1px solid var(--tile-ink);
+  background-color:var(--tile);
+  background-image:
+    radial-gradient(circle at 50% 50%, var(--tile-ink) 0 2.4px, transparent 2.9px),
+    radial-gradient(circle at 0 0, var(--tile-ink) 0 5.5px, transparent 6px),
+    radial-gradient(circle at 100% 0, var(--tile-ink) 0 5.5px, transparent 6px),
+    radial-gradient(circle at 0 100%, var(--tile-ink) 0 5.5px, transparent 6px),
+    radial-gradient(circle at 100% 100%, var(--tile-ink) 0 5.5px, transparent 6px),
+    linear-gradient(45deg, transparent 47%, var(--tile-mid) 47% 53%, transparent 53%),
+    linear-gradient(-45deg, transparent 47%, var(--tile-mid) 47% 53%, transparent 53%);
+  background-size:22px 22px;
+}
+
+.trail{
+  display:flex; flex-wrap:wrap; align-items:center; gap:.35em .5em;
+  margin:0 0 1.6em; font-family:var(--mono); font-size:clamp(.76rem,.7rem + .3vw,.95rem); color:var(--ink-soft);
+}
+.trail .lbl{ letter-spacing:.14em; text-transform:uppercase; margin-right:.3em; }
+.trail .step{ font-variant-numeric:tabular-nums; border:1px solid var(--line); border-radius:3px; padding:.05em .5em; background:var(--panel); }
+.trail .step.now{ border-color:var(--accent); color:var(--accent-ink); font-weight:500; }
+.trail .arr{ opacity:.6; }
+
+.eyebrow{ margin:0; font-family:var(--mono); font-size:clamp(.76rem,.7rem + .3vw,.95rem); letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.sec h2{
+  font-family:var(--display); font-weight:400;
+  font-size:clamp(2.2rem, 1.6rem + 2.6vw, 3.6rem); line-height:1.02; letter-spacing:-.01em;
+  margin:.15em 0 .6em; color:var(--accent-ink); text-wrap:balance;
+}
+.sec h2:focus, .sec h2:focus-visible{ outline:none; }
+
+.prose{ display:flex; flex-direction:column; gap:.85em; }
+.prose p{ margin:0; line-height:1.62; }
+
+/* a document inside the story: the rules, the reviews */
+.log{
+  font-family:var(--mono); font-size:.8em; color:var(--ink);
+  background:var(--panel); border:1px solid var(--line); border-top:3px solid var(--accent); border-radius:3px;
+  padding:.85em 1em; display:flex; flex-direction:column; gap:.45em;
+}
+.log-head{ margin:0 !important; font-size:.8em; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.log-line{ display:grid; grid-template-columns:auto 1fr; gap:.9em; line-height:1.45 !important; }
+.log-line .t{ color:var(--accent-ink); font-variant-numeric:tabular-nums; }
+.log-line > span{ min-width:0; }
+.log-line.log-plain{ display:block; }
+
+.choices{ margin-top:2em; display:flex; flex-direction:column; gap:.7em; }
+.ask{ margin:0 0 .15em; font-family:var(--mono); font-size:clamp(.76rem,.7rem + .3vw,.95rem); letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.choice{
+  display:flex; align-items:center; gap:.85em; width:100%;
+  font:inherit; text-align:left; color:var(--ink);
+  background:var(--panel); border:1px solid var(--line); border-radius:3px;
+  padding:.75em 1.1em .75em .75em; cursor:pointer;
+  transition:border-color .2s, background-color .2s, transform .2s;
+}
+.choice:hover{ border-color:var(--accent); background:var(--panel-hover); transform:translateX(3px); }
+.choice:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+.key{
+  flex:none; display:grid; place-items:center;
+  width:1.9em; height:1.9em; border-radius:2px;
+  font-family:var(--mono); font-weight:500; font-size:.82em;
+  color:var(--on-accent); background:var(--accent);
+}
+.ctext{ line-height:1.35; min-width:0; }
+.choice.unlocked{ border:1.5px dashed var(--accent); }
+.utag{ display:block; margin:0 0 .3em; font-family:var(--mono); font-size:.6em; letter-spacing:.2em; text-transform:uppercase; color:var(--accent-ink); }
+.keyhint{ display:none; margin:.4em 0 0; font-family:var(--mono); font-size:.7em; color:var(--ink-soft); }
+@media (hover:hover) and (pointer:fine){ .keyhint{ display:block; } }
+
+.stamp{
+  margin:1.4em 0 0 !important; padding:.45em 0 .4em;
+  font-family:var(--display); font-weight:400;
+  font-size:clamp(2.1rem, 1.5rem + 2.6vw, 3.3rem); line-height:1 !important; letter-spacing:.06em;
+  color:var(--accent-ink); text-align:center;
+  border-top:2px solid var(--accent); border-bottom:2px solid var(--accent);
+}
+.stamp-sub{ display:block; margin-top:.7em; font-family:var(--mono); font-size:.26em; letter-spacing:.3em; }
+
+.ending{ margin-top:2em; display:flex; flex-direction:column; gap:1.1em; }
+.kind{ margin:0; font-family:var(--mono); font-size:clamp(.76rem,.7rem + .3vw,.95rem); letter-spacing:.18em; text-transform:uppercase; }
+.kind-bad{ color:var(--ink-soft); }
+.kind-good, .kind-bonus{ color:var(--accent-ink); font-weight:500; }
+.found{ border-top:1px solid var(--line); padding-top:1em; }
+.found-label{ margin:0; font-family:var(--mono); font-size:clamp(.76rem,.7rem + .3vw,.95rem); color:var(--ink-soft); }
+.found-label b{ color:var(--ink); font-weight:500; font-variant-numeric:tabular-nums; }
+.slots{ list-style:none; margin:.7em 0 0; padding:0; display:grid; grid-template-columns:repeat(var(--n-end,3),minmax(0,1fr)); gap:.6em; font-size:.8em; }
+.slots[data-n="6"]{ grid-template-columns:repeat(3,minmax(0,1fr)); }
+.slot{ min-width:0; border:1px dashed var(--line); border-radius:3px; padding:.6em .7em; color:var(--ink-soft); display:flex; flex-direction:column; gap:.3em; }
+.slot .sk{ font-family:var(--mono); font-size:.66em; letter-spacing:.1em; text-transform:uppercase; }
+.slot .st{ font-family:var(--display); font-size:1.12em; line-height:1.1; overflow-wrap:anywhere; }
+.slot.got{ border-style:solid; color:var(--ink); background:var(--panel); }
+.slot.got.good{ border-color:var(--win); }
+.slot.got.bonus{ border-color:var(--win); }
+.slot.now{ box-shadow:inset 0 0 0 1px var(--accent); }
+@media (max-width:700px){
+  .slots, .slots[data-n="6"]{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .slots[data-n="3"]{ grid-template-columns:1fr; }
+}
+@media (max-width:360px){ .slots, .slots[data-n="6"]{ grid-template-columns:1fr; } }
+
+.end-actions{ display:flex; flex-wrap:wrap; gap:.6em; }
+.btn{ font:inherit; font-size:.9em; border-radius:3px; padding:.6em 1.2em; cursor:pointer; border:1.5px solid var(--accent); }
+.btn-main{ background:var(--accent); color:var(--on-accent); font-weight:600; }
+.btn-main:hover{ filter:brightness(1.08); }
+.btn-ghost{ background:transparent; color:var(--ink); border-color:var(--line); }
+.btn-ghost:hover{ border-color:var(--accent); }
+.btn:focus-visible, .ctl:focus-visible, .linkbtn:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+
+.foot{ margin-top:4em; display:flex; flex-direction:column; gap:1em; }
+.foot-row{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:.6em 1.2em; font-family:var(--mono); font-size:.76rem; color:var(--ink-soft); }
+.foot-row p{ margin:0; min-width:0; }
+.linkbtn{ font:inherit; color:var(--ink-soft); background:none; border:0; padding:0; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+.linkbtn:hover{ color:var(--ink); }
+
+.sec.enter{ animation:rise .45s ease-out both; }
+@keyframes rise{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){
+  .sec.enter{ animation:none; }
+  .choice, .choice:hover{ transition:none; transform:none; }
+}
+</style>
+</head>
+<body>
+
+
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<header class="bar">
+  <div class="brand"><b>Choose your story</b><span>Don’t Lose Anyone</span></div>
+  <nav class="controls" aria-label="Story controls">
+    <button class="ctl js-back" id="btn-back" type="button" disabled>&#8592; Back</button>
+    <button class="ctl js-restart" type="button">Start again</button>
+  </nav>
+</header>
+
+<main>
+  <div class="col" id="col">
+    <section class="hero" id="hero">
+      <p class="hero-kicker">A day in Portugal</p>
+      <div class="plaque"><h1>Don’t Lose Anyone</h1></div>
+      <ol class="route" aria-label="Places in this story">
+        <li>Lisbon</li><li>Sintra</li><li>Cabo da Roca</li><li>Óbidos</li><li>Nazaré</li><li>Peniche</li>
+      </ol>
+      <p class="lede">You are a tour guide. Read each part. At the end, choose <strong>1</strong> or <strong>2</strong>. Your choice changes <strong>everything</strong>. There are six endings. Can you find them all?</p>
+      <div class="tiles" aria-hidden="true"></div>
+    </section>
+
+    <p class="trail" id="trail" aria-live="polite"><span class="lbl">Your path</span><span class="step now">1</span></p>
+
+<article class="sec" id="s1" data-n="1">
+<p class="eyebrow">Part 1</p>
+<h2 tabindex="-1">The Rules</h2>
+<div class="prose">
+<p>Lisbon, 8:30 a.m. You are a tour guide from Brazil. Today is your first tour alone.</p>
+<p>Your boss, Mrs. Costa, gives you a paper.</p>
+<div class="log" aria-label="Document"><p class="log-line log-plain">COSTA TOURS</p><p class="log-line"><span class="t">Rule 1:</span> <span>Don’t lose anyone.</span></p><p class="log-line"><span class="t">Rule 2:</span> <span>Be at the hotel at 7 p.m. The fado show is at 7:30.</span></p><p class="log-line"><span class="t">Rule 3:</span> <span>Talk to the people who live there. They know everything.</span></p></div>
+<p>“Today is your test,” she says. “If the day is good, the job is yours.”</p>
+<p>In the van, Rui, the driver, says: “Bom dia!” Bob and Linda are from Texas. Today is their fortieth wedding anniversary. Yuki is from Japan. She has a big camera, and she wants one perfect photo. Helena is a quiet woman from London. She writes in a small notebook all the time.</p>
+<p>The plan is Sintra. But Rui looks at his phone. “There is a lot of fog in Sintra today.”</p>
+<p>“And the waves in Nazaré are big today!” Yuki says.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="2"><span class="key" aria-hidden="true">1</span><span class="ctext">Follow the plan. Go to Sintra.</span></button><button class="choice" type="button" data-to="3"><span class="key" aria-hidden="true">2</span><span class="ctext">Change the plan. Go north, to the sea.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s2" data-n="2" hidden>
+<p class="eyebrow">Part 2</p>
+<h2 tabindex="-1">Fog</h2>
+<div class="prose">
+<p>Sintra is green and beautiful. On the top of a hill, there is a famous palace: Pena Palace. King Ferdinand II built it in the 1800s. It is red and yellow, like a palace from a fairy tale.</p>
+<p>But today, you can’t see it. There is fog everywhere. White, white, white.</p>
+<p>“Forty years of marriage, and I can’t see the palace,” Linda says. She is sad. Yuki puts her camera in her bag. Helena writes in her notebook.</p>
+<p>Near a café, an old woman sells travesseiros, a famous sweet from Sintra. She hears Linda, and she laughs.</p>
+<p>“Fog? Go down to Quinta da Regaleira,” she says. “There is a deep well there, under the ground. Down there, you don’t need the sun.”</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="4"><span class="key" aria-hidden="true">1</span><span class="ctext">Wait here for the sun.</span></button><button class="choice" type="button" data-to="5"><span class="key" aria-hidden="true">2</span><span class="ctext">Go to the well, like the woman says.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s3" data-n="3" hidden>
+<p class="eyebrow">Part 3</p>
+<h2 tabindex="-1">Óbidos</h2>
+<div class="prose">
+<p>Rui drives north. One hour later, you are in Óbidos, a small white town inside old walls.</p>
+<p>You tell the group the story of the town: “In 1282, King Dinis gave this town to Queen Isabel. It was a wedding present!”</p>
+<p>Linda laughs. “Bob! Forty years, and I don’t have a town!”</p>
+<p>A woman sells ginjinha, a sweet cherry drink, in small chocolate cups. First you drink, then you eat the cup. Everybody loves it.</p>
+<p>“Now Nazaré!” Yuki says. “The big waves! My perfect photo!”</p>
+<p>But the ginjinha woman shakes her head. “Nazaré is full of tourists today. Go to Peniche. It’s only twenty-five minutes from here. It has an old fortress by the sea and the best fish in Portugal.”</p>
+<p>When Helena hears the word “Peniche,” she stops writing. She looks at you. But she says nothing.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="6"><span class="key" aria-hidden="true">1</span><span class="ctext">Go to Nazaré for Yuki’s photo.</span></button><button class="choice" type="button" data-to="7"><span class="key" aria-hidden="true">2</span><span class="ctext">Go to Peniche, like the woman says.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s4" data-n="4" hidden>
+<p class="eyebrow">Part 4</p>
+<h2 tabindex="-1">Waiting</h2>
+<div class="prose">
+<p>You wait. Ten minutes. Thirty minutes. One hour. The fog stays.</p>
+<p>It is cold. Bob looks at his watch. Linda is quiet. Helena writes, but she doesn’t smile.</p>
+<p>Then Yuki stands up. “I don’t want to wait. I want to walk in the park. Maybe I can find a good photo in the fog.”</p>
+<p>“Me too,” Bob says. “I want to walk.”</p>
+<p>The park around the palace is very big. There are a lot of paths in the trees, and today you can’t see them well.</p>
+<p>The paper with the rules is in your pocket. But everybody is bored, and everybody looks at you.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="8"><span class="key" aria-hidden="true">1</span><span class="ctext">Say no. Go back to the van and follow the plan.</span></button><button class="choice" type="button" data-to="9"><span class="key" aria-hidden="true">2</span><span class="ctext">Say yes. Everybody walks alone. Meet at the van at two.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s5" data-n="5" hidden>
+<p class="eyebrow">Part 5</p>
+<h2 tabindex="-1">The Well</h2>
+<div class="prose">
+<p>Quinta da Regaleira is a strange and beautiful place. A very rich man built it more than one hundred years ago: Carvalho Monteiro. “He was born in Rio de Janeiro,” you tell the group. “In Brazil, like me!”</p>
+<p>The famous well is not for water. It is like a tower, upside down, under the ground. You go down a stone staircase: nine levels, 27 meters.</p>
+<p>Yuki points her camera up at the circle of sky. Click. “My perfect photo!” Helena smiles for the first time today.</p>
+<p>At three o’clock, Bob holds Linda’s hand. “We got married on a beach, forty years ago. Can we see the sea today? At sunset?”</p>
+<p>“Cabo da Roca is twenty minutes from here,” Rui says. “But the sun goes down at seven.” And at seven, you need to be at the hotel.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="10"><span class="key" aria-hidden="true">1</span><span class="ctext">Go to Cabo da Roca for one hour. Then go to Lisbon.</span></button><button class="choice" type="button" data-to="11"><span class="key" aria-hidden="true">2</span><span class="ctext">Stay at Cabo da Roca for the sunset.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s6" data-n="6" hidden>
+<p class="eyebrow">Part 6</p>
+<h2 tabindex="-1">Nazaré</h2>
+<div class="prose">
+<p>Nazaré is a fishing town. On a cliff, there is an old fort with a small red lighthouse. From here, people watch the famous waves.</p>
+<p>You tell the group: “Under the sea here, there is a giant canyon. It makes the waves very big. In 2020, a Brazilian woman, Maya Gabeira, surfed a wave of 22.4 meters here. A world record for women!”</p>
+<p>The giant waves come in winter. Today, the waves are not giant, but they are big and loud.</p>
+<p>Yuki is very excited. She sees some rocks near the water. “From there, I can get my perfect photo! Five minutes!” She wants to go down alone.</p>
+<p>Next to the fort, a young man in a wetsuit looks at the sea. He is a surfer from Nazaré.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="9"><span class="key" aria-hidden="true">1</span><span class="ctext">Let Yuki go down alone. Meet at the van at four.</span></button><button class="choice" type="button" data-to="12"><span class="key" aria-hidden="true">2</span><span class="ctext">Talk to the surfer first.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s7" data-n="7" hidden>
+<p class="eyebrow">Part 7</p>
+<h2 tabindex="-1">Peniche</h2>
+<div class="prose">
+<p>Peniche is a fishing town by the sea. Next to the water, there is a big old fortress.</p>
+<p>You tell the group: “During the dictatorship, from 1934 to 1974, this fortress was a prison. The prisoners were people against the government. Today, it is a museum about freedom.”</p>
+<p>Helena stops in front of the big door. Her hands shake. “Can we go in?” she asks. Her voice is very low.</p>
+<p>But Bob and Linda want fish for lunch on the beach. And Yuki wants photos of the surfers. The plan is: beach, lunch, then Lisbon.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="10"><span class="key" aria-hidden="true">1</span><span class="ctext">Go to the beach. Follow the plan.</span></button><button class="choice" type="button" data-to="13"><span class="key" aria-hidden="true">2</span><span class="ctext">Take everybody into the fortress with Helena.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s8" data-n="8" data-end="bad" hidden>
+<p class="eyebrow">Part 8</p>
+<h2 tabindex="-1">The Office</h2>
+<div class="prose">
+<p>You say no. And all day, you say no. You follow the plan, minute by minute.</p>
+<p>Lunch at one. Cabo da Roca at three, for twenty minutes. Nobody smiles in the photos. At 6:30 p.m., you are at the hotel. Nobody is lost. You are early.</p>
+<p>At the fado show, Bob sleeps. Linda looks at her phone. Yuki’s camera stays in her bag. Helena closes her notebook. “There is one place in Portugal I want to see,” she says. “But not on this tour.”</p>
+<p>The next morning, Mrs. Costa reads the reviews.</p>
+<div class="log" aria-label="Document"><p class="log-line log-plain">★★☆☆☆ Correct.</p><p class="log-line log-plain">★★☆☆☆ On time.</p><p class="log-line log-plain">★☆☆☆☆ Boring.</p></div>
+<p>“You followed Rule 1 and Rule 2,” she says. “But you didn’t talk to people. Rule 3, remember?”</p>
+<p>Now you have a desk in the office. You answer emails all day. From your window, you see the van. Rui is in it, with a new guide.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 6</p><ol class="slots" data-n="6" style="--n-end:6"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s9" data-n="9" data-end="bad" hidden>
+<p class="eyebrow">Part 9</p>
+<h2 tabindex="-1">Where Is Yuki?</h2>
+<div class="prose">
+<p>At the meeting time, everybody is at the van. Everybody... but not Yuki.</p>
+<p>You call her. No answer. You look for her. One hour. Two hours. Many hours. Rui looks too. Bob and Linda wait in the van. They are cold and hungry.</p>
+<p>At 9 p.m., your phone rings. It’s the police. A man found Yuki, far from the van. She is OK, but she is cold and tired, and her phone has no battery.</p>
+<p>No hotel at seven. No fado show for Bob and Linda’s anniversary.</p>
+<p>In the van, Yuki doesn’t look at you. “You are the guide,” she says. “Why did you let me go alone?”</p>
+<p>Helena writes one line in her notebook. Then she closes it.</p>
+<p>The next morning, Mrs. Costa puts the paper with the rules on her table. Her finger is on Rule 1.</p>
+<p>“Don’t lose anyone,” she reads. “Goodbye.”</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 6</p><ol class="slots" data-n="6" style="--n-end:6"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s10" data-n="10" data-end="good" hidden>
+<p class="eyebrow">Part 10</p>
+<h2 tabindex="-1">The Job</h2>
+<div class="prose">
+<p>At 6:50 p.m., the van stops at the hotel. Ten minutes early. Mrs. Costa is at the door. She counts: one, two, three, four. Everybody is here.</p>
+<p>At the fado show, a woman in black sings about the sea, about love, about saudade. Linda cries. Bob holds her hand.</p>
+<p>After the show, Mrs. Costa reads the reviews on her phone.</p>
+<div class="log" aria-label="Document"><p class="log-line log-plain">★★★★★ Bob and Linda: Our best anniversary in forty years!</p><p class="log-line log-plain">★★★★★ Yuki: So many beautiful photos. And one is perfect.</p><p class="log-line log-plain">★★★★★ Helena: There is one place in Portugal I want to see. Maybe next time.</p></div>
+<p>Mrs. Costa smiles. “Rule 1, Rule 2, Rule 3. Perfect.” She gives you a red jacket. On the back, there are two words: COSTA TOURS.</p>
+<p>“Tomorrow, you have a new group,” she says. “Twelve people from Canada.”</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 6</p><ol class="slots" data-n="6" style="--n-end:6"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s11" data-n="11" data-end="good" hidden>
+<p class="eyebrow">Part 11</p>
+<h2 tabindex="-1">Our Own Van</h2>
+<div class="prose">
+<p>Cabo da Roca is the westernmost point of continental Europe. The cliffs are 140 meters high. The Atlantic is blue and wild.</p>
+<p>On a stone monument, there are words from Camões, the great poet of Portugal: “Aqui, onde a terra se acaba e o mar começa.” You translate: “Here, where the land ends and the sea begins.”</p>
+<p>At seven, the sun goes down into the sea. Rui plays a fado on his phone. Bob and Linda dance. Yuki takes a hundred photos. Helena closes her eyes.</p>
+<p>You are very late. At 9 p.m., Mrs. Costa calls. She is very angry. “Rule 2! You are fired!”</p>
+<p>Rui looks at you. “Then I quit too,” he says. “I want to work with you.”</p>
+<p>One month later, there is a small blue van in Lisbon. On the door, there are two names: Rui’s and yours. The first review comes from Texas:</p>
+<p>★★★★★ Bob and Linda: The best guide in Portugal!</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 6</p><ol class="slots" data-n="6" style="--n-end:6"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s12" data-n="12" data-end="good" hidden>
+<p class="eyebrow">Part 12</p>
+<h2 tabindex="-1">The Big Wave</h2>
+<div class="prose">
+<p>The surfer’s name is Tiago. “The rocks? No!” he says. “The sea takes people from there. Come with me.”</p>
+<p>Tiago takes the group to a safe place on the cliff. Below, two of his friends surf a big wave. Click! Yuki has her perfect photo.</p>
+<p>On the way back, you tell the group about the canyon, the fort and the surfers. Then a family from Brazil asks you a question, and you answer in Portuguese.</p>
+<p>Tiago listens. “English and Portuguese? Perfect,” he says. “In winter, people come from all over the world to see the giant waves. Our surf team needs a guide. Do you want the job?”</p>
+<p>At seven, everybody is at the hotel. Mrs. Costa is happy. But that night, you can’t sleep. You think about the waves.</p>
+<p>Winter comes. You stand at the red lighthouse with thirty tourists. A giant wave comes. Everybody screams. You smile. This is your job now.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 6</p><ol class="slots" data-n="6" style="--n-end:6"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s13" data-n="13" data-end="good" hidden>
+<p class="eyebrow">Part 13</p>
+<h2 tabindex="-1">The Fortress</h2>
+<div class="prose">
+<p>You all go in. Near the entrance, there is a big metal memorial with more than 2,500 names of prisoners.</p>
+<p>Helena reads slowly. Then she stops. She touches one name.</p>
+<p>“My father,” she says. “He was here for eight years. I was a little girl. Every month, my mother and I came here to see him. We sat on one side of a room, and he sat on the other side.”</p>
+<p>Bob takes off his hat. Linda holds Helena’s hand. Yuki puts her camera down.</p>
+<p>“On April 27, 1974, the prisoners of Peniche were free. My father too. Later, I went to London, and I never came back. Until today. My father died last winter.” She opens her notebook. “Today, all day, I wrote to him about Portugal.”</p>
+<p>At 6:58 p.m., you are at the hotel. Two minutes early.</p>
+<p>Every year now, on April 27, Helena comes back to Peniche. And every year, she asks Costa Tours for one guide: you.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 6</p><ol class="slots" data-n="6" style="--n-end:6"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+    <footer class="foot">
+      <div class="tiles" aria-hidden="true"></div>
+      <div class="foot-row">
+        <p>Teacher Alex · Readers · A2</p>
+        <p>An original story. The people are invented. The places and the history are real.</p>
+        <button class="linkbtn" id="reset-endings" type="button">Reset endings</button>
+      </div>
+    </footer>
+  </div>
+</main>
+
+<script>
+/* engine:v2 — choices with conditions ([if 6, not 7] in the .story.md), bonus endings, number keys 1-9 */
+(function(){
+  var ENDINGS = {"8": {"title": "The Office", "kind": "bad"}, "9": {"title": "Where Is Yuki?", "kind": "bad"}, "10": {"title": "The Job", "kind": "good"}, "11": {"title": "Our Own Van", "kind": "good"}, "12": {"title": "The Big Wave", "kind": "good"}, "13": {"title": "The Fortress", "kind": "good"}};
+  var TITLES = {"1": "The Rules", "2": "Fog", "3": "Óbidos", "4": "Waiting", "5": "The Well", "6": "Nazaré", "7": "Peniche", "8": "The Office", "9": "Where Is Yuki?", "10": "The Job", "11": "Our Own Van", "12": "The Big Wave", "13": "The Fortress"};
+  var END_ORDER = Object.keys(ENDINGS).map(Number).sort(function(a,b){ return a-b; });
+  var INTENSITY = {"1": 0.5, "2": 0.35, "3": 0.6, "4": 0.3, "5": 0.4, "6": 1.2, "7": 0.7, "8": 0, "9": 0.8, "10": 0.6, "11": 0.9, "12": 1.3, "13": 0.4};
+  var MOOD = {"2": "fog", "4": "fog", "8": "empty", "9": "flood", "10": "win", "11": "win", "12": "win", "13": "win"};
+  var STORE = "portugal-dont-lose-endings-v1";
+  var KIND = { good:"Good ending", bad:"Bad ending", bonus:"Bonus ending" };
+  var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var secs = {};
+  document.querySelectorAll(".sec").forEach(function(a){ secs[+a.dataset.n] = a; });
+  var hero = document.getElementById("hero");
+  var trail = document.getElementById("trail");
+  var btnBack = document.getElementById("btn-back");
+  var hist = [1];
+
+  function loadFound(){
+    try{
+      var v = JSON.parse(localStorage.getItem(STORE) || "[]");
+      return Array.isArray(v) ? v.filter(function(n){ return ENDINGS[n]; }) : [];
+    }catch(e){ return []; }
+  }
+  function saveFound(){ try{ localStorage.setItem(STORE, JSON.stringify(found)); }catch(e){} }
+  var found = loadFound();
+
+  function cur(){ return hist[hist.length-1]; }
+  function nums(s){ return (s || "").split(" ").filter(Boolean); }
+
+  /* a choice shows only when the path so far went through every part in data-if and none in data-ifnot */
+  function showChoices(sec){
+    var seen = {}, k = 0;
+    hist.forEach(function(n){ seen[n] = true; });
+    sec.querySelectorAll(".choice").forEach(function(b){
+      var ok = nums(b.getAttribute("data-if")).every(function(x){ return seen[x]; }) &&
+               !nums(b.getAttribute("data-ifnot")).some(function(x){ return seen[x]; });
+      b.hidden = !ok;
+      if(ok){ k++; var key = b.querySelector(".key"); if(key) key.textContent = k; }
+    });
+  }
+  function visibleChoices(){
+    return [].filter.call(secs[cur()].querySelectorAll(".choice"), function(b){ return !b.hidden; });
+  }
+
+  function renderTrail(){
+    trail.textContent = "";
+    var l = document.createElement("span"); l.className = "lbl"; l.textContent = "Your path"; trail.appendChild(l);
+    hist.forEach(function(n, i){
+      if(i){ var a = document.createElement("span"); a.className = "arr"; a.textContent = "→"; a.setAttribute("aria-hidden","true"); trail.appendChild(a); }
+      var s = document.createElement("span");
+      s.className = "step" + (i === hist.length-1 ? " now" : "");
+      s.textContent = n; s.title = TITLES[n] || "";
+      trail.appendChild(s);
+    });
+  }
+
+  function renderFound(now){
+    document.querySelectorAll(".found").forEach(function(box){
+      box.querySelector(".found-count").textContent = found.length;
+      var ol = box.querySelector(".slots"); ol.textContent = "";
+      END_ORDER.forEach(function(n){
+        var e = ENDINGS[n], got = found.indexOf(n) !== -1;
+        var li = document.createElement("li");
+        li.className = "slot " + e.kind + (got ? " got" : "") + (n === now ? " now" : "");
+        var k = document.createElement("span"); k.className = "sk";
+        k.textContent = got ? (KIND[e.kind] || "Ending") : (e.kind === "bonus" ? KIND.bonus : "Not found");
+        var t = document.createElement("span"); t.className = "st";
+        t.textContent = got ? e.title : "? ? ?";
+        li.appendChild(k); li.appendChild(t); ol.appendChild(li);
+      });
+    });
+  }
+
+  function render(animate){
+    var n = cur();
+    Object.keys(secs).forEach(function(k){ secs[k].hidden = (+k !== n); });
+    var a = secs[n];
+    showChoices(a);
+    if(animate && !reduced){ a.classList.remove("enter"); void a.offsetWidth; a.classList.add("enter"); }
+    hero.hidden = !(n === 1 && hist.length === 1);
+    btnBack.disabled = hist.length < 2;
+    document.body.setAttribute("data-mood", MOOD[n] || "");
+    renderTrail();
+    if(a.dataset.end){
+      if(found.indexOf(n) === -1){ found.push(n); saveFound(); }
+      renderFound(n);
+    }
+    bg.scene(n);
+  }
+
+  function focusTop(){
+    try{ window.scrollTo({ top:0, behavior: reduced ? "auto" : "smooth" }); }catch(e){ window.scrollTo(0,0); }
+    var h = secs[cur()].querySelector("h2");
+    if(h){ try{ h.focus({ preventScroll:true }); }catch(e){ h.focus(); } }
+  }
+  function go(to){ if(!secs[to]) return; hist.push(to); render(true); focusTop(); }
+  function back(){ if(hist.length > 1){ hist.pop(); render(true); focusTop(); } }
+  function restart(){ hist = [1]; render(true); focusTop(); }
+
+  document.addEventListener("click", function(e){
+    var c = e.target.closest(".choice");
+    if(c){ go(+c.dataset.to); return; }
+    if(e.target.closest(".js-restart")){ restart(); return; }
+    if(e.target.closest(".js-back")){ back(); return; }
+    if(e.target.closest("#reset-endings")){ found = []; saveFound(); renderFound(secs[cur()].dataset.end ? cur() : 0); }
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.metaKey || e.ctrlKey || e.altKey) return;
+    if(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if(/^[1-9]$/.test(e.key)){
+      var b = visibleChoices()[+e.key - 1];
+      if(b){ e.preventDefault(); b.click(); }
+    } else if(e.key === "ArrowLeft"){ if(hist.length > 1){ e.preventDefault(); back(); } }
+  });
+
+  /* ---------- sky: gulls cross the screen and a slow swell moves along the bottom.
+     intensity: more gulls and a bigger swell
+     fog:   fog drifts in (Sintra)
+     flood: thick fog, the gulls are gone (the lost-tourist ending)
+     empty: the gulls leave and the sea goes flat (the office ending)
+     win:   a low sunset glows over the water and the swell turns gold ---------- */
+  var bg = (function(){
+    var cv = document.getElementById("sky");
+    var ctx = cv.getContext && cv.getContext("2d");
+    if(!ctx) return { scene:function(){} };
+    var W = 0, H = 0, dpr = 1, col = document.getElementById("col"), R = Math.random;
+    var gulls = [], puffs = [];
+    var mood = "", intensity = .5, running = false, last = 0, T = 0;
+    var fog = 0, fogT = 0, sun = 0, sunT = 0, sea = 1, seaT = 1;
+    var C = { gull:[36,55,94], sea:[31,79,181], fog:[195,205,219], sun:[229,154,44], k:.55, fogMax:.55 };
+
+    function rgb(hex, d){
+      var h = (hex || "").trim().replace("#", "");
+      if(h.length === 3) h = h.split("").map(function(c){ return c + c; }).join("");
+      var n = parseInt(h, 16);
+      if(isNaN(n) || h.length !== 6) return d;
+      return [n >> 16 & 255, n >> 8 & 255, n & 255];
+    }
+    function css(c, a){ return "rgba(" + (c[0]|0) + "," + (c[1]|0) + "," + (c[2]|0) + "," + a + ")"; }
+    function mix(a, b, t){ return [a[0] + (b[0]-a[0])*t, a[1] + (b[1]-a[1])*t, a[2] + (b[2]-a[2])*t]; }
+    function readColors(){
+      var cs = getComputedStyle(document.body);
+      var v = function(name){ return cs.getPropertyValue(name); };
+      C.gull = rgb(v("--gull"), C.gull); C.sea = rgb(v("--sea"), C.sea);
+      C.fog = rgb(v("--fogc"), C.fog); C.sun = rgb(v("--sun"), C.sun);
+      C.k = parseFloat(v("--sky-k")) || C.k;
+      C.fogMax = parseFloat(v("--fog-max")) || C.fogMax;
+    }
+    function targetGulls(){
+      if(mood === "empty" || mood === "flood") return 0;
+      var n = intensity * W / 140 * (mood === "fog" ? .4 : 1);
+      return Math.min(24, Math.round(n) + (intensity > 0 ? 1 : 0));
+    }
+    function makeGull(fromEdge){
+      var dir = R() < .7 ? 1 : -1;
+      return { x: fromEdge ? (dir > 0 ? -40 - R()*W*.4 : W + 40 + R()*W*.4) : R()*W,
+               y: H*(.06 + R()*.55), s: 7 + R()*9, v: (24 + R()*34)*dir,
+               ph: R()*6.283, fr: 5 + R()*3, bob: R()*6.283, glide: R()*4,
+               a: 0, ta: .55 + R()*.45, leaving: false, quick: false };
+    }
+    function sync(fromEdge){
+      var act = gulls.filter(function(g){ return !g.leaving; }), want = targetGulls();
+      for(var i = act.length; i < want; i++){ var g = makeGull(fromEdge && !reduced); if(reduced) g.a = g.ta; gulls.push(g); }
+      for(var j = act.length - 1, ex = act.length - want; j >= 0 && ex > 0; j--, ex--){
+        act[j].leaving = true; act[j].quick = mood === "empty";
+      }
+    }
+    function makePuffs(){
+      puffs = [];
+      for(var i = 0; i < 9; i++){
+        puffs.push({ x: R()*W, y: H*(.1 + R()*.85), r: Math.max(W, H)*(.25 + R()*.25), v: 6 + R()*10 });
+      }
+    }
+    function resize(){
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth; H = window.innerHeight;
+      cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      makePuffs();
+      sync(false);
+      if(reduced){ settle(); draw(); }
+    }
+    function settle(){
+      gulls = gulls.filter(function(g){ return !g.leaving; });
+      gulls.forEach(function(g){ g.a = g.ta; });
+      fog = fogT; sun = sunT; sea = seaT;
+    }
+    function drawGull(g, al){
+      var s = g.s, x = g.x, y = g.y + Math.sin(g.bob)*3;
+      var flap = g.glide > 0 ? .25 : Math.sin(g.ph);
+      var wy = s*.32*flap;
+      ctx.strokeStyle = css(C.gull, al);
+      ctx.lineWidth = Math.max(1.2, s*.15);
+      ctx.beginPath();
+      ctx.moveTo(x - s, y + wy);
+      ctx.quadraticCurveTo(x - s*.5, y - s*.42 + wy*.3, x, y);
+      ctx.quadraticCurveTo(x + s*.5, y - s*.42 + wy*.3, x + s, y + wy);
+      ctx.stroke();
+    }
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      ctx.lineCap = "round"; ctx.lineJoin = "round";
+      if(sun > .01){
+        var gx = W*.82, gy = H*1.02, gr = Math.max(W, H)*.75;
+        var gd = ctx.createRadialGradient(gx, gy, 0, gx, gy, gr);
+        gd.addColorStop(0, css(C.sun, .34*sun));
+        gd.addColorStop(.45, css(C.sun, .1*sun));
+        gd.addColorStop(1, css(C.sun, 0));
+        ctx.fillStyle = gd; ctx.fillRect(0, 0, W, H);
+      }
+      var waveC = mix(C.sea, C.sun, sun*.85);
+      for(var i = 0; i < 3; i++){
+        var base = H - 26 - i*20;
+        var A = (3 + intensity*7) * sea * (1 - i*.22);
+        var L = 150 + i*60, ph = T*(.55 + i*.18);
+        ctx.strokeStyle = css(waveC, (.3 - i*.07) * C.k * (.35 + .65*sea));
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        for(var x = -10; x <= W + 10; x += 8){
+          var y = base + A*Math.sin(x/L*6.283 + ph) + A*.35*Math.sin(x/(L*.47)*6.283 - ph*1.4);
+          if(x === -10) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+      var rc = col.getBoundingClientRect(), Lc = rc.left - 12, Rc = rc.right + 12;
+      for(var g = 0; g < gulls.length; g++){
+        var gu = gulls[g], inCol = gu.x > Lc && gu.x < Rc;
+        var al = gu.a * C.k * (inCol ? .15 : 1) * (1 - fog*.6);
+        if(al > .01) drawGull(gu, al);
+      }
+      if(fog > .01){
+        for(var p = 0; p < puffs.length; p++){
+          var f = puffs[p];
+          var fg = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r);
+          fg.addColorStop(0, css(C.fog, C.fogMax*fog*.8));
+          fg.addColorStop(1, css(C.fog, 0));
+          ctx.fillStyle = fg;
+          ctx.fillRect(f.x - f.r, f.y - f.r, f.r*2, f.r*2);
+        }
+      }
+    }
+    function step(dt){
+      T += dt;
+      fog += (fogT - fog) * Math.min(1, dt*.8);
+      sun += (sunT - sun) * Math.min(1, dt*.6);
+      sea += (seaT - sea) * Math.min(1, dt*(mood === "empty" ? 2.5 : .8));
+      var spd = mood === "win" ? .6 : 1;
+      for(var i = gulls.length - 1; i >= 0; i--){
+        var g = gulls[i];
+        g.glide -= dt;
+        if(g.glide < -2.5 - R()*2) g.glide = 1 + R()*2.5;
+        g.ph += dt*g.fr; g.bob += dt*.9;
+        g.x += g.v * spd * (g.leaving && g.quick ? 4 : 1) * dt;
+        if(g.leaving){
+          g.a += (0 - g.a) * Math.min(1, dt * (g.quick ? 3 : 1.2));
+          if(g.a < .01){ gulls.splice(i, 1); continue; }
+        } else {
+          g.a += (g.ta - g.a) * Math.min(1, dt*1.2);
+          if(g.v > 0 && g.x > W + 60){ g.x = -60; g.y = H*(.06 + R()*.55); }
+          if(g.v < 0 && g.x < -60){ g.x = W + 60; g.y = H*(.06 + R()*.55); }
+        }
+      }
+      for(var p = 0; p < puffs.length; p++){
+        var f = puffs[p];
+        f.x += f.v*dt;
+        if(f.x - f.r > W) f.x = -f.r;
+      }
+    }
+    function loop(ts){
+      if(!running) return;
+      var dt = last ? Math.min(.05, (ts - last) / 1000) : .016; last = ts;
+      step(dt); draw();
+      requestAnimationFrame(loop);
+    }
+    function start(){ if(reduced || running) return; running = true; last = 0; requestAnimationFrame(loop); }
+    function stop(){ running = false; }
+
+    function scene(n){
+      mood = MOOD[n] || "";
+      intensity = INTENSITY[n] != null ? INTENSITY[n] : .5;
+      fogT = mood === "flood" ? 1 : (mood === "fog" ? .6 : 0);
+      sunT = mood === "win" ? 1 : 0;
+      seaT = mood === "empty" ? .08 : 1;
+      readColors();
+      sync(true);
+      if(reduced){ settle(); draw(); }
+    }
+
+    window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", function(){ document.hidden ? stop() : start(); });
+    if(window.matchMedia){
+      var mq = matchMedia("(prefers-color-scheme: dark)");
+      var onScheme = function(){ readColors(); if(reduced) draw(); };
+      mq.addEventListener ? mq.addEventListener("change", onScheme) : mq.addListener(onScheme);
+    }
+    new MutationObserver(function(){ readColors(); if(reduced) draw(); })
+      .observe(document.documentElement, { attributes:true, attributeFilter:["data-theme"] });
+
+    readColors(); resize(); start();
+    return { scene:scene };
+  })();
+
+  render(false);
+})();
+</script>
+
+</body>
+</html>

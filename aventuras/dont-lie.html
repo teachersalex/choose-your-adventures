@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Don't Lie</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column in front of the Manhattan skyline seen from a glass office.
+   Office windows light up and go dark with the story: a city at 7 p.m., one window at 6 a.m.,
+   every window cold and bright when you sell out, lights going out floor by floor in the
+   elevator ending, a warm dawn behind the towers in the good ending.
+   Light theme: glass and steel at noon. Dark theme: the firm at 3 a.m. (engine:v2 below). */
+:root{
+  color-scheme: light;
+  --bg:#e8ecf1;
+  --sheet:#f7f9fb;
+  --sheet-hover:#ffffff;
+  --ink:#131925;
+  --ink-soft:#4b566a;
+  --rule:#c2cbd7;
+  --accent:#1f3a68;
+  --accent-ink:#1f3a68;
+  --on-accent:#ffffff;
+  --shadow:rgba(20,32,56,.22);
+  --tower:#e0e6ed;
+  --tower-edge:#d3dbe5;
+  --window:#7b91b2;
+  --win-strength:.3;
+  --cold:#2364b0;
+  --cold-ink:#1d5699;
+  --win:#94530f;
+  --bonus:#1d6b4a;
+  --bonus-ink:#175c3f;
+  --focus:#1f3a68;
+  --display:"Instrument Serif","Bodoni 72","Didot",Georgia,serif;
+  --body:"Literata",Georgia,"Times New Roman",serif;
+  --mono:"Geist Mono","SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --fs-body:clamp(1.15rem, .95rem + 1vw, 1.7rem);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#0a0e15;
+    --sheet:#121823;
+    --sheet-hover:#18202e;
+    --ink:#ebe8e2;
+    --ink-soft:#9ba4b4;
+    --rule:#273042;
+    --accent:#b4c8e8;
+    --accent-ink:#c3d4ef;
+    --on-accent:#0c111a;
+    --shadow:rgba(0,0,0,.6);
+    --tower:#0d121b;
+    --tower-edge:#141b27;
+    --window:#e8b864;
+    --win-strength:.55;
+    --cold:#a8d4ff;
+    --cold-ink:#b7dcff;
+    --win:#f0b45a;
+    --bonus:#77cfa3;
+    --bonus-ink:#8adbb2;
+    --focus:#c3d4ef;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#0a0e15;
+  --sheet:#121823;
+  --sheet-hover:#18202e;
+  --ink:#ebe8e2;
+  --ink-soft:#9ba4b4;
+  --rule:#273042;
+  --accent:#b4c8e8;
+  --accent-ink:#c3d4ef;
+  --on-accent:#0c111a;
+  --shadow:rgba(0,0,0,.6);
+  --tower:#0d121b;
+  --tower-edge:#141b27;
+  --window:#e8b864;
+  --win-strength:.55;
+  --cold:#a8d4ff;
+  --cold-ink:#b7dcff;
+  --win:#f0b45a;
+  --bonus:#77cfa3;
+  --bonus-ink:#8adbb2;
+  --focus:#c3d4ef;
+}
+
+body[data-mood="flood"]{ --accent:var(--cold); --accent-ink:var(--cold-ink); --focus:var(--cold-ink); }
+body[data-mood="win"]{ --accent:var(--win); --accent-ink:var(--win); --focus:var(--win); }
+body[data-mood="bonus"]{ --accent:var(--bonus); --accent-ink:var(--bonus-ink); --focus:var(--bonus-ink); }
+body[data-mood="empty"], body[data-mood="down"]{ --accent:var(--ink-soft); --accent-ink:var(--ink-soft); }
+
+[hidden]{ display:none !important; }
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--body);
+  -webkit-font-smoothing:antialiased;
+}
+#city{ position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+
+.bar{
+  position:sticky; top:env(safe-area-inset-top,0px); z-index:3;
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px;
+  padding-block:10px;
+  padding-left:max(16px, env(safe-area-inset-left,0px));
+  padding-right:max(16px, env(safe-area-inset-right,0px));
+  background:color-mix(in srgb, var(--bg) 84%, transparent);
+  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--rule);
+}
+.brand{ display:flex; flex-wrap:wrap; align-items:baseline; gap:.2em .9em; font-family:var(--mono); font-size:.78rem; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-soft); }
+.brand b{ font-weight:600; color:var(--ink); }
+.controls{ display:flex; gap:8px; }
+.ctl{
+  font-family:var(--mono); font-size:.82rem; color:var(--ink);
+  background:transparent; border:1px solid var(--rule); border-radius:2px;
+  padding:.45em .8em; cursor:pointer;
+}
+.ctl:hover:not(:disabled){ border-color:var(--accent); }
+.ctl:disabled{ opacity:.45; cursor:default; }
+
+main{
+  position:relative; z-index:1;
+  padding-left:max(16px, env(safe-area-inset-left,0px));
+  padding-right:max(16px, env(safe-area-inset-right,0px));
+  padding-block:clamp(1.5rem, 1rem + 3vw, 3.5rem) 4rem;
+}
+.col{ max-width:35em; margin-inline:auto; font-size:var(--fs-body); }
+
+.hero{ margin-bottom:2.2em; }
+.hero-kicker{ margin:0; font-family:var(--mono); font-size:clamp(.78rem,.7rem + .3vw,.98rem); letter-spacing:.24em; text-transform:uppercase; color:var(--ink-soft); }
+.hero h1{
+  font-family:var(--display); font-weight:400;
+  font-size:clamp(3.8rem, 2rem + 8vw, 8.4rem); line-height:.88; letter-spacing:-.01em;
+  margin:.12em 0 .32em; color:var(--ink);
+  text-wrap:balance;
+}
+.hero h1 em{ font-style:italic; color:var(--accent-ink); }
+.hero .lede{ margin:0; color:var(--ink-soft); line-height:1.55; max-width:30em; }
+.hero .lede strong{ color:var(--ink); font-weight:600; }
+
+.trail{
+  display:flex; flex-wrap:wrap; align-items:center; gap:.35em .5em;
+  margin:0 0 1.6em; font-family:var(--mono); font-size:clamp(.78rem,.7rem + .3vw,.98rem); color:var(--ink-soft);
+}
+.trail .lbl{ letter-spacing:.16em; text-transform:uppercase; margin-right:.3em; }
+.trail .step{ font-variant-numeric:tabular-nums; border:1px solid var(--rule); border-radius:2px; padding:.05em .45em; background:color-mix(in srgb, var(--sheet) 70%, transparent); }
+.trail .step.now{ border-color:var(--accent); color:var(--accent-ink); font-weight:600; }
+.trail .arr{ opacity:.6; }
+
+/* the part number reads like the floor display above an elevator door */
+.eyebrow{
+  display:inline-flex; align-items:center; gap:.55em; margin:0;
+  font-family:var(--mono); font-size:clamp(.74rem,.66rem + .3vw,.92rem); font-weight:600;
+  letter-spacing:.2em; text-transform:uppercase; font-variant-numeric:tabular-nums;
+  color:var(--accent-ink); border:1px solid var(--rule); border-radius:2px; padding:.3em .7em;
+  background:color-mix(in srgb, var(--sheet) 75%, transparent);
+}
+.eyebrow::before{ content:"\25B2"; font-size:.72em; letter-spacing:0; }
+.sec h2{
+  font-family:var(--display); font-weight:400;
+  font-size:clamp(2.4rem, 1.6rem + 3vw, 4.1rem); line-height:1; letter-spacing:-.005em;
+  margin:.3em 0 .6em; color:var(--ink); text-wrap:balance;
+}
+.sec h2:focus, .sec h2:focus-visible{ outline:none; }
+
+.prose{ display:flex; flex-direction:column; gap:.85em; }
+.prose p{ margin:0; line-height:1.62; }
+
+.log{
+  font-family:var(--mono); font-size:.82em; color:var(--ink);
+  background:var(--sheet); border:1px solid var(--rule);
+  box-shadow:0 8px 18px -12px var(--shadow);
+  padding:.95em 1.15em; display:flex; flex-direction:column; gap:.4em;
+}
+.log-head{ font-size:.78em; letter-spacing:.18em; text-transform:uppercase; color:var(--accent-ink); margin-bottom:.25em !important; }
+.log-line{ display:grid; grid-template-columns:6.4em minmax(0,1fr); gap:.7em; line-height:1.5 !important; }
+.log-line .t{ color:var(--accent-ink); font-weight:600; font-variant-numeric:tabular-nums; }
+.log-line.log-plain{ display:block; }
+
+.choices{ margin-top:2em; display:flex; flex-direction:column; gap:.7em; }
+.ask{ margin:0 0 .15em; font-family:var(--mono); font-size:clamp(.78rem,.7rem + .3vw,.98rem); letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft); }
+.choice{
+  display:flex; align-items:center; gap:.85em; width:100%;
+  font:inherit; text-align:left; color:var(--ink);
+  background:color-mix(in srgb, var(--sheet) 86%, transparent);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  border:1px solid var(--rule); border-radius:3px;
+  padding:.75em 1em; cursor:pointer;
+  transition:border-color .2s, background-color .2s;
+}
+.choice:hover{ border-color:var(--accent); background:var(--sheet-hover); }
+.choice:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+/* the number is an elevator button: it lights up under your finger */
+.key{
+  flex:none; display:grid; place-items:center;
+  width:1.9em; height:1.9em; border-radius:50%;
+  font-family:var(--mono); font-weight:600; font-size:.82em;
+  color:var(--accent-ink); border:1.5px solid var(--accent);
+  transition:background-color .2s, color .2s, box-shadow .2s;
+}
+.choice:hover .key, .choice:focus-visible .key{
+  background:var(--accent); color:var(--on-accent);
+  box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.ctext{ line-height:1.35; min-width:0; }
+.choice.unlocked{ border:1.5px dashed var(--bonus); }
+.choice.unlocked:hover{ border-color:var(--bonus); }
+.choice.unlocked .key{ border-color:var(--bonus); color:var(--bonus-ink); }
+.utag{ display:block; margin:0 0 .3em; font-family:var(--mono); font-size:.6em; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:var(--bonus-ink); }
+.keyhint{ display:none; margin:.4em 0 0; font-family:var(--mono); font-size:.7em; color:var(--ink-soft); }
+@media (hover:hover) and (pointer:fine){ .keyhint{ display:block; } }
+
+/* THE END is a nameplate, like the one on an office door */
+.stamp{
+  align-self:flex-start;
+  margin:1.5em 0 .3em .25em !important;
+  font-family:var(--mono); font-weight:600; text-transform:uppercase;
+  font-size:clamp(1.05rem, .85rem + 1vw, 1.6rem); line-height:1 !important; letter-spacing:.34em;
+  color:var(--accent-ink);
+  background:color-mix(in srgb, var(--sheet) 80%, transparent);
+  border:1px solid var(--accent);
+  outline:1px solid color-mix(in srgb, var(--accent) 40%, transparent); outline-offset:4px;
+  padding:.65em .66em .65em 1em;
+}
+.stamp-sub{ display:block; font-size:.55em; letter-spacing:.26em; margin-top:.45em; }
+
+.ending{ margin-top:2em; display:flex; flex-direction:column; gap:1.1em; }
+.kind{ margin:0; font-family:var(--mono); font-size:clamp(.78rem,.7rem + .3vw,.98rem); letter-spacing:.18em; text-transform:uppercase; }
+.kind-bad{ color:var(--ink-soft); }
+.kind-good, .kind-bonus{ color:var(--accent-ink); font-weight:600; }
+.found{ border-top:1px solid var(--rule); padding-top:1em; }
+.found-label{ margin:0; font-family:var(--mono); font-size:clamp(.78rem,.7rem + .3vw,.98rem); color:var(--ink-soft); }
+.found-label b{ color:var(--ink); font-variant-numeric:tabular-nums; }
+.slots{ list-style:none; margin:.7em 0 0; padding:0; display:grid; grid-template-columns:repeat(var(--n-end,3),minmax(0,1fr)); gap:.6em; font-size:.8em; }
+.slot{ min-width:0; border:1px dashed var(--rule); border-radius:3px; padding:.6em .75em; color:var(--ink-soft); display:flex; flex-direction:column; gap:.25em; background:color-mix(in srgb, var(--bg) 60%, transparent); }
+.slot .sk{ font-family:var(--mono); font-size:.7em; letter-spacing:.12em; text-transform:uppercase; }
+.slot .st{ font-family:var(--display); font-size:1.25em; line-height:1.08; }
+.slot.got{ border-style:solid; color:var(--ink); background:var(--sheet); }
+.slot.got.good{ border-color:var(--win); }
+.slot.bonus{ border-color:var(--bonus); }
+.slot.bonus .sk{ color:var(--bonus-ink); }
+.slot.now{ box-shadow:inset 0 0 0 1px var(--accent); }
+@media (max-width:700px){ .slots{ grid-template-columns:repeat(2,minmax(0,1fr)); } .slots[data-n="3"]{ grid-template-columns:1fr; } }
+@media (max-width:380px){ .slots{ grid-template-columns:1fr; } }
+
+.end-actions{ display:flex; flex-wrap:wrap; gap:.6em; }
+.btn{ font:inherit; font-size:.9em; border-radius:3px; padding:.6em 1.1em; cursor:pointer; border:1.5px solid var(--accent); }
+.btn-main{ background:var(--accent); color:var(--on-accent); font-weight:600; }
+.btn-main:hover{ filter:brightness(1.08); }
+.btn-ghost{ background:color-mix(in srgb, var(--sheet) 70%, transparent); color:var(--ink); border-color:var(--rule); }
+.btn-ghost:hover{ border-color:var(--accent); }
+.btn:focus-visible, .ctl:focus-visible, .linkbtn:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+
+.foot{ margin-top:4em; padding-top:1em; border-top:1px solid var(--rule); display:flex; flex-wrap:wrap; justify-content:space-between; gap:.6em 1.2em; font-family:var(--mono); font-size:.76rem; color:var(--ink-soft); }
+.foot p{ margin:0; min-width:0; }
+.linkbtn{ font:inherit; color:var(--ink-soft); background:none; border:0; padding:0; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+.linkbtn:hover{ color:var(--ink); }
+
+.sec.enter{ animation:rise .45s ease-out both; }
+@keyframes rise{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){
+  .sec.enter{ animation:none; }
+  .choice, .key{ transition:none; }
+}
+</style>
+</head>
+<body>
+
+
+<canvas id="city" aria-hidden="true"></canvas>
+
+<header class="bar">
+  <div class="brand"><b>Pearson Hardman</b><span>Don’t Lie</span></div>
+  <nav class="controls" aria-label="Story controls">
+    <button class="ctl js-back" id="btn-back" type="button" disabled>&#8592; Back</button>
+    <button class="ctl js-restart" type="button">Start again</button>
+  </nav>
+</header>
+
+<main>
+  <div class="col" id="col">
+    <section class="hero" id="hero">
+      <p class="hero-kicker">A Suits adventure</p>
+      <h1>Don’t Lie</h1>
+      <p class="lede">Read each part. At the end, choose <strong>1</strong> or <strong>2</strong>. There are four endings. Find them all.</p>
+    </section>
+
+    <p class="trail" id="trail" aria-live="polite"><span class="lbl">Your path</span><span class="step now">1</span></p>
+
+<article class="sec" id="s1" data-n="1">
+<p class="eyebrow">Part 1</p>
+<h2 tabindex="-1">Friday, 7 p.m.</h2>
+<div class="prose">
+<p>New York. Pearson Hardman, one of the best law firms in the city. This is your first week.</p>
+<p>Louis Litt puts ten boxes on your desk. “Read everything. Monday morning, on my desk.”</p>
+<p>Then Donna, Harvey’s assistant, stops at your desk. She knows everything. “Harvey wants you. Now.”</p>
+<p>Harvey’s office has glass walls and old vinyl records on a shelf.</p>
+<p>“Tomorrow at nine, my client buys twelve hotels. Two hundred million dollars. Something in this deal smells bad. Read the papers tonight and find the problem. And one rule: don’t lie to me. Ever.”</p>
+<p>“And Louis’s boxes?”</p>
+<p>“Louis is your problem. Not mine.”</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="2"><span class="key" aria-hidden="true">1</span><span class="ctext">Say: “I’m in.”</span></button><button class="choice" type="button" data-to="3"><span class="key" aria-hidden="true">2</span><span class="ctext">Say: “Sorry. Louis needs me.”</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s2" data-n="2" hidden>
+<p class="eyebrow">Part 2</p>
+<h2 tabindex="-1">Page 300</h2>
+<div class="prose">
+<p>The file room is cold. Harvey’s papers. Your fourth coffee. Page 100. Page 200. Page 300.</p>
+<p>You stop.</p>
+<p>Page 300 is a letter from the city to the seller. Two of the twelve hotels close in June. The buildings are not safe. The seller knows, but the contract doesn’t say a word about it.</p>
+<p>At three a.m., the phone on the wall rings.</p>
+<p>“My name is Nick Cole, the seller’s lawyer. That letter is in your papers by mistake. Bring it to me, and on Monday you work for my firm. Double the money. Your own office with a view. I’m in the diner across the street.”</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="4"><span class="key" aria-hidden="true">1</span><span class="ctext">Call Harvey.</span></button><button class="choice" type="button" data-to="5"><span class="key" aria-hidden="true">2</span><span class="ctext">Go to the diner.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s3" data-n="3" hidden>
+<p class="eyebrow">Part 3</p>
+<h2 tabindex="-1">Louis’s Boxes</h2>
+<div class="prose">
+<p>Box one. Box two. Box six. Louis’s papers are long and boring.</p>
+<p>At one a.m., the office is empty. Only you and the boxes.</p>
+<p>Then Donna walks in. Donna knows everything about everybody.</p>
+<p>She puts a coffee on your desk. “Harvey never asks two times. This is your second chance. He doesn’t give a third.”</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="2"><span class="key" aria-hidden="true">1</span><span class="ctext">Go to Harvey’s office.</span></button><button class="choice" type="button" data-to="7"><span class="key" aria-hidden="true">2</span><span class="ctext">Stay with the boxes.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s4" data-n="4" hidden>
+<p class="eyebrow">Part 4</p>
+<h2 tabindex="-1">Three A.M.</h2>
+<div class="prose">
+<p>Harvey answers on the first ring. He doesn’t sleep.</p>
+<p>You tell him about the letter. Two hotels. June. The seller knows.</p>
+<p>Harvey is quiet for a moment. “Who else knows about this letter?”</p>
+<p>“Nick Cole. He called me.”</p>
+<p>“What did he offer you?”</p>
+<p>The office with a view. Double the money. Harvey’s voice is cold. It’s your first week, and you are afraid.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="9"><span class="key" aria-hidden="true">1</span><span class="ctext">Say: “A job at his firm. Double the money.”</span></button><button class="choice" type="button" data-to="10"><span class="key" aria-hidden="true">2</span><span class="ctext">Say: “Nothing. He only wanted the letter.”</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s5" data-n="5" hidden>
+<p class="eyebrow">Part 5</p>
+<h2 tabindex="-1">The Diner</h2>
+<div class="prose">
+<p>The diner is almost empty. Nick Cole wears an expensive suit and a cold smile.</p>
+<p>He puts a contract on the table. Your name is on it, with a number. A very big number.</p>
+<p>“Sign here. Give me the letter. Go home and sleep. Monday, you start with us.”</p>
+<p>You look at the number. Then you look at your bag. The letter is inside.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="8"><span class="key" aria-hidden="true">1</span><span class="ctext">Sign the contract.</span></button><button class="choice" type="button" data-to="6"><span class="key" aria-hidden="true">2</span><span class="ctext">Say no and go back to the office.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s6" data-n="6" hidden>
+<p class="eyebrow">Part 6</p>
+<h2 tabindex="-1">Six A.M.</h2>
+<div class="prose">
+<p>At six a.m., the office is dark. Only one light is on: Harvey’s.</p>
+<p>Harvey sits at his desk with a coffee. Donna stands next to him. Of course.</p>
+<p>“Donna says you went out at four,” Harvey says. “Where were you?”</p>
+<p>The letter is in your hand. The big number is still in your head.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="9"><span class="key" aria-hidden="true">1</span><span class="ctext">Say: “With Nick Cole. He offered me a job. I said no.”</span></button><button class="choice" type="button" data-to="10"><span class="key" aria-hidden="true">2</span><span class="ctext">Say: “At home. I needed a shower.”</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s7" data-n="7" data-end="bad" hidden>
+<p class="eyebrow">Part 7</p>
+<h2 tabindex="-1">Twenty More Boxes</h2>
+<div class="prose">
+<p>Monday, nine a.m. You put the ten boxes on Louis’s desk. Louis doesn’t say thank you.</p>
+<p>“Good. Here are twenty more.”</p>
+<p>Through the glass, you see Harvey’s office. Harvey closed the hotel deal on Saturday, with another new lawyer. Now that lawyer sits in Harvey’s office, and Donna brings the coffee.</p>
+<p>Harvey walks past your desk. He doesn’t look at you.</p>
+<p>Louis smiles. “Don’t be sad. You work for me now. Forever.”</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 4</p><ol class="slots" data-n="4" style="--n-end:4"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s8" data-n="8" data-end="bad" hidden>
+<p class="eyebrow">Part 8</p>
+<h2 tabindex="-1">The Other Side</h2>
+<div class="prose">
+<p>You sign. You give Nick the letter. He puts it in his jacket. “Welcome to the team.”</p>
+<p>Nine a.m. You sit next to Nick Cole. Across the table, Harvey Specter looks at you one time. Only one time.</p>
+<p>Then Harvey puts a paper on the table: a copy of the letter. “Page 300. Actually, I read it on Thursday.”</p>
+<p>Harvey’s client pays sixty million dollars less. Nick doesn’t look at you.</p>
+<p>On Monday, you have your office with a view. Nick puts a file on your desk. “Your first case. Against Pearson Hardman.”</p>
+<p>You open it. On page one: Harvey Specter. You are afraid.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 4</p><ol class="slots" data-n="4" style="--n-end:4"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s9" data-n="9" data-end="good" hidden>
+<p class="eyebrow">Part 9</p>
+<h2 tabindex="-1">Harvey’s Team</h2>
+<div class="prose">
+<p>Nine a.m. The meeting room: Harvey, his client, Nick Cole and you.</p>
+<p>Nick smiles at Harvey. “Ask your new lawyer about my offer.”</p>
+<p>“A job at your firm,” Harvey says. “I know.”</p>
+<p>He puts the letter on the table. Nick doesn’t smile now. Harvey’s client pays sixty million dollars less.</p>
+<p>In the elevator, Harvey looks at you. “Actually, I read that letter on Thursday.”</p>
+<p>“Then why...?”</p>
+<p>“I knew the letter. I didn’t know you. Now I know you.” The doors open. “Monday, you work for me.”</p>
+<p>At her desk, Donna has a coffee for you.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 4</p><ol class="slots" data-n="4" style="--n-end:4"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s10" data-n="10" data-end="bad" hidden>
+<p class="eyebrow">Part 10</p>
+<h2 tabindex="-1">The Elevator</h2>
+<div class="prose">
+<p>Nine a.m. The meeting room: Harvey, his client, Nick Cole and you.</p>
+<p>Nick smiles at Harvey. “Ask your new lawyer about my offer.”</p>
+<p>Harvey doesn’t answer. He looks at you. Only at you.</p>
+<p>Then he puts the letter on the table, and his client pays sixty million dollars less.</p>
+<p>At eleven, you are in Jessica Pearson’s office. “You talked to the other side in the middle of a deal,” Jessica says. “Then you lied to Harvey. You don’t work here anymore.”</p>
+<p>At the door, Harvey says one thing: “I knew the letter. I didn’t know you. Now I know you.”</p>
+<p>You carry one small box to the elevator.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 4</p><ol class="slots" data-n="4" style="--n-end:4"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+    <footer class="foot">
+      <p>Teacher Alex · Readers · A1 → A2</p>
+      <p>An original story in the world of Suits. Nick Cole and the hotel deal are invented.</p>
+      <button class="linkbtn" id="reset-endings" type="button">Reset endings</button>
+    </footer>
+  </div>
+</main>
+
+<script>
+/* engine:v2 — choices with conditions ([if 6, not 7] in the .story.md), bonus endings, number keys 1-9 */
+(function(){
+  var ENDINGS = {"7": {"title": "Twenty More Boxes", "kind": "bad"}, "8": {"title": "The Other Side", "kind": "bad"}, "9": {"title": "Harvey’s Team", "kind": "good"}, "10": {"title": "The Elevator", "kind": "bad"}};
+  var TITLES = {"1": "Friday, 7 p.m.", "2": "Page 300", "3": "Louis’s Boxes", "4": "Three A.M.", "5": "The Diner", "6": "Six A.M.", "7": "Twenty More Boxes", "8": "The Other Side", "9": "Harvey’s Team", "10": "The Elevator"};
+  var END_ORDER = Object.keys(ENDINGS).map(Number).sort(function(a,b){ return a-b; });
+  var INTENSITY = {"1": 0.9, "2": 0.35, "3": 0.45, "4": 0.3, "5": 0.55, "6": 0.05, "7": 0, "8": 1, "9": 1, "10": 0};
+  var MOOD = {"7": "empty", "8": "flood", "9": "win", "10": "down"};
+  var STORE = "pearson-dont-lie-endings-v1";
+  var KIND = { good:"Good ending", bad:"Bad ending", bonus:"Bonus ending" };
+  var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var secs = {};
+  document.querySelectorAll(".sec").forEach(function(a){ secs[+a.dataset.n] = a; });
+  var hero = document.getElementById("hero");
+  var trail = document.getElementById("trail");
+  var btnBack = document.getElementById("btn-back");
+  var hist = [1];
+
+  function loadFound(){
+    try{
+      var v = JSON.parse(localStorage.getItem(STORE) || "[]");
+      return Array.isArray(v) ? v.filter(function(n){ return ENDINGS[n]; }) : [];
+    }catch(e){ return []; }
+  }
+  function saveFound(){ try{ localStorage.setItem(STORE, JSON.stringify(found)); }catch(e){} }
+  var found = loadFound();
+
+  function cur(){ return hist[hist.length-1]; }
+  function nums(s){ return (s || "").split(" ").filter(Boolean); }
+
+  /* a choice shows only when the path so far went through every part in data-if and none in data-ifnot */
+  function showChoices(sec){
+    var seen = {}, k = 0;
+    hist.forEach(function(n){ seen[n] = true; });
+    sec.querySelectorAll(".choice").forEach(function(b){
+      var ok = nums(b.getAttribute("data-if")).every(function(x){ return seen[x]; }) &&
+               !nums(b.getAttribute("data-ifnot")).some(function(x){ return seen[x]; });
+      b.hidden = !ok;
+      if(ok){ k++; var key = b.querySelector(".key"); if(key) key.textContent = k; }
+    });
+  }
+  function visibleChoices(){
+    return [].filter.call(secs[cur()].querySelectorAll(".choice"), function(b){ return !b.hidden; });
+  }
+
+  function renderTrail(){
+    trail.textContent = "";
+    var l = document.createElement("span"); l.className = "lbl"; l.textContent = "Your path"; trail.appendChild(l);
+    hist.forEach(function(n, i){
+      if(i){ var a = document.createElement("span"); a.className = "arr"; a.textContent = "→"; a.setAttribute("aria-hidden","true"); trail.appendChild(a); }
+      var s = document.createElement("span");
+      s.className = "step" + (i === hist.length-1 ? " now" : "");
+      s.textContent = n; s.title = TITLES[n] || "";
+      trail.appendChild(s);
+    });
+  }
+
+  function renderFound(now){
+    document.querySelectorAll(".found").forEach(function(box){
+      box.querySelector(".found-count").textContent = found.length;
+      var ol = box.querySelector(".slots"); ol.textContent = "";
+      END_ORDER.forEach(function(n){
+        var e = ENDINGS[n], got = found.indexOf(n) !== -1;
+        var li = document.createElement("li");
+        li.className = "slot " + e.kind + (got ? " got" : "") + (n === now ? " now" : "");
+        var k = document.createElement("span"); k.className = "sk";
+        k.textContent = got ? (KIND[e.kind] || "Ending") : (e.kind === "bonus" ? KIND.bonus : "Not found");
+        var t = document.createElement("span"); t.className = "st";
+        t.textContent = got ? e.title : "? ? ?";
+        li.appendChild(k); li.appendChild(t); ol.appendChild(li);
+      });
+    });
+  }
+
+  function render(animate){
+    var n = cur();
+    Object.keys(secs).forEach(function(k){ secs[k].hidden = (+k !== n); });
+    var a = secs[n];
+    showChoices(a);
+    if(animate && !reduced){ a.classList.remove("enter"); void a.offsetWidth; a.classList.add("enter"); }
+    hero.hidden = !(n === 1 && hist.length === 1);
+    btnBack.disabled = hist.length < 2;
+    document.body.setAttribute("data-mood", MOOD[n] || "");
+    renderTrail();
+    if(a.dataset.end){
+      if(found.indexOf(n) === -1){ found.push(n); saveFound(); }
+      renderFound(n);
+    }
+    bg.scene(n);
+  }
+
+  function focusTop(){
+    try{ window.scrollTo({ top:0, behavior: reduced ? "auto" : "smooth" }); }catch(e){ window.scrollTo(0,0); }
+    var h = secs[cur()].querySelector("h2");
+    if(h){ try{ h.focus({ preventScroll:true }); }catch(e){ h.focus(); } }
+  }
+  function go(to){ if(!secs[to]) return; hist.push(to); render(true); focusTop(); }
+  function back(){ if(hist.length > 1){ hist.pop(); render(true); focusTop(); } }
+  function restart(){ hist = [1]; render(true); focusTop(); }
+
+  document.addEventListener("click", function(e){
+    var c = e.target.closest(".choice");
+    if(c){ go(+c.dataset.to); return; }
+    if(e.target.closest(".js-restart")){ restart(); return; }
+    if(e.target.closest(".js-back")){ back(); return; }
+    if(e.target.closest("#reset-endings")){ found = []; saveFound(); renderFound(secs[cur()].dataset.end ? cur() : 0); }
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.metaKey || e.ctrlKey || e.altKey) return;
+    if(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if(/^[1-9]$/.test(e.key)){
+      var b = visibleChoices()[+e.key - 1];
+      if(b){ e.preventDefault(); b.click(); }
+    } else if(e.key === "ArrowLeft"){ if(hist.length > 1){ e.preventDefault(); back(); } }
+  });
+
+  /* ---------- the skyline: towers along the bottom of the screen, each with a grid of office windows.
+     intensity: how many windows are lit (<= .06 means exactly one window, high up)
+     flood: every window turns on, cold and bright
+     empty: every window goes dark at once
+     down:  windows go dark from the top floors down, like an elevator going down
+     win:   warm windows and a dawn glow behind the towers ---------- */
+  var bg = (function(){
+    var cv = document.getElementById("city");
+    var ctx = cv.getContext && cv.getContext("2d");
+    if(!ctx) return { scene:function(){} };
+    var W = 0, H = 0, dpr = 1, col = document.getElementById("col"), R = Math.random;
+    var towers = [], wins = [];
+    var mood = "", intensity = 0, running = false, last = 0, flick = 0, glow = 0;
+    var C = { tower:"#e0e6ed", edge:"#d3dbe5", win:"#7b91b2", cold:"#2364b0", warm:"#94530f", k:.3, bg:"232,236,241" };
+
+    function readColors(){
+      var cs = getComputedStyle(document.body);
+      var v = function(name, d){ return cs.getPropertyValue(name).trim() || d; };
+      C.tower = v("--tower", C.tower); C.edge = v("--tower-edge", C.edge); C.win = v("--window", C.win);
+      C.cold = v("--cold", C.cold); C.warm = v("--win", C.warm);
+      C.k = parseFloat(v("--win-strength", C.k)) || C.k;
+      C.bg = rgb(v("--bg", "#e8ecf1"));
+    }
+    /* "#0a0e15" -> "10,14,21", for the band behind the text */
+    function rgb(hex){
+      var h = hex.replace("#", "");
+      if(h.length === 3) h = h.split("").map(function(c){ return c + c; }).join("");
+      var n = parseInt(h, 16);
+      return isNaN(n) ? "232,236,241" : [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(",");
+    }
+    function share(){ return mood === "win" ? .5 : Math.min(.9, intensity * .55); }
+    function onlyOne(){ return mood === "" && intensity <= .06; }
+
+    function build(){
+      towers = []; wins = [];
+      var x = -R() * 30;
+      while(x < W){
+        var w = 46 + R() * 96, h = H * (.26 + R() * .46);
+        if(R() < .16) h = H * (.62 + R() * .22);
+        var t = { x:x, w:w, h:h, top:H - h };
+        towers.push(t);
+        var cw = 5, ch = 7, gx = 4, gy = 6, pad = 7;
+        var cols = Math.max(1, Math.floor((w - 2*pad + gx) / (cw + gx)));
+        var rows = Math.max(1, Math.floor((h - 2*pad + gy) / (ch + gy)));
+        var ox = x + (w - (cols * (cw + gx) - gx)) / 2;
+        for(var r = 0; r < rows; r++) for(var c = 0; c < cols; c++){
+          wins.push({ x:ox + c*(cw + gx), y:t.top + pad + r*(ch + gy), w:cw, h:ch, a:0, ta:0, nt:0, d:0, solo:false });
+        }
+        x += w + 4 + R() * 12;
+      }
+    }
+    function pickOne(){
+      var r = col.getBoundingClientRect();
+      var c = wins.filter(function(q){ return q.x > r.right + 12 && q.y < H * .5; });
+      if(!c.length) c = wins.filter(function(q){ return q.y < H * .55; });
+      if(!c.length) c = wins;
+      return c[Math.floor(R() * c.length)];
+    }
+    /* set where every window is heading, each after its own small delay */
+    function aim(spread){
+      wins.forEach(function(q){ q.solo = false; });
+      if(mood === "flood"){ wins.forEach(function(q){ q.nt = 1; q.d = R() * 1.4; }); return; }
+      if(mood === "empty"){ wins.forEach(function(q){ q.nt = 0; q.d = R() * .2; }); return; }
+      if(mood === "down"){ wins.forEach(function(q){ q.nt = 0; q.d = .4 + (q.y / H) * 2.6 + R() * .12; }); return; }
+      if(onlyOne()){
+        wins.forEach(function(q){ q.nt = 0; q.d = R() * .5; });
+        var one = pickOne(); if(one){ one.nt = 1; one.d = .6; one.solo = true; }
+        return;
+      }
+      var p = share();
+      wins.forEach(function(q){ q.nt = R() < p ? 1 : 0; q.d = R() * spread; });
+    }
+    function settle(){ wins.forEach(function(q){ q.ta = q.nt; q.a = q.ta; q.d = 0; }); glow = mood === "win" ? 1 : 0; }
+
+    function resize(){
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth; H = window.innerHeight;
+      cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      build(); aim(0); settle(); draw();
+    }
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      if(glow > .01){
+        var g = ctx.createLinearGradient(0, H, 0, H * .35);
+        g.addColorStop(0, C.warm); g.addColorStop(1, "transparent");
+        ctx.globalAlpha = .26 * glow * Math.min(1, C.k * 1.4);
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      }
+      ctx.globalAlpha = 1;
+      for(var i = 0; i < towers.length; i++){
+        var t = towers[i];
+        ctx.fillStyle = C.tower; ctx.fillRect(t.x, t.top, t.w, t.h);
+        ctx.fillStyle = C.edge; ctx.fillRect(t.x, t.top, t.w, 1.5);
+      }
+      var r = col.getBoundingClientRect(), L = r.left - 12, Rt = r.right + 12;
+      var wc = mood === "flood" ? C.cold : (mood === "win" ? C.warm : C.win);
+      ctx.fillStyle = wc;
+      for(var j = 0; j < wins.length; j++){
+        var q = wins[j];
+        if(q.a < .01 || q.solo) continue;
+        var inCol = q.x + q.w > L && q.x < Rt;
+        ctx.globalAlpha = Math.min(1, q.a * C.k * (inCol ? .12 : 1));
+        ctx.fillRect(q.x, q.y, q.w, q.h);
+      }
+      /* a clear band in the page colour behind the reading column, soft at both edges */
+      var f = 64, x0 = Math.max(0, L - f), x1 = Math.min(W, Rt + f);
+      if(x1 > x0){
+        var band = ctx.createLinearGradient(x0, 0, x1, 0), w = x1 - x0;
+        var a = "rgba(" + C.bg + ",.78)", z = "rgba(" + C.bg + ",0)";
+        band.addColorStop(0, L - f <= 0 ? a : z);
+        band.addColorStop(Math.min(.49, (L - x0) / w), a);
+        band.addColorStop(Math.max(.51, (Rt - x0) / w), a);
+        band.addColorStop(1, Rt + f >= W ? a : z);
+        ctx.globalAlpha = 1; ctx.fillStyle = band; ctx.fillRect(x0, 0, w, H);
+      }
+      ctx.fillStyle = wc;
+      for(var s = 0; s < wins.length; s++){
+        var o = wins[s];
+        if(!o.solo || o.a < .01) continue;
+        ctx.globalAlpha = Math.min(1, o.a * Math.max(.7, C.k)); ctx.fillRect(o.x, o.y, o.w, o.h);
+      }
+      ctx.globalAlpha = 1;
+    }
+    function step(dt){
+      for(var i = 0; i < wins.length; i++){
+        var q = wins[i];
+        if(q.d > 0){ q.d -= dt; if(q.d <= 0) q.ta = q.nt; }
+        else q.ta = q.nt;
+        var rate = q.ta > q.a ? 7 : (mood === "empty" ? 9 : 3.5);
+        q.a += (q.ta - q.a) * Math.min(1, dt * rate);
+      }
+      if((mood === "" || mood === "win") && !onlyOne()){
+        flick -= dt;
+        if(flick <= 0){
+          flick = .12;
+          var p = share(), n = Math.max(1, Math.round(wins.length * .004));
+          for(var k = 0; k < n; k++){ var w = wins[Math.floor(R() * wins.length)]; if(w && w.d <= 0) w.nt = R() < p ? 1 : 0; }
+        }
+      }
+      glow += ((mood === "win" ? 1 : 0) - glow) * Math.min(1, dt * .8);
+    }
+    function loop(ts){
+      if(!running) return;
+      var dt = last ? Math.min(.05, (ts - last) / 1000) : .016; last = ts;
+      step(dt); draw();
+      requestAnimationFrame(loop);
+    }
+    function start(){ if(reduced || running) return; running = true; last = 0; requestAnimationFrame(loop); }
+    function stop(){ running = false; }
+
+    function scene(n){
+      mood = MOOD[n] || "";
+      intensity = INTENSITY[n] != null ? INTENSITY[n] : .3;
+      readColors();
+      aim(1.2);
+      if(reduced){ settle(); draw(); }
+    }
+
+    window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", function(){ document.hidden ? stop() : start(); });
+    if(window.matchMedia){
+      var mq = matchMedia("(prefers-color-scheme: dark)");
+      var onScheme = function(){ readColors(); if(reduced) draw(); };
+      mq.addEventListener ? mq.addEventListener("change", onScheme) : mq.addListener(onScheme);
+    }
+    new MutationObserver(function(){ readColors(); if(reduced) draw(); })
+      .observe(document.documentElement, { attributes:true, attributeFilter:["data-theme"] });
+
+    readColors(); resize(); start();
+    return { scene:scene };
+  })();
+
+  render(false);
+})();
+</script>
+
+</body>
+</html>

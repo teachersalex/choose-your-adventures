@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Don't Sign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400..700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap">
+<style>
+/* Layout: one reading column written on a yellow legal pad, with the red margin rule on its left.
+   Documents in the story (clauses, the recipe card, the old rules) sit on the pad as typed sheets.
+   Fine print drifts behind the page: it fills with signatures when you give in, vanishes when you
+   run, and breaks into sprinkles when the case ends well. Dark theme: the 99th floor at midnight. */
+:root{
+  color-scheme: light;
+  --pad:#faf1bf;
+  --sheet:#fffdf3;
+  --sheet-hover:#fff7d6;
+  --ink:#1d1a14;
+  --ink-soft:#574e33;
+  --rule:#d6c574;
+  --margin:#cf5546;
+  --accent:#1f3f9a;
+  --accent-ink:#1b3889;
+  --on-accent:#ffffff;
+  --shadow:rgba(80,60,0,.30);
+  --print:#34405f;
+  --print-strength:.32;
+  --sig:#2346a8;
+  --win:#6b3417;
+  --bonus:#1d6b4a;
+  --bonus-ink:#175c3f;
+  --choc:#5b2f19;
+  --c1:#d2457a; --c2:#d99a0b; --c3:#2f8f6a; --c4:#3d63c9; --c5:#e2622f;
+  --focus:#1b3889;
+  --display:"Bodoni Moda","Bodoni 72","Didot","Playfair Display",Georgia,serif;
+  --body:"Literata",Georgia,"Times New Roman",serif;
+  --mono:"Courier Prime","Courier New",Courier,ui-monospace,monospace;
+  --fs-body:clamp(1.15rem, .95rem + 1vw, 1.7rem);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --pad:#0f131c;
+    --sheet:#171c28;
+    --sheet-hover:#1e2433;
+    --ink:#ece7da;
+    --ink-soft:#a9abb8;
+    --rule:#2e3547;
+    --margin:#b5574b;
+    --accent:#d9b65a;
+    --accent-ink:#e6c86f;
+    --on-accent:#16120a;
+    --shadow:rgba(0,0,0,.55);
+    --print:#c8cde0;
+    --print-strength:.17;
+    --sig:#d9b65a;
+    --win:#e6a77f;
+    --bonus:#77cfa3;
+    --bonus-ink:#8adbb2;
+    --choc:#c08a66;
+    --c1:#f08bb0; --c2:#f2c75c; --c3:#73d1aa; --c4:#8ea8f2; --c5:#f29a6d;
+    --focus:#e6c86f;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --pad:#0f131c;
+  --sheet:#171c28;
+  --sheet-hover:#1e2433;
+  --ink:#ece7da;
+  --ink-soft:#a9abb8;
+  --rule:#2e3547;
+  --margin:#b5574b;
+  --accent:#d9b65a;
+  --accent-ink:#e6c86f;
+  --on-accent:#16120a;
+  --shadow:rgba(0,0,0,.55);
+  --print:#c8cde0;
+  --print-strength:.17;
+  --sig:#d9b65a;
+  --win:#e6a77f;
+  --bonus:#77cfa3;
+  --bonus-ink:#8adbb2;
+  --choc:#c08a66;
+  --c1:#f08bb0; --c2:#f2c75c; --c3:#73d1aa; --c4:#8ea8f2; --c5:#f29a6d;
+  --focus:#e6c86f;
+}
+
+body[data-mood="flood"]{ --print:var(--sig); }
+body[data-mood="win"]{ --accent:var(--win); --accent-ink:var(--win); --focus:var(--win); }
+body[data-mood="bonus"]{ --accent:var(--bonus); --accent-ink:var(--bonus-ink); --focus:var(--bonus-ink); }
+body[data-mood="empty"]{ --accent:var(--ink-soft); --accent-ink:var(--ink-soft); }
+
+[hidden]{ display:none !important; }
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  background:var(--pad);
+  color:var(--ink);
+  font-family:var(--body);
+  -webkit-font-smoothing:antialiased;
+}
+#print{ position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+
+.bar{
+  position:sticky; top:env(safe-area-inset-top,0px); z-index:3;
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px;
+  padding:10px 16px;
+  background:color-mix(in srgb, var(--pad) 88%, transparent);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  border-bottom:3px double var(--rule);
+}
+.brand{ display:flex; flex-wrap:wrap; align-items:baseline; gap:.2em .9em; font-family:var(--mono); font-size:.8rem; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); }
+.brand b{ font-weight:700; color:var(--ink); }
+.controls{ display:flex; gap:8px; }
+.ctl{
+  font-family:var(--mono); font-size:.85rem; color:var(--ink);
+  background:transparent; border:1px solid var(--rule); border-radius:2px;
+  padding:.45em .8em; cursor:pointer;
+}
+.ctl:hover:not(:disabled){ border-color:var(--accent); }
+.ctl:disabled{ opacity:.45; cursor:default; }
+
+main{ position:relative; z-index:1; padding-inline:16px; padding-block:clamp(1.5rem, 1rem + 3vw, 3.5rem) 4rem; }
+.col{
+  max-width:35em; margin-inline:auto; font-size:var(--fs-body);
+  padding-left:clamp(.85rem, .3rem + 2vw, 2rem);
+  border-left:3px double var(--margin);
+}
+
+.hero{ margin-bottom:2.2em; }
+.hero-kicker{ margin:0; font-family:var(--mono); font-size:clamp(.8rem,.7rem + .3vw,1rem); letter-spacing:.22em; text-transform:uppercase; color:var(--ink-soft); }
+.hero h1{
+  font-family:var(--display); font-weight:600; font-optical-sizing:auto;
+  font-size:clamp(3.3rem, 1.9rem + 7vw, 7.6rem); line-height:.9; letter-spacing:-.015em;
+  margin:.14em 0 .34em; color:var(--ink);
+  text-wrap:balance;
+}
+.hero .lede{ margin:0; color:var(--ink-soft); line-height:1.55; max-width:30em; }
+.hero .lede strong{ color:var(--ink); font-weight:600; }
+
+.trail{
+  display:flex; flex-wrap:wrap; align-items:center; gap:.35em .5em;
+  margin:0 0 1.6em; font-family:var(--mono); font-size:clamp(.8rem,.7rem + .3vw,1rem); color:var(--ink-soft);
+}
+.trail .lbl{ letter-spacing:.14em; text-transform:uppercase; margin-right:.3em; }
+.trail .step{ font-variant-numeric:tabular-nums; border:1px solid var(--rule); border-radius:2px; padding:.05em .45em; }
+.trail .step.now{ border-color:var(--accent); color:var(--accent-ink); font-weight:700; }
+.trail .arr{ opacity:.6; }
+
+.eyebrow{ margin:0; font-family:var(--mono); font-size:clamp(.8rem,.7rem + .3vw,1rem); letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); }
+.eyebrow::before{ content:"\00A7\00A0"; color:var(--accent-ink); letter-spacing:0; }
+.sec h2{
+  font-family:var(--display); font-weight:600;
+  font-size:clamp(2.1rem, 1.5rem + 2.6vw, 3.6rem); line-height:1.02; letter-spacing:-.01em;
+  margin:.12em 0 .7em; color:var(--ink); text-wrap:balance;
+}
+.sec h2:focus, .sec h2:focus-visible{ outline:none; }
+
+.prose{ display:flex; flex-direction:column; gap:.85em; }
+.prose p{ margin:0; line-height:1.62; }
+
+.log{
+  font-family:var(--mono); font-size:.84em; color:var(--ink);
+  background:var(--sheet); border:1px solid var(--rule);
+  box-shadow:0 7px 16px -12px var(--shadow);
+  padding:.95em 1.15em; display:flex; flex-direction:column; gap:.4em;
+  transform:rotate(-.35deg);
+}
+.log-head{ font-size:.78em; letter-spacing:.18em; text-transform:uppercase; color:var(--accent-ink); margin-bottom:.25em !important; }
+.log-line{ display:grid; grid-template-columns:6.4em minmax(0,1fr); gap:.7em; line-height:1.5 !important; }
+.log-line .t{ color:var(--accent-ink); font-weight:700; font-variant-numeric:tabular-nums; }
+.log-line.log-plain{ display:block; }
+
+.choices{ margin-top:2em; display:flex; flex-direction:column; gap:.7em; }
+.ask{ margin:0 0 .15em; font-family:var(--mono); font-size:clamp(.8rem,.7rem + .3vw,1rem); letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); }
+.choice{
+  display:flex; align-items:center; gap:.85em; width:100%;
+  font:inherit; text-align:left; color:var(--ink);
+  background:var(--sheet); border:1px solid var(--rule); border-radius:3px;
+  padding:.75em 1em; cursor:pointer;
+  transition:border-color .2s, background-color .2s, transform .2s;
+}
+.choice:hover{ border-color:var(--accent); background:var(--sheet-hover); transform:translateX(3px); }
+.choice:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+.key{
+  flex:none; display:grid; place-items:center;
+  width:1.85em; height:1.85em; border-radius:50%;
+  font-family:var(--mono); font-weight:700; font-size:.85em;
+  color:var(--accent-ink); border:1.5px solid var(--accent);
+}
+.ctext{ line-height:1.35; min-width:0; }
+.choice.unlocked{ border:1.5px dashed var(--bonus); }
+.choice.unlocked:hover{ border-color:var(--bonus); }
+.choice.unlocked .key{ border-color:var(--bonus); color:var(--bonus-ink); }
+.utag{ display:block; margin:0 0 .3em; font-family:var(--mono); font-size:.6em; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--bonus-ink); }
+.keyhint{ display:none; margin:.4em 0 0; font-family:var(--mono); font-size:.72em; color:var(--ink-soft); }
+@media (hover:hover) and (pointer:fine){ .keyhint{ display:block; } }
+
+.stamp{
+  align-self:flex-start;
+  margin:1.3em 0 .2em .2em !important;
+  font-family:var(--mono); font-weight:700; text-transform:uppercase;
+  font-size:clamp(1.35rem, 1rem + 1.6vw, 2.2rem); line-height:1.05 !important; letter-spacing:.16em;
+  color:var(--accent-ink); border:3px double var(--accent); border-radius:6px;
+  padding:.42em .7em .36em; transform:rotate(-3deg);
+}
+.stamp-sub{ display:block; font-size:.55em; letter-spacing:.26em; margin-top:.45em; }
+
+.ending{ margin-top:2em; display:flex; flex-direction:column; gap:1.1em; }
+.kind{ margin:0; font-family:var(--mono); font-size:clamp(.8rem,.7rem + .3vw,1rem); letter-spacing:.16em; text-transform:uppercase; }
+.kind-bad{ color:var(--ink-soft); }
+.kind-good, .kind-bonus{ color:var(--accent-ink); font-weight:700; }
+.found{ border-top:1px solid var(--rule); padding-top:1em; }
+.found-label{ margin:0; font-family:var(--mono); font-size:clamp(.8rem,.7rem + .3vw,1rem); color:var(--ink-soft); }
+.found-label b{ color:var(--ink); font-variant-numeric:tabular-nums; }
+.slots{ list-style:none; margin:.7em 0 0; padding:0; display:grid; grid-template-columns:repeat(var(--n-end,3),minmax(0,1fr)); gap:.6em; font-size:.8em; }
+.slot{ min-width:0; border:1px dashed var(--rule); border-radius:3px; padding:.6em .75em; color:var(--ink-soft); display:flex; flex-direction:column; gap:.25em; }
+.slot .sk{ font-family:var(--mono); font-size:.72em; letter-spacing:.12em; text-transform:uppercase; }
+.slot .st{ font-family:var(--display); font-weight:600; font-size:1.1em; line-height:1.12; }
+.slot.got{ border-style:solid; color:var(--ink); background:var(--sheet); }
+.slot.got.good{ border-color:var(--win); }
+.slot.bonus{ border-color:var(--bonus); }
+.slot.bonus .sk{ color:var(--bonus-ink); }
+.slot.now{ box-shadow:inset 0 0 0 1px var(--accent); }
+@media (max-width:700px){ .slots{ grid-template-columns:repeat(2,minmax(0,1fr)); } .slots[data-n="3"]{ grid-template-columns:1fr; } }
+@media (max-width:380px){ .slots{ grid-template-columns:1fr; } }
+
+.end-actions{ display:flex; flex-wrap:wrap; gap:.6em; }
+.btn{ font:inherit; font-size:.9em; border-radius:3px; padding:.6em 1.1em; cursor:pointer; border:1.5px solid var(--accent); }
+.btn-main{ background:var(--accent); color:var(--on-accent); font-weight:600; }
+.btn-main:hover{ filter:brightness(1.08); }
+.btn-ghost{ background:transparent; color:var(--ink); border-color:var(--rule); }
+.btn-ghost:hover{ border-color:var(--accent); }
+.btn:focus-visible, .ctl:focus-visible, .linkbtn:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+
+.foot{ margin-top:4em; padding-top:1em; border-top:1px solid var(--rule); display:flex; flex-wrap:wrap; justify-content:space-between; gap:.6em 1.2em; font-family:var(--mono); font-size:.8rem; color:var(--ink-soft); }
+.foot p{ margin:0; }
+.linkbtn{ font:inherit; color:var(--ink-soft); background:none; border:0; padding:0; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+.linkbtn:hover{ color:var(--ink); }
+
+.sec.enter{ animation:rise .45s ease-out both; }
+@keyframes rise{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){
+  .sec.enter{ animation:none; }
+  .choice, .choice:hover{ transition:none; transform:none; }
+}
+</style>
+</head>
+<body>
+
+
+<canvas id="print" aria-hidden="true"></canvas>
+
+<header class="bar">
+  <div class="brand"><b>Hale &amp; Price</b><span>Don’t Sign</span></div>
+  <nav class="controls" aria-label="Story controls">
+    <button class="ctl js-back" id="btn-back" type="button" disabled>&#8592; Back</button>
+    <button class="ctl js-restart" type="button">Start again</button>
+  </nav>
+</header>
+
+<main>
+  <div class="col" id="col">
+    <section class="hero" id="hero">
+      <p class="hero-kicker">A legal thriller</p>
+      <h1>Don’t Sign</h1>
+      <p class="lede">Read each part. At the end, choose <strong>1</strong> or <strong>2</strong>. Some choices matter later. There are three endings and one bonus ending. Can you find them all?</p>
+    </section>
+
+    <p class="trail" id="trail" aria-live="polite"><span class="lbl">Your path</span><span class="step now">1</span></p>
+
+<article class="sec" id="s1" data-n="1">
+<p class="eyebrow">Part 1</p>
+<h2 tabindex="-1">The Offer</h2>
+<div class="prose">
+<p>You finished law school last month. Today is your first day at Hale &amp; Price, one of the biggest law firms in the world. On the wall, in big gold letters: WE NEVER LOSE.</p>
+<p>In the lobby, an old woman with a coffee cart gives you a coffee. Her name tag says BETH. “First day?” she says. “A little advice: don’t sign anything before you read it.”</p>
+<p>On the 99th floor, Mr. Victor Price is waiting. He’s tall and elegant, with a perfect smile. He offers you a big salary, an apartment, and one day, your name on the door.</p>
+<p>Then he gives you a gold pen and two papers. The first is your contract, forty pages long. The second is for Mrs. Rosa Lima, a little old lady with a chocolate shop.</p>
+<p>“Two signatures,” he says. “Yours today. Hers tomorrow.”</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="2"><span class="key" aria-hidden="true">1</span><span class="ctext">Sign your contract now.</span></button><button class="choice" type="button" data-to="3"><span class="key" aria-hidden="true">2</span><span class="ctext">Take it home and read it first.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s2" data-n="2" hidden>
+<p class="eyebrow">Part 2</p>
+<h2 tabindex="-1">The Gold Pen</h2>
+<div class="prose">
+<p>You sign. Mr. Price takes your contract and locks it in his desk. “Welcome to the family.”</p>
+<p>Then he tells you about the case. Sweet Empire, the biggest candy company in America, sells Golden Bites: little chocolate balls in a gold box. Sweet Empire says it invented them in 1999. But Mrs. Lima, a Brazilian grandmother in Queens, sells the same chocolate balls in her shop. She calls them brigadeiros.</p>
+<p>“Her paper is simple,” Mr. Price says. “She gets ten thousand dollars, and she never sells chocolate balls again. She’s eighty. She’s alone. Tomorrow, she signs.”</p>
+<p>It sounds easy. But you know almost nothing about this case.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="5"><span class="key" aria-hidden="true">1</span><span class="ctext">Go to Mrs. Lima’s shop tomorrow.</span></button><button class="choice" type="button" data-to="4"><span class="key" aria-hidden="true">2</span><span class="ctext">Study the case in the war room first.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s3" data-n="3" hidden>
+<p class="eyebrow">Part 3</p>
+<h2 tabindex="-1">Forty Pages</h2>
+<div class="prose">
+<p>You don’t sign today. Mr. Price gives you until Friday.</p>
+<p>That night, at home, you read all forty pages. Most of it is boring. But three clauses are very strange, and the last one is at the bottom of page 40, in very small letters:</p>
+<div class="log" aria-label="Document"><p class="log-line"><span class="t">Clause 9:</span> <span>The lawyer never goes home before midnight.</span></p><p class="log-line"><span class="t">Clause 22:</span> <span>The lawyer never says no to Mr. Price.</span></p><p class="log-line"><span class="t">Clause 40:</span> <span>The lawyer can never leave Hale &amp; Price.</span></p></div>
+<p>Then you read Mrs. Lima’s paper. It’s only one page. She gets ten thousand dollars, and she never sells her chocolate balls again. Sweet Empire, the biggest candy company in America, gets her recipe.</p>
+<p>You are afraid of this firm. But if you leave, Mrs. Lima is alone against the biggest law firm in the world.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="4"><span class="key" aria-hidden="true">1</span><span class="ctext">Don’t sign. Go to work tomorrow.</span></button><button class="choice" type="button" data-to="12"><span class="key" aria-hidden="true">2</span><span class="ctext">Say no to the job. Stay safe.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s4" data-n="4" hidden>
+<p class="eyebrow">Part 4</p>
+<h2 tabindex="-1">The War Room</h2>
+<div class="prose">
+<p>The war room is on the 98th floor. There are forty lawyers, three hundred boxes, and a lot of coffee. On a big screen, there’s a photo of one little chocolate ball. Everybody looks at it very seriously.</p>
+<p>“This is a war,” Mr. Price says. “Sweet Empire invented Golden Bites in 1999. Mrs. Lima sells the same thing and calls it a brigadeiro. She signs her paper, or she loses everything.” He looks at you. “Go and bring me her signature.”</p>
+<p>At the back of the room, there’s an old door that says ARCHIVE. A hundred years of old cases are down there. Maybe there’s a case like this one. But Mr. Price wants that signature today.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="5"><span class="key" aria-hidden="true">1</span><span class="ctext">Go to Mrs. Lima’s shop now.</span></button><button class="choice" type="button" data-to="6"><span class="key" aria-hidden="true">2</span><span class="ctext">Go down to the archive first.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s5" data-n="5" hidden>
+<p class="eyebrow">Part 5</p>
+<h2 tabindex="-1">Rosa’s Shop</h2>
+<div class="prose">
+<p>Mrs. Lima’s shop is very small, and it smells of chocolate. On the window, in pink letters: ROSA’S BRAZILIAN SWEETS, SINCE 1985.</p>
+<p>Mrs. Lima is eighty, very short, with big glasses and a big smile. She gives you a brigadeiro. “Eat, meu bem. You’re too thin.” The brigadeiro is perfect.</p>
+<p>On the wall, there’s an old card in a frame. It’s in Portuguese:</p>
+<div class="log" aria-label="Document"><p class="log-line log-plain">Brigadeiro</p><p class="log-line log-plain">Receita da mamãe, 1946</p></div>
+<p>You give Mrs. Lima her paper. She looks at it for a long time. “My English is not very good,” she says. Then she takes your gold pen. “Where do I sign?”</p>
+<p>She trusts you. And she can’t read the paper.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="11"><span class="key" aria-hidden="true">1</span><span class="ctext">Show her where to sign.</span></button><button class="choice" type="button" data-to="8"><span class="key" aria-hidden="true">2</span><span class="ctext">Tell her: “Don’t sign it.”</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s6" data-n="6" hidden>
+<p class="eyebrow">Part 6</p>
+<h2 tabindex="-1">The Archive</h2>
+<div class="prose">
+<p>The archive is cold and quiet. Beth, the woman with the coffee cart, is there. She’s reading an old book.</p>
+<p>“Nobody comes down here,” she says. “What are you looking for?”</p>
+<p>You tell her about the case. “An old case about chocolate? No,” she says. “But read this.” She opens a very old box and gives you one page:</p>
+<div class="log" aria-label="Document"><p class="log-line"><span class="t">Rule 1:</span> <span>A lawyer of this firm never lies to a judge.</span></p><p class="log-line"><span class="t">Rule 2:</span> <span>A lawyer of this firm never asks another lawyer to lie.</span></p><p class="log-line log-plain">A lawyer who breaks these rules leaves the firm. Even the boss.</p><p class="log-line log-plain">Elizabeth Hale, 1926</p></div>
+<p>“Elizabeth Hale started this firm,” Beth says. “She was a great lawyer. Nobody reads her rules now.” She smiles. “I like big cases. Maybe I can come and watch yours.”</p>
+<p>Maybe Mr. Price doesn’t know these rules. Or maybe he knows, and he doesn’t care.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="5"><span class="key" aria-hidden="true">1</span><span class="ctext">Keep the page. Go to Mrs. Lima’s shop.</span></button><button class="choice" type="button" data-to="7"><span class="key" aria-hidden="true">2</span><span class="ctext">Show the page to Mr. Price.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s7" data-n="7" hidden>
+<p class="eyebrow">Part 7</p>
+<h2 tabindex="-1">Old Words</h2>
+<div class="prose">
+<p>Mr. Price reads the page. Then he laughs.</p>
+<p>“Old words from an old woman,” he says, and he puts the page in his pocket. “This is a new firm. Here, we never lose.”</p>
+<p>Then he smiles at you. “I like you. Bring me Mrs. Lima’s signature today, and you are a partner. The youngest partner in the history of Hale &amp; Price. Your name on the door.”</p>
+<p>He offers you his hand. You are angry about the page. But a partner, at your age!</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="11"><span class="key" aria-hidden="true">1</span><span class="ctext">Shake his hand.</span></button><button class="choice" type="button" data-to="5"><span class="key" aria-hidden="true">2</span><span class="ctext">Say nothing. Go to Mrs. Lima’s shop.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s8" data-n="8" hidden>
+<p class="eyebrow">Part 8</p>
+<h2 tabindex="-1">Plan B</h2>
+<div class="prose">
+<p>You read the paper to Mrs. Lima in Portuguese. She listens. Then she gives you back the gold pen.</p>
+<p>“No,” she says. “My mother’s recipe is not for sale.”</p>
+<p>That night, Mr. Price calls you to his office. He isn’t smiling.</p>
+<p>“Tomorrow, we go to court,” he says. “The judge is going to ask about her old card. You say it’s fake. Our expert says the paper is new.”</p>
+<p>“Is it new?” you ask.</p>
+<p>“No,” he says. “But the judge doesn’t know that.” Then he smiles again. “Win this, and you’re a partner. Your name on the door.”</p>
+<p>You are afraid of tomorrow.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="10"><span class="key" aria-hidden="true">1</span><span class="ctext">Go to court tomorrow.</span></button><button class="choice" type="button" data-to="12" data-ifnot="2"><span class="key" aria-hidden="true">2</span><span class="ctext">Quit the firm tonight.</span></button><button class="choice" type="button" data-to="9" data-if="2"><span class="key" aria-hidden="true">3</span><span class="ctext">Quit the firm tonight.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s9" data-n="9" hidden>
+<p class="eyebrow">Part 9</p>
+<h2 tabindex="-1">Page 40</h2>
+<div class="prose">
+<p>“I quit,” you tell Mr. Price.</p>
+<p>He laughs. He takes your contract out of his desk, opens it to the last page, and points at the very small letters at the bottom:</p>
+<div class="log" aria-label="Document"><p class="log-line log-plain">Hale &amp; Price, contract, page 40</p><p class="log-line"><span class="t">Clause 40:</span> <span>The lawyer can never leave Hale &amp; Price.</span></p></div>
+<p>“You signed it,” he says. “You didn’t read it. That’s your problem, not mine. Tomorrow, you tell the judge the card is fake. That’s all.”</p>
+<p>You are angry with Mr. Price. And you are angry with yourself.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="11"><span class="key" aria-hidden="true">1</span><span class="ctext">Say: “OK. I’ll do it.”</span></button><button class="choice" type="button" data-to="10"><span class="key" aria-hidden="true">2</span><span class="ctext">Say: “See you in court.”</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s10" data-n="10" hidden>
+<p class="eyebrow">Part 10</p>
+<h2 tabindex="-1">The Court</h2>
+<div class="prose">
+<p>The next morning, the court is full. Mrs. Lima sits in the front row with her old card and a box of brigadeiros. Behind her, people from her street hold small posters: WE LOVE ROSA.</p>
+<p>Mr. Price sits next to you.</p>
+<p>The judge, a serious man with white hair, looks at the card for a long time. Then he looks at you.</p>
+<p>“Counselor,” he says, “is this card real, or is it fake? I want the truth.”</p>
+<p>Mr. Price whispers: “Say it’s fake.”</p>
+<p>Everybody is looking at you. Mrs. Lima, too.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="11"><span class="key" aria-hidden="true">1</span><span class="ctext">Say: “It’s fake, Your Honor.”</span></button><button class="choice" type="button" data-to="13"><span class="key" aria-hidden="true">2</span><span class="ctext">Say: “It’s real, Your Honor.”</span></button><button class="choice unlocked" type="button" data-to="14" data-if="6" data-ifnot="7"><span class="key" aria-hidden="true">3</span><span class="ctext"><span class="utag">Unlocked</span>Show the judge the page from the archive.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s11" data-n="11" data-end="bad" hidden>
+<p class="eyebrow">Part 11</p>
+<h2 tabindex="-1">Your Name on the Door</h2>
+<div class="prose">
+<p>You do what Mr. Price wants. It’s easy. It’s very easy.</p>
+<p>Hale &amp; Price wins the case, of course. Sweet Empire sells Golden Bites in every store in America, and Mrs. Lima’s shop closes.</p>
+<p>Mr. Price is very happy with you. You get a big office, then a bigger one. You never go home before midnight. You never lose. And you never say no to Mr. Price.</p>
+<p>Ten years later, your name is on the door, in gold.</p>
+<p>Today, a young lawyer sits in your office. It’s her first day, and she is nervous. You give her a contract and a gold pen.</p>
+<p>“Sign here,” you say. And you smile, a perfect smile.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 4</p><ol class="slots" data-n="4" style="--n-end:4"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s12" data-n="12" data-end="bad" hidden>
+<p class="eyebrow">Part 12</p>
+<h2 tabindex="-1">Coming Soon</h2>
+<div class="prose">
+<p>You leave Hale &amp; Price, and you never go back. You are free.</p>
+<p>You find a job in a small, quiet office. Nobody calls you at midnight.</p>
+<p>Two months later, you go to Queens to see Mrs. Lima’s shop. The door is closed, and there’s a new poster on the window:</p>
+<div class="log" aria-label="Document"><p class="log-line log-plain">GOLDEN BITES</p><p class="log-line log-plain">COMING SOON</p></div>
+<p>Hale &amp; Price won the case, of course. Another young lawyer did the job.</p>
+<p>You stand in the street for a long time. You are free. But you didn’t help Mrs. Lima.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 4</p><ol class="slots" data-n="4" style="--n-end:4"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s13" data-n="13" data-end="good" hidden>
+<p class="eyebrow">Part 13</p>
+<h2 tabindex="-1">The First Loss</h2>
+<div class="prose">
+<p>“It’s real, Your Honor,” you say. “Mrs. Lima’s mother made brigadeiros in 1946. Golden Bites started in 1999.”</p>
+<p>Mr. Price stands up and walks out of the court.</p>
+<p>The judge looks at the card again. Then he opens Mrs. Lima’s box and eats a brigadeiro. Then another one. “Mrs. Lima,” he says, “you can sell your brigadeiros forever. Case closed.”</p>
+<p>Everybody claps. Mrs. Lima hugs you. She is crying, and she is very happy.</p>
+<p>For the first time in one hundred years, Hale &amp; Price loses a case. That afternoon, Mr. Price calls you. “You’re fired,” he says. “That’s all.”</p>
+<p>One month later, you have a small office over Mrs. Lima’s shop. Your name is on the door. It’s a very small door.</p>
+<p>Every morning, Mrs. Lima comes up with a plate of brigadeiros. “Eat, meu bem. You’re too thin.”</p>
+<p class="stamp">THE END. <span class="stamp-sub">CASE CLOSED.</span></p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 4</p><ol class="slots" data-n="4" style="--n-end:4"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s14" data-n="14" data-end="bonus" hidden>
+<p class="eyebrow">Part 14</p>
+<h2 tabindex="-1">The Old Rules</h2>
+<div class="prose">
+<p>You stand up and give the judge the page from the archive.</p>
+<p>“Rule 2, Your Honor,” you say. “A lawyer of this firm never asks another lawyer to lie. Mr. Price wants me to say the card is fake. It’s real.”</p>
+<p>Mr. Price laughs. “That page is a hundred years old.”</p>
+<p>At the back of the court, someone stands up. It’s Beth, in her coffee apron. “It’s still the rule,” she says. “My name is Elizabeth Hale. My grandmother started this firm, and half of it is mine.” She looks at Mr. Price. “Victor, you know the rules. Go.”</p>
+<p>Mr. Price walks out. The judge eats a brigadeiro and closes the case. Mrs. Lima wins.</p>
+<p>That afternoon, Beth gives you a new contract and a pen. “I want you as my partner,” she says. “Your name on the door, next to my grandmother’s. Sign here.”</p>
+<p>You smile. “First, I read it.”</p>
+<p class="stamp">THE END. <span class="stamp-sub">BONUS ENDING.</span></p>
+</div>
+<div class="ending"><p class="kind kind-bonus">Bonus ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 4</p><ol class="slots" data-n="4" style="--n-end:4"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+    <footer class="foot">
+      <p>Teacher Alex · Readers · A2+</p>
+      <p>An original story inspired by classic courtroom films</p>
+      <button class="linkbtn" id="reset-endings" type="button">Reset endings</button>
+    </footer>
+  </div>
+</main>
+
+<script>
+/* engine:v2 — choices with conditions ([if 6, not 7] in the .story.md), bonus endings, number keys 1-9 */
+(function(){
+  var ENDINGS = {"11": {"title": "Your Name on the Door", "kind": "bad"}, "12": {"title": "Coming Soon", "kind": "bad"}, "13": {"title": "The First Loss", "kind": "good"}, "14": {"title": "The Old Rules", "kind": "bonus"}};
+  var TITLES = {"1": "The Offer", "2": "The Gold Pen", "3": "Forty Pages", "4": "The War Room", "5": "Rosa’s Shop", "6": "The Archive", "7": "Old Words", "8": "Plan B", "9": "Page 40", "10": "The Court", "11": "Your Name on the Door", "12": "Coming Soon", "13": "The First Loss", "14": "The Old Rules"};
+  var END_ORDER = Object.keys(ENDINGS).map(Number).sort(function(a,b){ return a-b; });
+  var INTENSITY = {"1": 0.35, "2": 0.7, "3": 1.0, "4": 0.8, "5": 0.2, "6": 0.5, "7": 0.9, "8": 0.9, "9": 1.4, "10": 1.1, "11": 1.6, "12": 0, "13": 0.5, "14": 0.7};
+  var MOOD = {"11": "flood", "12": "empty", "13": "win", "14": "bonus"};
+  var STORE = "hale-price-dont-sign-endings-v1";
+  var KIND = { good:"Good ending", bad:"Bad ending", bonus:"Bonus ending" };
+  var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var secs = {};
+  document.querySelectorAll(".sec").forEach(function(a){ secs[+a.dataset.n] = a; });
+  var hero = document.getElementById("hero");
+  var trail = document.getElementById("trail");
+  var btnBack = document.getElementById("btn-back");
+  var hist = [1];
+
+  function loadFound(){
+    try{
+      var v = JSON.parse(localStorage.getItem(STORE) || "[]");
+      return Array.isArray(v) ? v.filter(function(n){ return ENDINGS[n]; }) : [];
+    }catch(e){ return []; }
+  }
+  function saveFound(){ try{ localStorage.setItem(STORE, JSON.stringify(found)); }catch(e){} }
+  var found = loadFound();
+
+  function cur(){ return hist[hist.length-1]; }
+  function nums(s){ return (s || "").split(" ").filter(Boolean); }
+
+  /* a choice shows only when the path so far went through every part in data-if and none in data-ifnot */
+  function showChoices(sec){
+    var seen = {}, k = 0;
+    hist.forEach(function(n){ seen[n] = true; });
+    sec.querySelectorAll(".choice").forEach(function(b){
+      var ok = nums(b.getAttribute("data-if")).every(function(x){ return seen[x]; }) &&
+               !nums(b.getAttribute("data-ifnot")).some(function(x){ return seen[x]; });
+      b.hidden = !ok;
+      if(ok){ k++; var key = b.querySelector(".key"); if(key) key.textContent = k; }
+    });
+  }
+  function visibleChoices(){
+    return [].filter.call(secs[cur()].querySelectorAll(".choice"), function(b){ return !b.hidden; });
+  }
+
+  function renderTrail(){
+    trail.textContent = "";
+    var l = document.createElement("span"); l.className = "lbl"; l.textContent = "Your path"; trail.appendChild(l);
+    hist.forEach(function(n, i){
+      if(i){ var a = document.createElement("span"); a.className = "arr"; a.textContent = "→"; a.setAttribute("aria-hidden","true"); trail.appendChild(a); }
+      var s = document.createElement("span");
+      s.className = "step" + (i === hist.length-1 ? " now" : "");
+      s.textContent = n; s.title = TITLES[n] || "";
+      trail.appendChild(s);
+    });
+  }
+
+  function renderFound(now){
+    document.querySelectorAll(".found").forEach(function(box){
+      box.querySelector(".found-count").textContent = found.length;
+      var ol = box.querySelector(".slots"); ol.textContent = "";
+      END_ORDER.forEach(function(n){
+        var e = ENDINGS[n], got = found.indexOf(n) !== -1;
+        var li = document.createElement("li");
+        li.className = "slot " + e.kind + (got ? " got" : "") + (n === now ? " now" : "");
+        var k = document.createElement("span"); k.className = "sk";
+        k.textContent = got ? (KIND[e.kind] || "Ending") : (e.kind === "bonus" ? KIND.bonus : "Not found");
+        var t = document.createElement("span"); t.className = "st";
+        t.textContent = got ? e.title : "? ? ?";
+        li.appendChild(k); li.appendChild(t); ol.appendChild(li);
+      });
+    });
+  }
+
+  function render(animate){
+    var n = cur();
+    Object.keys(secs).forEach(function(k){ secs[k].hidden = (+k !== n); });
+    var a = secs[n];
+    showChoices(a);
+    if(animate && !reduced){ a.classList.remove("enter"); void a.offsetWidth; a.classList.add("enter"); }
+    hero.hidden = !(n === 1 && hist.length === 1);
+    btnBack.disabled = hist.length < 2;
+    document.body.setAttribute("data-mood", MOOD[n] || "");
+    renderTrail();
+    if(a.dataset.end){
+      if(found.indexOf(n) === -1){ found.push(n); saveFound(); }
+      renderFound(n);
+    }
+    bg.scene(n);
+  }
+
+  function focusTop(){
+    try{ window.scrollTo({ top:0, behavior: reduced ? "auto" : "smooth" }); }catch(e){ window.scrollTo(0,0); }
+    var h = secs[cur()].querySelector("h2");
+    if(h){ try{ h.focus({ preventScroll:true }); }catch(e){ h.focus(); } }
+  }
+  function go(to){ if(!secs[to]) return; hist.push(to); render(true); focusTop(); }
+  function back(){ if(hist.length > 1){ hist.pop(); render(true); focusTop(); } }
+  function restart(){ hist = [1]; render(true); focusTop(); }
+
+  document.addEventListener("click", function(e){
+    var c = e.target.closest(".choice");
+    if(c){ go(+c.dataset.to); return; }
+    if(e.target.closest(".js-restart")){ restart(); return; }
+    if(e.target.closest(".js-back")){ back(); return; }
+    if(e.target.closest("#reset-endings")){ found = []; saveFound(); renderFound(secs[cur()].dataset.end ? cur() : 0); }
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.metaKey || e.ctrlKey || e.altKey) return;
+    if(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if(/^[1-9]$/.test(e.key)){
+      var b = visibleChoices()[+e.key - 1];
+      if(b){ e.preventDefault(); b.click(); }
+    } else if(e.key === "ArrowLeft"){ if(hist.length > 1){ e.preventDefault(); back(); } }
+  });
+
+  /* ---------- fine print: short lines of contract text drift up behind the page.
+     flood: they turn to ink and the margins fill with signatures
+     empty: everything fades out at once
+     win:   the lines break into chocolate sprinkles that fall
+     bonus: the same, with colored sprinkles ---------- */
+  var bg = (function(){
+    var cv = document.getElementById("print");
+    var ctx = cv.getContext && cv.getContext("2d");
+    if(!ctx) return { scene:function(){} };
+    var W = 0, H = 0, dpr = 1, col = document.getElementById("col"), R = Math.random;
+    var rows = [], sigs = [], bits = [];
+    var mood = "", intensity = .35, colAlpha = .1, running = false, last = 0, sigClock = 0, bitClock = 0;
+    var C = { print:"#34405f", sig:"#2346a8", choc:"#5b2f19", pal:["#d2457a","#d99a0b","#2f8f6a","#3d63c9","#e2622f"], k:.32 };
+
+    function readColors(){
+      var cs = getComputedStyle(document.body);
+      var v = function(name, d){ return cs.getPropertyValue(name).trim() || d; };
+      C.print = v("--print", C.print); C.sig = v("--sig", C.sig); C.choc = v("--choc", C.choc);
+      C.pal = ["--c1","--c2","--c3","--c4","--c5"].map(function(name, i){ return v(name, C.pal[i]); });
+      C.k = parseFloat(v("--print-strength", C.k)) || C.k;
+    }
+    function sweet(){ return mood === "win" || mood === "bonus"; }
+    function rowTarget(){ return (sweet() || mood === "empty") ? 0 : Math.min(260, Math.round(intensity * W * H / 9000)); }
+    function makeRow(y){
+      var len = 40 + R()*170, words = [], x = 0;
+      while(x < len){ var w = 4 + R()*24; words.push([x, w]); x += w + 3 + R()*5; }
+      return { x:R()*(W + 120) - 60, y:(y == null ? R()*H : y), words:words, len:x,
+               a:0, ta:.35 + R()*.65, sp:.5 + R()*.9, th:1 + R()*1.1, dying:false, delay:0 };
+    }
+    function syncRows(spread){
+      var alive = rows.filter(function(r){ return !r.dying; }), want = rowTarget();
+      for(var i = alive.length; i < want; i++){ var r = makeRow(); if(reduced) r.a = r.ta; rows.push(r); }
+      for(var j = alive.length - 1, extra = alive.length - want; j >= 0 && extra > 0; j--, extra--){
+        alive[j].dying = true; alive[j].delay = R() * spread;
+      }
+    }
+    function makeSig(){
+      var w = 70 + R()*110, h = 18 + R()*22, loops = 3 + Math.floor(R()*4), ph = R()*6.283, pts = [], n = 90;
+      for(var i = 0; i <= n; i++){
+        var t = i / n, a = t * 6.283 * loops + ph;
+        pts.push([t*w + Math.sin(a)*h*.32, Math.sin(a*.5)*h*.42*(1 - t*.35) + Math.cos(a)*h*.16]);
+      }
+      pts.push([w*1.04, h*.5]); pts.push([w*.06, h*.62]);
+      return { x:R()*Math.max(1, W - 140) + 10, y:R()*Math.max(1, H - 60) + 30, w:w, pts:pts, p:0,
+               hold:1.5 + R()*2.5, a:.55 + R()*.45, rot:(R() - .5)*.3, s:.8 + R()*.6 };
+    }
+    function makeBit(x, y, a){
+      var fresh = y == null;
+      return { x:x, y:fresh ? -10 - R()*40 : y, vx:(R() - .5)*(fresh ? 10 : 34), vy:fresh ? 12 + R()*18 : -14 - R()*30,
+               rot:R()*6.283, vr:(R() - .5)*4, len:5 + R()*4, c:mood === "bonus" ? Math.floor(R()*5) : -1,
+               a:Math.max(.45, a == null ? .9 : a) };
+    }
+    function shatter(){
+      rows.forEach(function(r){
+        r.words.forEach(function(wd){ if(R() < .7) bits.push(makeBit(r.x + wd[0] + wd[1]/2, r.y, r.a)); });
+      });
+      rows = [];
+    }
+    function resize(){
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth; H = window.innerHeight;
+      cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      syncRows(1);
+      if(reduced){ settle(); draw(); }
+    }
+    function settle(){
+      rows = rows.filter(function(r){ return !r.dying; });
+      rows.forEach(function(r){ r.a = r.ta; });
+    }
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      var r = col.getBoundingClientRect(), L = r.left - 12, Rt = r.right + 12;
+      ctx.lineCap = "round"; ctx.lineJoin = "round";
+      ctx.strokeStyle = C.print;
+      for(var i = 0; i < rows.length; i++){
+        var q = rows[i], al = q.a * C.k * ((q.x + q.len > L && q.x < Rt) ? colAlpha : 1);
+        if(al < .004) continue;
+        ctx.globalAlpha = Math.min(1, al); ctx.lineWidth = q.th;
+        ctx.beginPath();
+        for(var j = 0; j < q.words.length; j++){ var w = q.words[j]; ctx.moveTo(q.x + w[0], q.y); ctx.lineTo(q.x + w[0] + w[1], q.y); }
+        ctx.stroke();
+      }
+      ctx.strokeStyle = C.sig;
+      for(var s = 0; s < sigs.length; s++){
+        var g = sigs[s], inCol = g.x + g.w*g.s > L && g.x < Rt;
+        var al2 = g.a * Math.min(1, C.k * 2.6) * (inCol ? colAlpha * 1.4 : 1);
+        if(al2 < .004) continue;
+        var upto = Math.max(2, Math.floor(g.p * g.pts.length));
+        ctx.save(); ctx.translate(g.x, g.y); ctx.rotate(g.rot); ctx.scale(g.s, g.s);
+        ctx.globalAlpha = Math.min(1, al2); ctx.lineWidth = 1.7 / g.s;
+        ctx.beginPath(); ctx.moveTo(g.pts[0][0], g.pts[0][1]);
+        for(var m = 1; m < upto; m++) ctx.lineTo(g.pts[m][0], g.pts[m][1]);
+        ctx.stroke(); ctx.restore();
+      }
+      for(var b = 0; b < bits.length; b++){
+        var t = bits[b], al3 = t.a * Math.min(1, C.k * 2.4) * ((t.x > L && t.x < Rt) ? .35 : 1);
+        if(al3 < .004) continue;
+        ctx.globalAlpha = Math.min(1, al3);
+        ctx.fillStyle = t.c < 0 ? C.choc : C.pal[t.c];
+        ctx.save(); ctx.translate(t.x, t.y); ctx.rotate(t.rot);
+        ctx.beginPath();
+        if(ctx.roundRect) ctx.roundRect(-t.len/2, -1.3, t.len, 2.6, 1.3); else ctx.rect(-t.len/2, -1.3, t.len, 2.6);
+        ctx.fill(); ctx.restore();
+      }
+      ctx.globalAlpha = 1;
+    }
+    function step(dt){
+      var speed = 6 + 10 * intensity;
+      for(var i = rows.length - 1; i >= 0; i--){
+        var q = rows[i];
+        q.y -= q.sp * speed * dt;
+        if(q.y < -10){
+          if(q.dying){ rows.splice(i, 1); continue; }
+          q.y = H + 10; q.x = R()*(W + 120) - 60;
+        }
+        if(q.dying){ q.delay -= dt; if(q.delay <= 0) q.ta = 0; }
+        q.a += (q.ta - q.a) * Math.min(1, dt * (mood === "empty" ? 4 : 1.6));
+        if(q.dying && q.delay <= 0 && q.a < .01) rows.splice(i, 1);
+      }
+      if(mood === "flood"){
+        sigClock -= dt;
+        if(sigClock <= 0 && sigs.length < 26){ sigs.push(makeSig()); sigClock = .25 + R()*.35; }
+      }
+      for(var s = sigs.length - 1; s >= 0; s--){
+        var g = sigs[s];
+        if(mood !== "flood"){ g.p = 1; g.a -= dt * 1.6; }
+        else if(g.p < 1){ g.p = Math.min(1, g.p + dt / 1.1); }
+        else { g.hold -= dt; if(g.hold <= 0) g.a -= dt * .6; }
+        if(g.a <= 0) sigs.splice(s, 1);
+      }
+      if(sweet()){
+        bitClock -= dt;
+        var every = 1 / Math.max(.5, intensity * W / 90);
+        while(bitClock <= 0){ bits.push(makeBit(R()*W, null)); bitClock += every; }
+      }
+      for(var b = bits.length - 1; b >= 0; b--){
+        var t = bits[b];
+        t.vy = Math.min(42, t.vy + 34 * dt); t.vx *= (1 - .8 * dt);
+        t.x += t.vx * dt; t.y += t.vy * dt; t.rot += t.vr * dt;
+        if(!sweet()) t.a -= dt * 1.8;
+        if(t.y > H + 20 || t.a <= 0) bits.splice(b, 1);
+      }
+    }
+    function loop(ts){
+      if(!running) return;
+      var dt = last ? Math.min(.05, (ts - last) / 1000) : .016; last = ts;
+      step(dt); draw();
+      requestAnimationFrame(loop);
+    }
+    function start(){ if(reduced || running) return; running = true; last = 0; requestAnimationFrame(loop); }
+    function stop(){ running = false; }
+
+    function scene(n){
+      var m = MOOD[n] || "", prev = mood;
+      mood = m;
+      intensity = INTENSITY[n] != null ? INTENSITY[n] : .3;
+      colAlpha = m === "flood" ? .14 : .1;
+      readColors();
+      if(sweet() && prev !== m) shatter();
+      syncRows(m === "empty" ? .25 : 1.2);
+      if(reduced){
+        settle(); sigs = []; bits = [];
+        if(m === "flood"){ for(var i = 0; i < 12; i++){ var g = makeSig(); g.p = 1; sigs.push(g); } }
+        if(sweet()){ for(var j = 0, nb = Math.round(W * H / 9000); j < nb; j++) bits.push(makeBit(R()*W, R()*H, .9)); }
+        draw();
+      }
+    }
+
+    window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", function(){ document.hidden ? stop() : start(); });
+    if(window.matchMedia){
+      var mq = matchMedia("(prefers-color-scheme: dark)");
+      var onScheme = function(){ readColors(); if(reduced) draw(); };
+      mq.addEventListener ? mq.addEventListener("change", onScheme) : mq.addListener(onScheme);
+    }
+    new MutationObserver(function(){ readColors(); if(reduced) draw(); })
+      .observe(document.documentElement, { attributes:true, attributeFilter:["data-theme"] });
+
+    readColors(); resize(); start();
+    return { scene:scene };
+  })();
+
+  render(false);
+})();
+</script>
+
+</body>
+</html>

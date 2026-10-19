@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Paranormal Order: Don't Read</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=Courier+Prime:wght@400;700&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --ground:#100e0b;
+  --ink:#eee5d0;
+  --ink-soft:#b0a48a;
+  --line:#3a3225;
+  --panel:#18150f;
+  --panel-hover:#221d13;
+  --accent:#d8a83c;
+  --accent-ink:#efc967;
+  --on-accent:#140f05;
+  --sigil:#d8a83c;
+  --sigil-strength:.5;
+  --win:#d4474d;
+  --focus:#f3d27a;
+  --display:"IM Fell English SC","Iowan Old Style",Georgia,serif;
+  --body:"Literata",Georgia,"Times New Roman",serif;
+  --mono:"Courier Prime","Courier New",ui-monospace,monospace;
+  --fs-body:clamp(1.15rem, .95rem + 1vw, 1.7rem);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    color-scheme: light;
+    --ground:#f6f5f1;
+    --ink:#1c1914;
+    --ink-soft:#5f5747;
+    --line:#d8d1c0;
+    --panel:#ffffff;
+    --panel-hover:#fbf5e4;
+    --accent:#a47710;
+    --accent-ink:#7a5706;
+    --on-accent:#ffffff;
+    --sigil:#b3861a;
+    --sigil-strength:.62;
+    --win:#a51f26;
+    --focus:#7a5706;
+  }
+}
+:root[data-theme="light"]{
+  color-scheme: light;
+  --ground:#f6f5f1;
+  --ink:#1c1914;
+  --ink-soft:#5f5747;
+  --line:#d8d1c0;
+  --panel:#ffffff;
+  --panel-hover:#fbf5e4;
+  --accent:#a47710;
+  --accent-ink:#7a5706;
+  --on-accent:#ffffff;
+  --sigil:#b3861a;
+  --sigil-strength:.62;
+  --win:#a51f26;
+  --focus:#7a5706;
+}
+:root[data-theme="dark"]{ color-scheme: dark; }
+
+body[data-mood="win"]{ --accent:var(--win); --accent-ink:var(--win); --focus:var(--win); }
+body[data-mood="empty"]{ --accent:var(--ink-soft); --accent-ink:var(--ink-soft); --sigil:var(--ink-soft); }
+
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--body);
+  -webkit-font-smoothing:antialiased;
+}
+#sigils{ position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+
+.bar{
+  position:sticky; top:env(safe-area-inset-top,0px); z-index:3;
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px;
+  padding:10px 16px;
+  background:color-mix(in srgb, var(--ground) 86%, transparent);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line);
+}
+.brand{ display:flex; align-items:baseline; gap:.6em; font-family:var(--mono); font-size:.8rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); }
+.brand b{ font-weight:700; color:var(--accent-ink); letter-spacing:.16em; }
+.controls{ display:flex; gap:8px; }
+.ctl{
+  font-family:var(--mono); font-size:.85rem; color:var(--ink);
+  background:transparent; border:1px solid var(--line); border-radius:3px;
+  padding:.45em .8em; cursor:pointer;
+}
+.ctl:hover:not(:disabled){ border-color:var(--accent); }
+.ctl:disabled{ opacity:.4; cursor:default; }
+
+main{ position:relative; z-index:1; padding-inline:16px; padding-block:clamp(1.5rem, 1rem + 3vw, 3.5rem) 4rem; }
+.col{ max-width:34em; margin-inline:auto; font-size:var(--fs-body); }
+
+.hero{ margin-bottom:2.2em; }
+.hero-kicker{ margin:0; font-family:var(--mono); font-size:clamp(.8rem,.7rem + .3vw,1rem); letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); }
+.hero h1{
+  font-family:var(--display); font-weight:400;
+  font-size:clamp(3.2rem, 1.8rem + 7vw, 7.5rem); line-height:.88;
+  margin:.12em 0 .3em; color:var(--accent-ink); letter-spacing:.005em;
+  text-wrap:balance;
+}
+.hero .lede{ margin:0; color:var(--ink-soft); line-height:1.55; max-width:30em; }
+.hero .lede strong{ color:var(--ink); font-weight:600; }
+
+.trail{
+  display:flex; flex-wrap:wrap; align-items:center; gap:.35em .5em;
+  margin:0 0 1.6em; font-family:var(--mono); font-size:clamp(.8rem,.7rem + .3vw,1rem); color:var(--ink-soft);
+}
+.trail .lbl{ letter-spacing:.14em; text-transform:uppercase; margin-right:.3em; }
+.trail .step{ font-variant-numeric:tabular-nums; border:1px solid var(--line); border-radius:3px; padding:.05em .45em; }
+.trail .step.now{ border-color:var(--accent); color:var(--accent-ink); font-weight:700; }
+.trail .arr{ opacity:.6; }
+
+.eyebrow{ margin:0; font-family:var(--mono); font-size:clamp(.8rem,.7rem + .3vw,1rem); letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); }
+.sec h2{
+  font-family:var(--display); font-weight:400;
+  font-size:clamp(2.1rem, 1.5rem + 2.6vw, 3.6rem); line-height:1.02;
+  margin:.12em 0 .7em; color:var(--accent-ink); text-wrap:balance;
+}
+.sec h2:focus, .sec h2:focus-visible{ outline:none; }
+
+.prose{ display:flex; flex-direction:column; gap:.85em; }
+.prose p{ margin:0; line-height:1.62; }
+
+.log{
+  font-family:var(--mono); font-size:.9em;
+  background:var(--panel); border-left:3px solid var(--accent);
+  padding:.8em 1em; display:flex; flex-direction:column; gap:.3em;
+}
+.log-line{ display:grid; grid-template-columns:6.2em 1fr; gap:.8em; line-height:1.45 !important; }
+.log-line .t{ color:var(--accent-ink); font-variant-numeric:tabular-nums; }
+.log-line.log-plain{ display:block; }
+
+.choices{ margin-top:2em; display:flex; flex-direction:column; gap:.7em; }
+.ask{ margin:0 0 .15em; font-family:var(--mono); font-size:clamp(.8rem,.7rem + .3vw,1rem); letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); }
+.choice{
+  display:flex; align-items:center; gap:.85em; width:100%;
+  font:inherit; text-align:left; color:var(--ink);
+  background:var(--panel); border:1px solid var(--line); border-radius:4px;
+  padding:.75em 1em; cursor:pointer;
+  transition:border-color .2s, background-color .2s, transform .2s;
+}
+.choice:hover{ border-color:var(--accent); background:var(--panel-hover); transform:translateX(3px); }
+.choice:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+.key{
+  flex:none; display:grid; place-items:center;
+  width:1.85em; height:1.85em; border-radius:50%;
+  font-family:var(--mono); font-weight:700; font-size:.85em;
+  color:var(--accent-ink); border:1.5px solid var(--accent);
+}
+.ctext{ line-height:1.35; }
+.keyhint{ display:none; margin:.4em 0 0; font-family:var(--mono); font-size:.72em; color:var(--ink-soft); }
+@media (hover:hover) and (pointer:fine){ .keyhint{ display:block; } }
+
+.stamp{
+  align-self:flex-start;
+  margin:1.1em 0 0 !important;
+  font-family:var(--display); font-size:clamp(2rem, 1.4rem + 3vw, 3.6rem); line-height:1 !important;
+  color:var(--accent-ink); border:4px double var(--accent);
+  padding:.18em .55em .12em; transform:rotate(-2deg); letter-spacing:.05em;
+}
+.stamp-sub{ display:block; font-size:.5em; letter-spacing:.14em; margin-top:.35em; }
+
+.ending{ margin-top:2em; display:flex; flex-direction:column; gap:1.1em; }
+.kind{ margin:0; font-family:var(--mono); font-size:clamp(.8rem,.7rem + .3vw,1rem); letter-spacing:.16em; text-transform:uppercase; }
+.kind-bad{ color:var(--ink-soft); }
+.kind-good{ color:var(--accent-ink); font-weight:700; }
+.found{ border-top:1px solid var(--line); padding-top:1em; }
+.found-label{ margin:0; font-family:var(--mono); font-size:clamp(.8rem,.7rem + .3vw,1rem); color:var(--ink-soft); }
+.found-label b{ color:var(--ink); font-variant-numeric:tabular-nums; }
+.slots{ list-style:none; margin:.7em 0 0; padding:0; display:grid; grid-template-columns:repeat(var(--n-end,3),minmax(0,1fr)); gap:.6em; font-size:.8em; }
+.slot{ border:1px dashed var(--line); border-radius:4px; padding:.6em .75em; color:var(--ink-soft); display:flex; flex-direction:column; gap:.2em; }
+.slot .sk{ font-family:var(--mono); font-size:.72em; letter-spacing:.12em; text-transform:uppercase; }
+.slot .st{ font-family:var(--display); font-size:1.15em; line-height:1.1; }
+.slot.got{ border-style:solid; color:var(--ink); }
+.slot.got.good{ border-color:var(--accent); }
+.slot.now{ box-shadow:inset 0 0 0 1px var(--accent); }
+@media (max-width:560px){ .slots{ grid-template-columns:1fr; } }
+
+.end-actions{ display:flex; flex-wrap:wrap; gap:.6em; }
+.btn{ font:inherit; font-size:.9em; border-radius:4px; padding:.6em 1.1em; cursor:pointer; border:1.5px solid var(--accent); }
+.btn-main{ background:var(--accent); color:var(--on-accent); font-weight:600; }
+.btn-main:hover{ filter:brightness(1.08); }
+.btn-ghost{ background:transparent; color:var(--ink); border-color:var(--line); }
+.btn-ghost:hover{ border-color:var(--accent); }
+.btn:focus-visible, .ctl:focus-visible, .linkbtn:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+
+.foot{ margin-top:4em; padding-top:1em; border-top:1px solid var(--line); display:flex; flex-wrap:wrap; justify-content:space-between; gap:.6em 1.2em; font-family:var(--mono); font-size:.8rem; color:var(--ink-soft); }
+.foot p{ margin:0; }
+.linkbtn{ font:inherit; color:var(--ink-soft); background:none; border:0; padding:0; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+.linkbtn:hover{ color:var(--ink); }
+
+.sec.enter{ animation:rise .45s ease-out both; }
+@keyframes rise{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){
+  .sec.enter{ animation:none; }
+  .choice, .choice:hover{ transition:none; transform:none; }
+}
+</style>
+</head>
+<body>
+
+
+<canvas id="sigils" aria-hidden="true"></canvas>
+
+<header class="bar">
+  <div class="brand"><b>Paranormal Order</b><span>Don’t Read</span></div>
+  <nav class="controls" aria-label="Story controls">
+    <button class="ctl js-back" id="btn-back" type="button" disabled>&#8592; Back</button>
+    <button class="ctl js-restart" type="button">Start again</button>
+  </nav>
+</header>
+
+<main>
+  <div class="col" id="col">
+    <section class="hero" id="hero">
+      <p class="hero-kicker">A Paranormal Order story</p>
+      <h1>Don’t Read</h1>
+      <p class="lede">Read each part. At the end, choose <strong>1</strong> or <strong>2</strong>. There are three endings. Can you find the good one?</p>
+    </section>
+
+    <p class="trail" id="trail" aria-live="polite"><span class="lbl">Your path</span><span class="step now">1</span></p>
+
+<article class="sec" id="s1" data-n="1">
+<p class="eyebrow">Part 1</p>
+<h2 tabindex="-1">The Call</h2>
+<div class="prose">
+<p>Your phone rings. It’s late at night.</p>
+<p>“Agent, this is Mr. Verity. I have a job for you.”</p>
+<p>You are a new agent of the Order. This is your first mission.</p>
+<p>“There’s an old library in a small town,” he says. “It’s closed now. Only one man works there: Osvaldo, the night guard. Last night, Osvaldo didn’t go home. His daughter, Ana, is very worried. And at night, people in town see gold lights in the windows of the library.”</p>
+<p>“What do I do?” you ask.</p>
+<p>“Go there tonight and look around. Don’t fight. A team arrives tomorrow morning. And if you see gold symbols, don’t read them. Sometimes it’s better not to know.”</p>
+<p>An hour later, you are in front of the old library. The front door is open. At the back of the building, there’s a small light.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="2"><span class="key" aria-hidden="true">1</span><span class="ctext">Go in through the front door.</span></button><button class="choice" type="button" data-to="3"><span class="key" aria-hidden="true">2</span><span class="ctext">Walk to the light at the back.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s2" data-n="2" hidden>
+<p class="eyebrow">Part 2</p>
+<h2 tabindex="-1">The Hall</h2>
+<div class="prose">
+<p>You go in. It’s very dark, so you turn on your flashlight.</p>
+<p>The walls are full of gold symbols. They move slowly, like insects. The Order has a name for them: sigils.</p>
+<p>You remember Mr. Verity’s words: don’t read them. You look at the floor.</p>
+<p>Then you hear whispers: many quiet voices. They come from two places: from the stairs down to the basement, and from the stairs up to the reading room.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="4"><span class="key" aria-hidden="true">1</span><span class="ctext">Go down to the basement.</span></button><button class="choice" type="button" data-to="5"><span class="key" aria-hidden="true">2</span><span class="ctext">Go up to the reading room.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s3" data-n="3" hidden>
+<p class="eyebrow">Part 3</p>
+<h2 tabindex="-1">The Guard’s Room</h2>
+<div class="prose">
+<p>You walk to the back of the building. The light comes from a small room with an open door. It’s the guard’s room.</p>
+<p>There’s a chair, a radio, and a cup of cold coffee. On the wall, there’s a photo of a man and a young woman. They are smiling. Under the photo, someone wrote: “Me and Ana.” So this man is Osvaldo.</p>
+<p>On the table, there’s a notebook. You open it and read:</p>
+<div class="log" aria-label="Document"><p class="log-line"><span class="t">10 p.m.</span> <span>Everything OK.</span></p><p class="log-line"><span class="t">11 p.m.</span> <span>A noise in the basement.</span></p><p class="log-line"><span class="t">11:30 p.m.</span> <span>I found a book. A very old book.</span></p></div>
+<p>After that, there are no words. There are only gold symbols. On the last page, the symbols move.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="10"><span class="key" aria-hidden="true">1</span><span class="ctext">Read the last page.</span></button><button class="choice" type="button" data-to="4"><span class="key" aria-hidden="true">2</span><span class="ctext">Close the notebook and go to the basement.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s4" data-n="4" hidden>
+<p class="eyebrow">Part 4</p>
+<h2 tabindex="-1">The Stairs</h2>
+<div class="prose">
+<p>You go down the stairs to the basement. The stairs are old, and every step makes a noise. It’s very cold here.</p>
+<p>At the bottom of the stairs, there’s a door with a small sign: ARCHIVE.</p>
+<p>Under the door, you see a gold light. Behind the door, a man whispers. You can’t understand his words.</p>
+<p>You look at your phone. There’s a signal, but it’s weak.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="6"><span class="key" aria-hidden="true">1</span><span class="ctext">Open the door.</span></button><button class="choice" type="button" data-to="7"><span class="key" aria-hidden="true">2</span><span class="ctext">Call Mr. Verity first.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s5" data-n="5" hidden>
+<p class="eyebrow">Part 5</p>
+<h2 tabindex="-1">The Reading Room</h2>
+<div class="prose">
+<p>You go up the stairs. The reading room is big and dark. There are books on the floor, hundreds of books. All of them are open, and every page is full of gold symbols.</p>
+<p>The whispers are very loud here. You listen, and you hear one word again and again.</p>
+<p>It’s your name.</p>
+<p>You are very afraid. Your hands shake. Maybe Osvaldo is in this building. Maybe he needs help. But the front door is very close.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="4"><span class="key" aria-hidden="true">1</span><span class="ctext">Go down to the basement.</span></button><button class="choice" type="button" data-to="11"><span class="key" aria-hidden="true">2</span><span class="ctext">Run out of the library.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s6" data-n="6" hidden>
+<p class="eyebrow">Part 6</p>
+<h2 tabindex="-1">The Archive</h2>
+<div class="prose">
+<p>You open the door. The room is small and full of old boxes.</p>
+<p>In the middle of the room, a man sits at a table. It’s the night guard, Osvaldo. He has a big old book in his hands. The gold light comes from the pages of the book.</p>
+<p>Osvaldo reads and reads. He whispers the words. His eyes are white. There are gold symbols on his hands and on his face.</p>
+<p>He doesn’t look at you. He doesn’t stop.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="8"><span class="key" aria-hidden="true">1</span><span class="ctext">Take the book from his hands.</span></button><button class="choice" type="button" data-to="9"><span class="key" aria-hidden="true">2</span><span class="ctext">Say his name and talk to him.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s7" data-n="7" hidden>
+<p class="eyebrow">Part 7</p>
+<h2 tabindex="-1">Mr. Verity</h2>
+<div class="prose">
+<p>Mr. Verity answers. “Tell me, agent.”</p>
+<p>You tell him everything: the gold light, the whispers, the man behind the door.</p>
+<p>For a moment, he is quiet. Then he says: “Gold symbols. Whispers. This is the element of Knowledge. Knowledge is calm. It has no feelings. Blood is different. Blood is the element of strong feelings: love, pain, hate. And Blood is stronger than Knowledge. Remember that.”</p>
+<p>“Can the team come now?” you ask.</p>
+<p>“No. The team is far away. And Osvaldo can’t wait until morning. It’s your decision, agent.”</p>
+<p>Then the call ends. No signal.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="6"><span class="key" aria-hidden="true">1</span><span class="ctext">Open the door.</span></button><button class="choice" type="button" data-to="11"><span class="key" aria-hidden="true">2</span><span class="ctext">Go outside and wait for the team.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s8" data-n="8" hidden>
+<p class="eyebrow">Part 8</p>
+<h2 tabindex="-1">The Book</h2>
+<div class="prose">
+<p>You take the book with both hands and pull. But Osvaldo’s hands are strong. You pull again, harder.</p>
+<p>The book falls on the floor. It opens. Osvaldo doesn’t move. He looks at the open book and whispers.</p>
+<p>Gold light fills the room. Now the whispers are inside your head. “Read,” they say. “Read. Read.”</p>
+<p>You look down at the page. The symbols are strange, but you almost understand them. Maybe you can understand everything.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="10"><span class="key" aria-hidden="true">1</span><span class="ctext">Read the page.</span></button><button class="choice" type="button" data-to="9"><span class="key" aria-hidden="true">2</span><span class="ctext">Look away from the page and talk to Osvaldo.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s9" data-n="9" hidden>
+<p class="eyebrow">Part 9</p>
+<h2 tabindex="-1">Osvaldo</h2>
+<div class="prose">
+<p>You don’t look at the book. You look at Osvaldo.</p>
+<p>“Osvaldo,” you say. “Can you hear me?”</p>
+<p>He doesn’t answer. He only whispers the words of the book. His face is very calm. Too calm. He isn’t happy. He isn’t sad. He isn’t afraid. There is nothing in his face.</p>
+<p>You need to wake him up. But how?</p>
+<p>The gold light is warm and beautiful. Maybe the answer is in the book.</p>
+</div>
+<div class="choices" role="group" aria-label="What do you do?"><p class="ask">What do you do?</p><button class="choice" type="button" data-to="12"><span class="key" aria-hidden="true">1</span><span class="ctext">Talk to him about Ana.</span></button><button class="choice" type="button" data-to="10"><span class="key" aria-hidden="true">2</span><span class="ctext">Look for the answer in the book.</span></button><p class="keyhint">Keyboard: press a number to choose &#183; &#8592; to go back</p></div>
+</article>
+
+<article class="sec" id="s10" data-n="10" data-end="bad" hidden>
+<p class="eyebrow">Part 10</p>
+<h2 tabindex="-1">The Words</h2>
+<div class="prose">
+<p>You read.</p>
+<p>At first, the symbols are strange. Then, slowly, they are not strange. You understand one. Then ten. Then a hundred.</p>
+<p>The whispers are happy now. They tell you everything about the Other Side, the world of the paranormal. You want more, so you read more.</p>
+<p>You are not afraid now. You are not sad. You feel nothing.</p>
+<p>You forget the library. You forget the Order. Then you forget your name.</p>
+<p>In the morning, the Order finds you. You are sitting on the floor, reading. You don’t stop. You don’t want to stop.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 3</p><ol class="slots" data-n="3" style="--n-end:3"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s11" data-n="11" data-end="bad" hidden>
+<p class="eyebrow">Part 11</p>
+<h2 tabindex="-1">The Empty Library</h2>
+<div class="prose">
+<p>You leave the library. You sit in your car and wait. You don’t sleep.</p>
+<p>In the morning, the team from the Order arrives. You go into the library with them.</p>
+<p>The walls are clean. There are no symbols and no whispers. The team looks everywhere. In the basement, in a small room, there’s a table and a chair. Nothing more. No Osvaldo.</p>
+<p>You are alive. But you are very sad. You didn’t help Osvaldo.</p>
+<p>The Order looks for him for months, but they never find him. And at night, people in town still see gold lights. Now they are in other windows.</p>
+<p class="stamp">THE END</p>
+</div>
+<div class="ending"><p class="kind kind-bad">Bad ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 3</p><ol class="slots" data-n="3" style="--n-end:3"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+<article class="sec" id="s12" data-n="12" data-end="good" hidden>
+<p class="eyebrow">Part 12</p>
+<h2 tabindex="-1">Ana</h2>
+<div class="prose">
+<p>“Osvaldo, listen to me. Your daughter is waiting for you. She is very worried. She needs you.”</p>
+<p>He whispers. He doesn’t stop.</p>
+<p>You speak louder. “Ana loves you! Go home to Ana!”</p>
+<p>Osvaldo stops whispering. Slowly, his face changes. First, he is confused. Then he is afraid. Then he starts to cry.</p>
+<p>His eyes are not white now. One by one, the gold symbols disappear from his skin.</p>
+<p>“Ana,” he says. “Where is Ana?”</p>
+<p>You close the book. You don’t look at the pages. The whispers stop, and the gold light goes out.</p>
+<p>That night, you take Osvaldo home. Ana opens the door. She hugs her father, and she cries too.</p>
+<p>In the morning, the team from the Order arrives and takes the book.</p>
+<p>Your phone rings. It’s Mr. Verity.</p>
+<p>“Good work, agent.”</p>
+<p class="stamp">THE END. <span class="stamp-sub">MISSION COMPLETE.</span></p>
+</div>
+<div class="ending"><p class="kind kind-good">Good ending</p><div class="found"><p class="found-label">Endings found: <b class="found-count">0</b> of 3</p><ol class="slots" data-n="3" style="--n-end:3"></ol></div><div class="end-actions"><button class="btn btn-main js-restart" type="button">Try again</button><button class="btn btn-ghost js-back" type="button">Go back one step</button></div></div>
+</article>
+
+    <footer class="foot">
+      <p>Teacher Alex · Readers · A2</p>
+      <p>A story in the world of Paranormal Order, by Cellbit</p>
+      <button class="linkbtn" id="reset-endings" type="button">Reset endings</button>
+    </footer>
+  </div>
+</main>
+
+<script>
+(function(){
+  var ENDINGS = {"10": {"title": "The Words", "kind": "bad"}, "11": {"title": "The Empty Library", "kind": "bad"}, "12": {"title": "Ana", "kind": "good"}};
+  var TITLES = {"1": "The Call", "2": "The Hall", "3": "The Guard’s Room", "4": "The Stairs", "5": "The Reading Room", "6": "The Archive", "7": "Mr. Verity", "8": "The Book", "9": "Osvaldo", "10": "The Words", "11": "The Empty Library", "12": "Ana"};
+  var END_ORDER = Object.keys(ENDINGS).map(Number).sort(function(a,b){ return a-b; });
+  var INTENSITY = {"1": 0.25, "2": 0.85, "3": 0.4, "4": 0.45, "5": 1.1, "6": 0.9, "7": 0.45, "8": 1.25, "9": 0.8, "10": 1.9, "11": 0, "12": 0};
+  var MOOD = {"10": "flood", "11": "empty", "12": "win"};
+  var STORE = "op-dont-read-endings-v1";
+  var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var secs = {};
+  document.querySelectorAll(".sec").forEach(function(a){ secs[+a.dataset.n] = a; });
+  var hero = document.getElementById("hero");
+  var trail = document.getElementById("trail");
+  var btnBack = document.getElementById("btn-back");
+  var hist = [1];
+
+  function loadFound(){
+    try{
+      var v = JSON.parse(localStorage.getItem(STORE) || "[]");
+      return Array.isArray(v) ? v.filter(function(n){ return ENDINGS[n]; }) : [];
+    }catch(e){ return []; }
+  }
+  function saveFound(){ try{ localStorage.setItem(STORE, JSON.stringify(found)); }catch(e){} }
+  var found = loadFound();
+
+  function cur(){ return hist[hist.length-1]; }
+
+  function renderTrail(){
+    trail.textContent = "";
+    var l = document.createElement("span"); l.className = "lbl"; l.textContent = "Your path"; trail.appendChild(l);
+    hist.forEach(function(n, i){
+      if(i){ var a = document.createElement("span"); a.className = "arr"; a.textContent = "→"; a.setAttribute("aria-hidden","true"); trail.appendChild(a); }
+      var s = document.createElement("span");
+      s.className = "step" + (i === hist.length-1 ? " now" : "");
+      s.textContent = n; s.title = TITLES[n] || "";
+      trail.appendChild(s);
+    });
+  }
+
+  function renderFound(now){
+    document.querySelectorAll(".found").forEach(function(box){
+      box.querySelector(".found-count").textContent = found.length;
+      var ol = box.querySelector(".slots"); ol.textContent = "";
+      END_ORDER.forEach(function(n){
+        var e = ENDINGS[n], got = found.indexOf(n) !== -1;
+        var li = document.createElement("li");
+        li.className = "slot" + (got ? " got " + e.kind : "") + (n === now ? " now" : "");
+        var k = document.createElement("span"); k.className = "sk";
+        k.textContent = got ? (e.kind === "good" ? "Good ending" : "Bad ending") : "Not found";
+        var t = document.createElement("span"); t.className = "st";
+        t.textContent = got ? e.title : "? ? ?";
+        li.appendChild(k); li.appendChild(t); ol.appendChild(li);
+      });
+    });
+  }
+
+  function render(animate){
+    var n = cur();
+    Object.keys(secs).forEach(function(k){ secs[k].hidden = (+k !== n); });
+    var a = secs[n];
+    if(animate && !reduced){ a.classList.remove("enter"); void a.offsetWidth; a.classList.add("enter"); }
+    hero.hidden = !(n === 1 && hist.length === 1);
+    btnBack.disabled = hist.length < 2;
+    document.body.setAttribute("data-mood", MOOD[n] || "");
+    renderTrail();
+    if(a.dataset.end){
+      if(found.indexOf(n) === -1){ found.push(n); saveFound(); }
+      renderFound(n);
+    }
+    sigils.scene(n);
+  }
+
+  function focusTop(){
+    try{ window.scrollTo({ top:0, behavior: reduced ? "auto" : "smooth" }); }catch(e){ window.scrollTo(0,0); }
+    var h = secs[cur()].querySelector("h2");
+    if(h){ try{ h.focus({ preventScroll:true }); }catch(e){ h.focus(); } }
+  }
+  function go(to){ if(!secs[to]) return; hist.push(to); render(true); focusTop(); }
+  function back(){ if(hist.length > 1){ hist.pop(); render(true); focusTop(); } }
+  function restart(){ hist = [1]; render(true); focusTop(); }
+
+  document.addEventListener("click", function(e){
+    var c = e.target.closest(".choice");
+    if(c){ go(+c.dataset.to); return; }
+    if(e.target.closest(".js-restart")){ restart(); return; }
+    if(e.target.closest(".js-back")){ back(); return; }
+    if(e.target.closest("#reset-endings")){ found = []; saveFound(); renderFound(secs[cur()].dataset.end ? cur() : 0); }
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.metaKey || e.ctrlKey || e.altKey) return;
+    if(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if(e.key === "1" || e.key === "2"){
+      var btns = secs[cur()].querySelectorAll(".choice");
+      var b = btns[+e.key - 1];
+      if(b){ e.preventDefault(); b.click(); }
+    } else if(e.key === "ArrowLeft"){ if(hist.length > 1){ e.preventDefault(); back(); } }
+  });
+
+  /* ---------- sigils: invented glyphs that crawl in the margins ---------- */
+  var sigils = (function(){
+    var cv = document.getElementById("sigils");
+    var ctx = cv.getContext && cv.getContext("2d");
+    if(!ctx) return { scene:function(){} };
+    var W = 0, H = 0, dpr = 1, col = document.getElementById("col");
+
+    var seed = 71;
+    function rnd(){ seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }
+    var R = Math.random;
+
+    var P = []; for(var i=0;i<3;i++) for(var j=0;j<3;j++) P.push([i/2, j/2]);
+    var GLYPHS = [];
+    for(var g=0; g<48; g++){
+      var ops = [], segs = 2 + Math.floor(rnd()*3);
+      for(var s=0; s<segs; s++){
+        var a = P[Math.floor(rnd()*9)], b;
+        do{ b = P[Math.floor(rnd()*9)]; }while(b === a);
+        ops.push([rnd() < .25 ? "arc" : "line", a, b, rnd() < .5 ? 1 : -1]);
+      }
+      if(rnd() < .6) ops.push(["dot", P[Math.floor(rnd()*9)]]);
+      if(rnd() < .18) ops.push(["ring", P[4]]);
+      GLYPHS.push(ops);
+    }
+
+    var parts = [], intensity = .25, alphaMul = 1, fade = 1.4, colAlpha = .16;
+    var color = "#d8a83c", strength = .5, sceneN = 1, running = false, last = 0;
+
+    function readColors(){
+      var cs = getComputedStyle(document.body);
+      color = cs.getPropertyValue("--sigil").trim() || color;
+      strength = parseFloat(cs.getPropertyValue("--sigil-strength")) || strength;
+    }
+    function target(){ return Math.min(340, Math.round(intensity * W * H / 11000)); }
+    function spawn(){
+      return { x:R()*W, y:R()*H, s:14 + R()*22, g:Math.floor(R()*GLYPHS.length),
+               a:0, ta:.35 + R()*.6, ang:R()*Math.PI*2, sp:5 + R()*13, rot:(R()-.5)*.7,
+               move:R() < .6, t:R()*2.5, dying:false, delay:0 };
+    }
+    function sync(spread){
+      var alive = parts.filter(function(p){ return !p.dying; });
+      var want = target();
+      if(alive.length < want){
+        for(var k = alive.length; k < want; k++){ var p = spawn(); if(reduced) p.a = p.ta; parts.push(p); }
+      } else if(alive.length > want){
+        var extra = alive.length - want;
+        for(var m = alive.length - 1; m >= 0 && extra > 0; m--, extra--){
+          alive[m].dying = true; alive[m].delay = R() * spread;
+        }
+      }
+    }
+    function resize(){
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth; H = window.innerHeight;
+      cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      sync(1);
+      if(reduced){ parts = parts.filter(function(p){ return !p.dying; }); draw(); }
+    }
+    function drawGlyph(p, alpha){
+      var ops = GLYPHS[p.g], s = p.s;
+      ctx.save();
+      ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.translate(-s/2, -s/2);
+      ctx.globalAlpha = alpha;
+      ctx.lineWidth = Math.max(1, s*.075);
+      ctx.beginPath();
+      for(var i=0;i<ops.length;i++){
+        var o = ops[i];
+        if(o[0] === "line"){ ctx.moveTo(o[1][0]*s, o[1][1]*s); ctx.lineTo(o[2][0]*s, o[2][1]*s); }
+        else if(o[0] === "arc"){
+          var ax=o[1][0]*s, ay=o[1][1]*s, bx=o[2][0]*s, by=o[2][1]*s;
+          var mx=(ax+bx)/2, my=(ay+by)/2, nx=-(by-ay)*.45*o[3], ny=(bx-ax)*.45*o[3];
+          ctx.moveTo(ax, ay); ctx.quadraticCurveTo(mx+nx, my+ny, bx, by);
+        }
+      }
+      ctx.stroke();
+      for(var q=0;q<ops.length;q++){
+        var d = ops[q];
+        if(d[0] === "dot"){ ctx.beginPath(); ctx.arc(d[1][0]*s, d[1][1]*s, s*.07, 0, Math.PI*2); ctx.fill(); }
+        else if(d[0] === "ring"){ ctx.beginPath(); ctx.arc(d[1][0]*s, d[1][1]*s, s*.22, 0, Math.PI*2); ctx.stroke(); }
+      }
+      ctx.restore();
+    }
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineCap = "round"; ctx.lineJoin = "round";
+      var r = col.getBoundingClientRect();
+      for(var i=0;i<parts.length;i++){
+        var p = parts[i], inCol = p.x > r.left - 14 && p.x < r.right + 14;
+        var al = p.a * strength * alphaMul * (inCol ? colAlpha : 1);
+        if(al > .004) drawGlyph(p, Math.min(1, al));
+      }
+    }
+    function step(dt){
+      for(var i=parts.length-1;i>=0;i--){
+        var p = parts[i];
+        p.t -= dt;
+        if(p.t <= 0){ p.move = !p.move; p.t = p.move ? .6 + R()*2 : .3 + R()*1.6; p.ang += (R()-.5)*2.4; }
+        if(p.move){
+          p.ang += (R()-.5)*3*dt;
+          p.x += Math.cos(p.ang)*p.sp*dt; p.y += Math.sin(p.ang)*p.sp*dt;
+          if(p.x < -40) p.x = W+40; if(p.x > W+40) p.x = -40;
+          if(p.y < -40) p.y = H+40; if(p.y > H+40) p.y = -40;
+        }
+        if(p.dying){ p.delay -= dt; if(p.delay <= 0) p.ta = 0; }
+        p.a += (p.ta - p.a) * Math.min(1, dt*fade);
+        if(p.dying && p.delay <= 0 && p.a < .01) parts.splice(i,1);
+      }
+    }
+    function loop(ts){
+      if(!running) return;
+      var dt = last ? Math.min(.05, (ts-last)/1000) : .016; last = ts;
+      step(dt); draw();
+      requestAnimationFrame(loop);
+    }
+    function start(){ if(reduced || running) return; running = true; last = 0; requestAnimationFrame(loop); }
+    function stop(){ running = false; }
+
+    /* mood "flood": background floods, glyphs brighter and allowed behind the text
+       mood "empty": background vanishes at once
+       mood "win":   glyphs disappear one by one over ~5 s */
+    function scene(n){
+      sceneN = n;
+      var m = MOOD[n] || "";
+      intensity = INTENSITY[n] != null ? INTENSITY[n] : 0;
+      alphaMul = m === "flood" ? 1.35 : 1;
+      colAlpha = m === "flood" ? .28 : .16;
+      fade = m === "empty" ? 3 : (m === "win" ? 1.1 : 1.4);
+      readColors();
+      var spread = m === "win" ? 5 : (m === "empty" ? .25 : 1.2);
+      sync(spread);
+      if(reduced){ parts = parts.filter(function(p){ return !p.dying; }); draw(); }
+    }
+
+    window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", function(){ document.hidden ? stop() : start(); });
+    if(window.matchMedia){
+      var mq = matchMedia("(prefers-color-scheme: dark)");
+      var onScheme = function(){ readColors(); if(reduced) draw(); };
+      mq.addEventListener ? mq.addEventListener("change", onScheme) : mq.addListener(onScheme);
+    }
+    new MutationObserver(function(){ readColors(); if(reduced) draw(); })
+      .observe(document.documentElement, { attributes:true, attributeFilter:["data-theme"] });
+
+    readColors(); resize(); start();
+    return { scene:scene };
+  })();
+
+  render(false);
+})();
+</script>
+
+</body>
+</html>
