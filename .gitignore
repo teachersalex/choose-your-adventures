@@ -1,0 +1,4 @@
+.sincronizar-pendente/
+__pycache__/
+*.pyc
+tmp/
