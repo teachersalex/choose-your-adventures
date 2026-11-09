@@ -1,6 +1,6 @@
 # Capas do seletor · fontes
 
-Baixadas em 19/10/2026 para uso local no `ABRIR-AVENTURAS.html`. Pôsteres são material promocional dos estúdios.
+Baixadas em 19/10/2026 para o seletor das aventuras, hoje o `index.html` do site. Pôsteres são material promocional dos estúdios.
 
 ## Pôsteres (IMDb)
 

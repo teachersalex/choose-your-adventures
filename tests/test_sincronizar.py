@@ -19,26 +19,28 @@ class SincronizarTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory(prefix="sincronizar-ficticio-", dir=ROOT / "tmp")
         self.addCleanup(self.tmp.cleanup)
         self.area = Path(self.tmp.name).resolve()
-        self.site = self.area / "site"
-        self.site.mkdir()
-        self.apostilas = self.area / "Apostilas"
-        self.mesa = self.apostilas / "00-MESA-DO-ALEX/02-EM-REVISAO"
-        self.mesa.mkdir(parents=True)
+        # Same layout as MaterialDidatico: 3 - Choose Your Adventure/{Aventuras,Site} beside 2 - Apostilas.
+        self.casa = self.area / "3 - Choose Your Adventure"
+        self.site = self.casa / "Site"
+        self.site.mkdir(parents=True)
+        self.fontes = self.casa / "Aventuras"
+        self.fontes.mkdir()
+        self.apostilas = self.area / "2 - Apostilas"
         self.covers = self.apostilas / "01-OFICINA/graded-reader-studio/capas"
         self.covers.mkdir(parents=True)
         self.downloads = self.area / "Downloads"
         self.downloads.mkdir()
         self.catalogo = self.apostilas / "01-OFICINA/motor/catalogo_mesa.json"
         self.catalogo.parent.mkdir(parents=True)
-        self.items = [{"aventura": s, "arquivo": "02-EM-REVISAO/" + s + ".html"} for s in ("alpha", "beta")]
-        self.catalogo.write_text(json.dumps({"materiais": self.items}), encoding="utf-8")
+        self.items = [{"aventura": s, "arquivo": s.title() + " Story.html"} for s in ("alpha", "beta")]
+        self.catalogo.write_text(json.dumps({"materiais": [], "aventuras": self.items}), encoding="utf-8")
         (self.site / "aventuras").mkdir()
         (self.site / "capas").mkdir()
         self.slugs = ["alpha", "beta", "dont-write", "dont-close", "dont-go-out"]
         for s in self.slugs:
             (self.site / "aventuras" / (s + ".html")).write_text("<html>ANTERIOR " + s + "</html>", encoding="utf-8")
             if s in ("alpha", "beta"):
-                (self.mesa / (s + ".html")).write_text("<html>NOVO " + s + "</html>", encoding="utf-8")
+                self.fonte(s).write_text("<html>NOVO " + s + "</html>", encoding="utf-8")
         (self.covers / "capa.jpg").write_bytes(b"capa nova")
         (self.site / "capas/capa.jpg").write_bytes(b"capa anterior")
         (self.site / "index.html").write_text(''.join(f'<a href="aventuras/{s}.html">{s}</a>' for s in self.slugs) + '<img src="capas/capa.jpg">', encoding="utf-8")
@@ -47,6 +49,9 @@ class SincronizarTests(unittest.TestCase):
         self.before = {p: p.read_bytes() for p in (self.site / "aventuras").glob("*")}
         self.before[self.site / "capas/capa.jpg"] = b"capa anterior"
 
+    def fonte(self, slug):
+        return self.fontes / (slug.title() + " Story.html")
+
     def executar(self, *args):
         env = os.environ.copy()
         # The runner may omit installed Git from PATH; the fixture supplies it
@@ -54,7 +59,7 @@ class SincronizarTests(unittest.TestCase):
         env["PATH"] = str(Path(GIT).parent) + os.pathsep + env.get("PATH", "")
         env.setdefault("PATHEXT", ".COM;.EXE;.BAT;.CMD")
         return subprocess.run([str(PS), "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File",
-                               str(self.site / "sincronizar.ps1"), "-Apostilas", str(self.apostilas),
+                               str(self.site / "sincronizar.ps1"),
                                "-Downloads", str(self.downloads), *args], cwd=self.site,
                               env=env, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=20)
 
@@ -87,7 +92,7 @@ class SincronizarTests(unittest.TestCase):
         result = self.executar("-Sincronizar")
         self.assertEqual(result.returncode, 0, result.stderr)
         for s in ("alpha", "beta"):
-            self.assertEqual((self.site / "aventuras" / (s + ".html")).read_bytes(), (self.mesa / (s + ".html")).read_bytes())
+            self.assertEqual((self.site / "aventuras" / (s + ".html")).read_bytes(), self.fonte(s).read_bytes())
         for s in self.slugs[2:]:
             p = self.site / "aventuras" / (s + ".html")
             self.assertEqual(p.read_bytes(), self.before[p])
@@ -107,7 +112,7 @@ class SincronizarTests(unittest.TestCase):
         self.iguais()
 
     def test_fonte_ausente_interrompe_antes_de_copiar(self):
-        (self.mesa / "beta.html").unlink()
+        self.fonte("beta").unlink()
         result = self.executar("-Sincronizar")
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("Fonte ausente", result.stderr)
@@ -128,12 +133,30 @@ class SincronizarTests(unittest.TestCase):
         self.assertIn("HTML completo", result.stderr)
         self.iguais()
 
-    def test_catalogo_fora_da_mesa_bloqueia_lote(self):
-        self.items[1]["arquivo"] = "../../fora.html"
-        self.catalogo.write_text(json.dumps({"materiais": self.items}), encoding="utf-8")
+    def test_catalogo_fora_das_aventuras_bloqueia_lote(self):
+        for nome in ("../../fora.html", "sub/Beta Story.html", "C:/fora.html", "Beta Story.pdf"):
+            with self.subTest(nome=nome):
+                self.items[1]["arquivo"] = nome
+                self.catalogo.write_text(json.dumps({"materiais": [], "aventuras": self.items}), encoding="utf-8")
+                result = self.executar("-Sincronizar")
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("Destino invalido", result.stderr)
+                self.iguais()
+
+    def test_aventura_ainda_na_mesa_bloqueia_lote(self):
+        mesa = [{"id": "x.html", "arquivo": "02-PRONTOS-PARA-USAR/x.html", "aventura": "alpha"}]
+        self.catalogo.write_text(json.dumps({"materiais": mesa, "aventuras": self.items}), encoding="utf-8")
         result = self.executar("-Sincronizar")
         self.assertNotEqual(result.returncode, 0)
+        self.assertIn("ainda cadastrada na Mesa", result.stderr)
         self.iguais()
+
+    def test_pasta_de_aventuras_explicita(self):
+        outra = self.area / "Outra pasta"
+        self.fontes.rename(outra)
+        result = self.executar("-Sincronizar", "-Aventuras", str(outra))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((self.site / "aventuras/alpha.html").read_bytes(), (outra / "Alpha Story.html").read_bytes())
 
     def test_indice_desatualizado_bloqueia_lote(self):
         p = self.site / "index.html"

@@ -3,6 +3,7 @@
 param(
     [switch]$Sincronizar,
     [switch]$Publicar,
+    [string]$Aventuras,
     [string]$Apostilas,
     [string]$Downloads = (Join-Path ([Environment]::GetFolderPath('UserProfile')) 'Downloads'),
     [string]$GitExecutavel = 'git'
@@ -10,10 +11,13 @@ param(
 $ErrorActionPreference = 'Stop'
 $pastaScript = Split-Path $MyInvocation.MyCommand.Path -Parent
 $raiz = [IO.Path]::GetFullPath($pastaScript)
-if (-not $Apostilas) { $Apostilas = Join-Path (Split-Path $raiz -Parent) 'Apostilas' }
+# House 3 of MaterialDidatico: Aventuras/ holds the official copy of each adventure; Site/ is this folder.
+$casa = Split-Path $raiz -Parent
+if (-not $Aventuras) { $Aventuras = Join-Path $casa 'Aventuras' }
+if (-not $Apostilas) { $Apostilas = Join-Path (Split-Path $casa -Parent) '2 - Apostilas' }
+$baseAventuras = [IO.Path]::GetFullPath($Aventuras)
 $trava = Join-Path $raiz '.sincronizar-pendente'
 $baseApostilas = [IO.Path]::GetFullPath($Apostilas)
-$mesa = Join-Path $baseApostilas '00-MESA-DO-ALEX'
 $studio = Join-Path $baseApostilas '01-OFICINA/graded-reader-studio'
 $catalogo = Join-Path $baseApostilas '01-OFICINA/motor/catalogo_mesa.json'
 
@@ -66,14 +70,18 @@ if (Test-Path -LiteralPath $trava) { throw "Sincronizacao em andamento ou interr
 $dados = Get-Content -LiteralPath $catalogo -Raw -Encoding UTF8 | ConvertFrom-Json
 $fontes = @{}
 foreach ($item in $dados.materiais) {
-    if (-not $item.aventura) { continue }
+    if ($item.aventura) { throw "Aventura ainda cadastrada na Mesa: $($item.aventura). Ela mora na secao aventuras do catalogo." }
+}
+foreach ($item in @($dados.aventuras)) {
+    if ($null -eq $item) { continue }
     $slug = [string]$item.aventura
     if ($slug -notmatch '^[a-z0-9]+(-[a-z0-9]+)*$' -or $fontes.ContainsKey($slug)) { throw "Slug invalido ou repetido: $slug" }
-    if ([IO.Path]::IsPathRooted($item.arquivo) -or ($item.arquivo -split '[\\/]') -contains '..') { throw "Destino invalido no catalogo: $($item.arquivo)" }
-    if ($item.arquivo -notmatch '^(02-EM-REVISAO|03-PRONTOS-PARA-USAR)[\\/].+\.html$') { throw "Aventura fora das areas de entrega: $slug" }
-    $fontes[$slug] = Testar-Dentro (Join-Path $mesa $item.arquivo) $mesa
+    $nome = [string]$item.arquivo
+    if (-not $nome -or [IO.Path]::IsPathRooted($nome) -or $nome -match '[\\/:]' -or $nome -notmatch '\.html$') { throw "Destino invalido no catalogo: $nome" }
+    $fontes[$slug] = Testar-Dentro (Join-Path $baseAventuras $nome) $baseAventuras
 }
-# These three sources have not yet been imported into the studio/catalogue.
+# Old path for three adventures that came without studio sources. Since 08/11/2026 all six
+# live in Aventuras/ and in the catalogue; this only applies if one of them leaves it.
 $preservadas = @()
 foreach ($slug in @('dont-write', 'dont-close', 'dont-go-out')) {
     if ($fontes.ContainsKey($slug)) { continue }
